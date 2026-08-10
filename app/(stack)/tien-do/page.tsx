@@ -5,8 +5,38 @@ import { useProfile } from '@/hooks/use-profile';
 import { useWordsList } from '@/hooks/use-words';
 import { WordCard } from '@/components/WordCard';
 import { BackHeader } from '@/components/layout/back-header';
-import { Flame, CheckCircle2, RotateCcw, Calendar } from 'lucide-react';
+import { Flame, CheckCircle2, RotateCcw, Calendar, BarChart2 } from 'lucide-react';
 import { dayKey, lastNDays, weekdayVi } from '@/lib/srs/date';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  Cell,
+} from 'recharts';
+
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: { day: string; date: string; reviews: number } }>;
+}
+
+function CustomTooltip({ active, payload }: TooltipProps) {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-surface border border-rule rounded-xl p-3 shadow-md text-xs font-sans">
+        <p className="font-semibold text-ink">{data.day} ({data.date})</p>
+        <p className="text-indigo-600 dark:text-indigo-400 font-mono-utility mt-1">
+          Lượt ôn tập: <span className="font-bold">{data.reviews} lượt</span>
+        </p>
+      </div>
+    );
+  }
+  return null;
+}
 
 // Rewritten on hooks/use-profile.ts + hooks/use-words.ts (Phase 5); fake-data bugs
 // fixed in Phase 7 (docs/progress/00-baseline-audit.md §I69-72):
@@ -33,6 +63,22 @@ export default function ProgressPage() {
   const earliestWordDate = words.length > 0
     ? Math.min(...words.map((w) => w.createdAt))
     : null;
+
+  const chartData = React.useMemo(() => {
+    return last7Days.map((key) => {
+      const count = stats.history[key] ?? 0;
+      return {
+        key,
+        day: weekdayVi(key),
+        date: key,
+        reviews: count,
+      };
+    });
+  }, [last7Days, stats.history]);
+
+  const reviewsLast7Days = React.useMemo(() => {
+    return last7Days.reduce((sum, key) => sum + (stats.history[key] ?? 0), 0);
+  }, [last7Days, stats.history]);
 
   return (
     <>
@@ -83,6 +129,52 @@ export default function ProgressPage() {
               {stats.totalReviews}
             </div>
             <span className="text-[11px] text-ink-soft block mt-1">Đúng {accuracy}%</span>
+          </div>
+        </div>
+
+        {/* Recharts Chart for 7 Days Total Reviews */}
+        <div className="bg-surface border border-rule rounded-2xl p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BarChart2 size={18} className="text-indigo-600 dark:text-indigo-400" />
+              <div>
+                <h3 className="font-semibold text-base text-ink">Biểu đồ lượt ôn tập (7 ngày qua)</h3>
+                <p className="text-xs text-ink-soft">Tổng số lượt ôn: <span className="font-mono-utility font-semibold text-ink">{reviewsLast7Days}</span> lượt</p>
+              </div>
+            </div>
+            <span className="text-xs font-mono-utility text-indigo-600 dark:text-indigo-400 font-semibold">Tỉ lệ đúng {accuracy}%</span>
+          </div>
+
+          <div className="h-56 w-full pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--rule)" />
+                <XAxis
+                  dataKey="day"
+                  tick={{ fontSize: 12, fill: 'var(--ink-soft)' }}
+                  axisLine={{ stroke: 'var(--rule)' }}
+                  tickLine={false}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fontSize: 11, fill: 'var(--ink-soft)' }}
+                  axisLine={{ stroke: 'var(--rule)' }}
+                  tickLine={false}
+                />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--green-wash)', opacity: 0.5 }} />
+                <Bar dataKey="reviews" radius={[6, 6, 0, 0]}>
+                  {chartData.map((entry, index) => {
+                    const isToday = entry.key === last7Days[last7Days.length - 1];
+                    return (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={isToday ? 'var(--green)' : '#6366F1'}
+                      />
+                    );
+                  })}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
@@ -145,3 +237,4 @@ export default function ProgressPage() {
     </>
   );
 }
+
