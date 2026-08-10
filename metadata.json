@@ -1,0 +1,8 @@
+{
+  "name": "Baobao-learning",
+  "description": "A calm English vocabulary app with interactive grammar quizzes, flashcards, spaced repetition, and AI enrichment.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

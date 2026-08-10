@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+/*
+ * Makes the `dark:` variant follow the app's own toggle ([data-theme="dark"] on
+ * <html>, set by settings) instead of Tailwind v4's default of `prefers-color-scheme`
+ * (the OS setting). Before this line, every `dark:` utility in the app followed the
+ * OS while the CSS variables below followed the in-app toggle — two mechanisms that
+ * could disagree in either direction. See docs/design.md §1 and ADR in decision.md.
+ */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  /* Design tokens — keep these exact values (docs/decision.md ADR-006: the current
+     AI-Studio look is intentional, not a placeholder to be replaced). */
+  --paper: #F8FAFC;
+  --surface: #FFFFFF;
+  --ink: #0F172A;
+  --ink-soft: #64748B;
+  --rule: #E2E8F0;
+  --green: #4F46E5;
+  --green-wash: #EEF2FF;
+  --amber: #D97706;
+  --wrong: #E11D48;
+  --violet: #8B5CF6; /* second gradient stop for the hero banners — not a new accent hue,
+                         just naming the indigo→violet gradient already in use so it has
+                         one source instead of being hardcoded per-component. */
+
+  --radius-card: 16px;
+  --radius-btn: 12px;
+  --radius-sheet: 24px;
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08);
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --paper: #0F172A;
+  --surface: #1E293B;
+  --ink: #F8FAFC;
+  --ink-soft: #94A3B8;
+  --rule: #334155;
+  --green: #818CF8;
+  --green-wash: #1E1B4B;
+  --amber: #FBBF24;
+  --wrong: #FB7185;
+  --violet: #A78BFA;
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+
+  color-scheme: dark;
+}
+
+/*
+ * `inline` makes these utilities emit `var(--paper)` etc. rather than baking the
+ * resolved hex in at build time — so flipping [data-theme] re-themes every utility
+ * with zero JS re-render. This is the single source of truth for color/radius/shadow;
+ * arbitrary values like bg-[var(--paper)] are banned by eslint.config.mjs from this
+ * point on (docs/design.md §3).
+ */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-rule: var(--rule);
+  --color-green: var(--green);
+  --color-green-wash: var(--green-wash);
+  --color-amber: var(--amber);
+  --color-wrong: var(--wrong);
+  --color-violet: var(--violet);
+
+  --radius-card: var(--radius-card);
+  --radius-btn: var(--radius-btn);
+  --radius-sheet: var(--radius-sheet);
+
+  --shadow-card: var(--shadow-card);
+
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-serif: var(--font-instrument-serif), Georgia, serif;
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
+}
+
+@layer base {
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    min-height: 100dvh;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--green);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Kept as class aliases for font-family so existing markup (font-serif-display,
+   font-mono-utility) keeps working unchanged while the underlying font loading
+   moves to next/font (app/fonts.ts) instead of a render-blocking <link>. */
+.font-serif-display {
+  font-family: var(--font-serif);
+}
+
+.font-mono-utility {
+  font-family: var(--font-mono);
+}
+
+/* Ruled blank line for interactive fill-in-the-blank exercises */
+.ruled-blank {
+  display: inline-block;
+  min-width: 80px;
+  border-bottom: 2px solid var(--green);
+  vertical-align: baseline;
+  margin: 0 4px;
+}
+
+/* Card perspective transitions (wrong-answer flip on exercise cards) */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
