@@ -1,17 +1,30 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useProfile } from '@/hooks/use-profile';
 import { useSettingsStore } from '@/stores/settings-store';
-import { Flame, Sun, Moon, Settings } from 'lucide-react';
+import { Flame, Sun, Moon, Settings, User } from 'lucide-react';
 
-// Ported verbatim from the old components/AppShell.tsx header (same markup/classes,
-// same behaviour). Navigation moved from local useState to real routes in Phase 2;
-// data source moved from context/WordsContext.tsx to the Dexie-backed profile
-// hook + settings store in Phase 5 (docs/architecture.md §4/§7).
 export function AppHeader() {
   const { stats, settings } = useProfile();
   const updateSettings = useSettingsStore((s) => s.updateSettings);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/auth/me')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data?.authenticated && data?.user?.email) {
+          setUserEmail(data.user.email);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const toggleTheme = () => {
     const nextTheme = settings.theme === 'dark' ? 'light' : 'dark';
@@ -29,7 +42,7 @@ export function AppHeader() {
           </span>
         </div>
 
-        <div className="flex items-center gap-3 sm:gap-6">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Link
             href="/tien-do"
             className="flex items-center gap-2 bg-amber-50 dark:bg-amber-950/40 px-3 py-1.5 rounded-full border border-amber-200/60 dark:border-amber-800/50 cursor-pointer hover:scale-105 transition-all"
@@ -37,7 +50,7 @@ export function AppHeader() {
           >
             <Flame size={16} className="text-amber-500 fill-amber-500" />
             <span className="text-xs sm:text-sm font-semibold text-amber-700 dark:text-amber-400 font-mono-utility">
-              {stats.streak} ngày liên tiếp
+              {stats.streak} ngày
             </span>
           </Link>
 
@@ -48,6 +61,21 @@ export function AppHeader() {
           >
             {settings.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
+
+          <Link
+            href="/dang-nhap"
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border transition-all text-xs cursor-pointer ${
+              userEmail
+                ? 'bg-green-wash border-green/30 text-green font-medium'
+                : 'border-rule text-ink-soft hover:text-ink hover:border-ink-soft/40'
+            }`}
+            title={userEmail ? `Đã đăng nhập: ${userEmail}` : 'Đăng nhập với email'}
+          >
+            <User size={16} />
+            <span className="hidden sm:inline truncate max-w-[100px] font-mono-utility">
+              {userEmail ? userEmail.split('@')[0] : 'Đăng nhập'}
+            </span>
+          </Link>
 
           <Link
             href="/cai-dat"

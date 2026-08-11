@@ -62,7 +62,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     });
   } catch (err) {
     const aiErr = err instanceof AiError ? err : new AiError('unknown', { cause: err });
-    console.error('[lexio/ai] tts failed:', aiErr.code, aiErr.detail.cause ?? aiErr.message);
+    console.warn('[lexio/ai] tts unavailable:', aiErr.code, aiErr.detail.cause ?? aiErr.message);
     return problemResponse('unsupported_capability', requestId);
   }
 }

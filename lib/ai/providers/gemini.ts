@@ -6,6 +6,39 @@ import { parsePcmMimeType, pcmToWav } from '@/lib/audio/pcm-to-wav';
 import type { GeminiConfig } from '../config';
 import type { AiProvider, GenerateJsonRequest, AiResult, SpeechRequest, SpeechResult } from '../types';
 
+function handleGeminiError(cause: unknown, taskId: string, requestId: string): never {
+  if (cause instanceof Error && cause.name === 'AbortError') {
+    throw new AiError('aborted', { providerId: 'gemini', taskId, requestId, cause });
+  }
+
+  const msg = cause instanceof Error ? cause.message : String(cause ?? '');
+  const rawObj = typeof cause === 'object' && cause !== null ? (cause as Record<string, unknown>) : {};
+  const status = rawObj.status ?? rawObj.code;
+
+  const isQuotaOrCredits =
+    status === 429 ||
+    status === 'RESOURCE_EXHAUSTED' ||
+    msg.includes('429') ||
+    msg.includes('RESOURCE_EXHAUSTED') ||
+    msg.includes('prepayment credits') ||
+    msg.includes('depleted') ||
+    msg.includes('Quota exceeded') ||
+    msg.includes('rate-limits');
+
+  if (isQuotaOrCredits) {
+    if (msg.includes('prepayment credits') || msg.includes('depleted') || msg.includes('Quota exceeded') || msg.includes('quota')) {
+      throw new AiError('quota_exhausted', { providerId: 'gemini', taskId, requestId, status: 429, cause });
+    }
+    throw new AiError('rate_limited', { providerId: 'gemini', taskId, requestId, status: 429, cause });
+  }
+
+  if (status === 401 || status === 403 || msg.includes('API key') || msg.includes('UNAUTHENTICATED')) {
+    throw new AiError('auth', { providerId: 'gemini', taskId, requestId, cause });
+  }
+
+  throw new AiError('upstream_unavailable', { providerId: 'gemini', taskId, requestId, cause });
+}
+
 export function createGeminiProvider(cfg: GeminiConfig): AiProvider {
   const client = new GoogleGenAI({ apiKey: cfg.apiKey, httpOptions: { headers: { 'User-Agent': 'lexio' } } });
 
@@ -36,10 +69,7 @@ export function createGeminiProvider(cfg: GeminiConfig): AiProvider {
           },
         });
       } catch (cause) {
-        if (cause instanceof Error && cause.name === 'AbortError') {
-          throw new AiError('aborted', { providerId: 'gemini', taskId: req.taskId, requestId: req.requestId });
-        }
-        throw new AiError('upstream_unavailable', { providerId: 'gemini', taskId: req.taskId, requestId: req.requestId, cause });
+        handleGeminiError(cause, req.taskId, req.requestId);
       }
 
       const candidate = response.candidates?.[0];
@@ -83,10 +113,7 @@ export function createGeminiProvider(cfg: GeminiConfig): AiProvider {
           },
         });
       } catch (cause) {
-        if (cause instanceof Error && cause.name === 'AbortError') {
-          throw new AiError('aborted', { providerId: 'gemini', taskId: req.taskId, requestId: req.requestId });
-        }
-        throw new AiError('upstream_unavailable', { providerId: 'gemini', taskId: req.taskId, requestId: req.requestId, cause });
+        handleGeminiError(cause, req.taskId, req.requestId);
       }
 
       const part = response.candidates?.[0]?.content?.parts?.[0];

@@ -87,7 +87,7 @@ export function createAiRoute<I, O>(task: ServerTask<I, O>) {
       logAiUsage({
         requestId, taskId: task.id, providerId: result.providerId, model: result.model,
         attempt, ok: true, latencyMs: Math.round(performance.now() - startedAt),
-        usage: result.usage, inputChars: JSON.stringify(input).length,
+        usage: result.usage, inputChars: typeof input === 'string' ? input.length : (function() { try { return JSON.stringify(input)?.length ?? 0; } catch { return 0; } })(),
       });
 
       return NextResponse.json(output, { headers: { 'x-request-id': requestId } });
@@ -97,9 +97,25 @@ export function createAiRoute<I, O>(task: ServerTask<I, O>) {
         requestId, taskId: task.id, providerId: provider.id, model: provider.textModel,
         attempt, ok: false, code: aiErr.code, latencyMs: Math.round(performance.now() - startedAt),
         usage: { promptTokens: null, completionTokens: null, totalTokens: null },
-        inputChars: JSON.stringify(input).length,
+        inputChars: typeof input === 'string' ? input.length : (function() { try { return JSON.stringify(input)?.length ?? 0; } catch { return 0; } })(),
       });
-      console.error(`[lexio/ai] ${task.id} failed:`, aiErr.code, aiErr.detail.cause ?? aiErr.message);
+      if (aiErr.code === 'quota_exhausted' || aiErr.code === 'rate_limited') {
+        const causeMsg =
+          aiErr.detail.cause instanceof Error
+            ? aiErr.detail.cause.message
+            : typeof aiErr.detail.cause === 'string'
+            ? aiErr.detail.cause
+            : aiErr.message;
+        console.warn(`[lexio/ai] ${task.id} ${aiErr.code}:`, causeMsg);
+      } else {
+        const causeMsg =
+          aiErr.detail.cause instanceof Error
+            ? aiErr.detail.cause.message
+            : typeof aiErr.detail.cause === 'string'
+            ? aiErr.detail.cause
+            : aiErr.message;
+        console.error(`[lexio/ai] ${task.id} failed:`, aiErr.code, causeMsg);
+      }
       return problemResponse(codeToProblem(aiErr.code), requestId);
     }
   };
