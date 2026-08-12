@@ -164,7 +164,7 @@ export default function ProgressPage() {
                   tickLine={false}
                 />
                 <Tooltip
-                  content={(props) => <CustomTooltip active={props.active} payload={props.payload as TooltipProps['payload']} />}
+                  content={(props) => <CustomTooltip active={props.active} payload={props.payload as unknown as TooltipProps['payload']} />}
                   cursor={{ fill: 'var(--green-wash)', opacity: 0.5 }}
                 />
                 <Bar dataKey="reviews" radius={[6, 6, 0, 0]} fill="#6366F1">
