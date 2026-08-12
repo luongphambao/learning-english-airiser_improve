@@ -8,7 +8,7 @@
 
 `lib/repositories/dexie/grammar-repository.ts` (`GrammarRepository`, repository thứ 6): `recordAttempt(topicId, score, total, now)` ghi đúng 1 dòng mỗi lần hoàn thành quiz (không phải mỗi câu hỏi); `lastAttemptByTopic()` gộp thành `Record<topicId, GrammarAttempt>` phục vụ badge. `hooks/use-grammar.ts` bọc `useLiveQuery`.
 
-`app/(tabs)/ngu-phap/page.tsx`: `handleAnswerQuestion` khi câu cuối cùng được trả lời, gọi `recordAttempt()` với điểm cuối cùng tính trực tiếp (`correct ? score + 1 : score`, không dựa vào `score` state có thể chưa kịp cập nhật do closure) thay vì tính-rồi-vứt như baseline. Danh sách chủ đề hiện `{N câu hỏi} · Lần trước: {score}/{total}` khi đã có lịch sử.
+`app/(tabs)/grammar/page.tsx`: `handleAnswerQuestion` khi câu cuối cùng được trả lời, gọi `recordAttempt()` với điểm cuối cùng tính trực tiếp (`correct ? score + 1 : score`, không dựa vào `score` state có thể chưa kịp cập nhật do closure) thay vì tính-rồi-vứt như baseline. Danh sách chủ đề hiện `{N câu hỏi} · Lần trước: {score}/{total}` khi đã có lịch sử.
 
 **Xác minh:** `tsc --noEmit` ✅, 148/148 test xanh (không đổi — chưa viết test riêng cho `GrammarRepository`, cùng loại rủi ro như `ImportRepository` ở mục trên), `next build` ✅.
 
@@ -16,17 +16,17 @@
 
 **`ImportRepository`** (`lib/repositories/dexie/import-repository.ts`) — repository thứ 5, thao tác trên bảng `imports` đã có schema Dexie từ Phase 3 nhưng chưa từng có consumer: `create`/`get`/`list`/`setCandidates`/`setTriage`/`fail`/`complete`. Thêm field `error?: string|null` vào `ImportSchema` (`lib/domain/import.ts`) để màn "Lỗi đọc file" có nội dung tiếng Việt cụ thể để hiện, không phải throw text kỹ thuật.
 
-**Màn mới `/tai-tai-lieu`** (`app/(stack)/tai-tai-lieu/page.tsx`) — 5 bước dồn vào 1 route bằng state cục bộ `Step`, không tách route riêng cho mỗi bước (khớp cách app hiện dùng sheet/step-trong-1-trang thay vì stack sâu nhiều tầng): `input` (dán văn bản hoặc tải `.txt`/`.md`, tối đa 10.000 ký tự, có danh sách các lần tải trước từ `useImportsList()` để tiếp tục dở dang sau khi rời trang) → `analyzing` (tạo `Import` row trước khi gọi AI để trạng thái sống sót qua điều hướng) → `triage` (lọc theo CEFR, 3 nút Biết rõ/Sơ sơ/Chưa biết mỗi từ, thanh sticky "Thêm N từ") → `success`/`error`. Xác nhận triage: mỗi ứng viên `partial`/`unknown` được `words.add()` rồi patch `meaningVi`/`exampleSentence` ngay từ dữ liệu `analyzeDocument` (hiện có nội dung tức thì, không trắng), riêng `partial` áp thêm `applyTriage('partial', now)` (easeLevel 2, due 3 ngày — đúng luật spec §8.3 dùng lại nguyên hàm đã có từ Phase 4), rồi gọi `enrich()` nền để bổ sung IPA/distractors/collocations/wordFamily như luồng "Gõ từ" thường.
+**Màn mới `/upload`** (`app/(stack)/upload/page.tsx`) — 5 bước dồn vào 1 route bằng state cục bộ `Step`, không tách route riêng cho mỗi bước (khớp cách app hiện dùng sheet/step-trong-1-trang thay vì stack sâu nhiều tầng): `input` (dán văn bản hoặc tải `.txt`/`.md`, tối đa 10.000 ký tự, có danh sách các lần tải trước từ `useImportsList()` để tiếp tục dở dang sau khi rời trang) → `analyzing` (tạo `Import` row trước khi gọi AI để trạng thái sống sót qua điều hướng) → `triage` (lọc theo CEFR, 3 nút Biết rõ/Sơ sơ/Chưa biết mỗi từ, thanh sticky "Thêm N từ") → `success`/`error`. Xác nhận triage: mỗi ứng viên `partial`/`unknown` được `words.add()` rồi patch `meaningVi`/`exampleSentence` ngay từ dữ liệu `analyzeDocument` (hiện có nội dung tức thì, không trắng), riêng `partial` áp thêm `applyTriage('partial', now)` (easeLevel 2, due 3 ngày — đúng luật spec §8.3 dùng lại nguyên hàm đã có từ Phase 4), rồi gọi `enrich()` nền để bổ sung IPA/distractors/collocations/wordFamily như luồng "Gõ từ" thường.
 
-`so-tu/page.tsx`: tab "Tải tệp" trong sheet Thêm từ đổi từ đọc file cục bộ (hack tạm — đọc xong nhét vào textarea của tab "Dán đoạn văn", không tạo `Import`, không triage) thành nút mở `/tai-tai-lieu`. Sheet chi tiết từ thêm khối "Ngày thêm / Đã ôn tập / Ôn lại tiếp" bên cạnh "Nguồn" — phần "provenance" còn thiếu mà `board.md` Phase 7 ghi chú (collocations/wordFamily hoá ra đã có sẵn trong `WordCard.tsx` từ baseline, chỉ luôn rỗng vì bug #1 chưa sửa — không phải thiếu UI).
+`vocabulary/page.tsx`: tab "Tải tệp" trong sheet Thêm từ đổi từ đọc file cục bộ (hack tạm — đọc xong nhét vào textarea của tab "Dán đoạn văn", không tạo `Import`, không triage) thành nút mở `/upload`. Sheet chi tiết từ thêm khối "Ngày thêm / Đã ôn tập / Ôn lại tiếp" bên cạnh "Nguồn" — phần "provenance" còn thiếu mà `board.md` Phase 7 ghi chú (collocations/wordFamily hoá ra đã có sẵn trong `WordCard.tsx` từ baseline, chỉ luôn rỗng vì bug #1 chưa sửa — không phải thiếu UI).
 
-**Chưa làm trong lượt này** (giữ nguyên trong `board.md`): nối Ngữ pháp vào SRS (chặn bởi C8), màn "Đang phân tích" dạng route riêng (gộp vào step trong `/tai-tai-lieu` thay vì route riêng — coi là tương đương, không phải thiếu), Cài đặt vẫn 3 field.
+**Chưa làm trong lượt này** (giữ nguyên trong `board.md`): nối Ngữ pháp vào SRS (chặn bởi C8), màn "Đang phân tích" dạng route riêng (gộp vào step trong `/upload` thay vì route riêng — coi là tương đương, không phải thiếu), Cài đặt vẫn 3 field.
 
-**Xác minh:** `tsc --noEmit` ✅, **148/148 test xanh** (không đổi — không thêm test cho `ImportRepository`, xem ghi chú rủi ro ở `board.md`), `next build` ✅ (`/tai-tai-lieu` 6.49 kB, prerender tĩnh), lint: tăng từ 192→198 lỗi, toàn bộ 198 vẫn cùng 1 loại `no-restricted-syntax` đã biết (6 lỗi mới ở khối provenance vừa thêm vào `so-tu/page.tsx`, file này vốn đã nằm trong diện dọn ở Phase 8 nên không phải nợ mới về loại).
+**Xác minh:** `tsc --noEmit` ✅, **148/148 test xanh** (không đổi — không thêm test cho `ImportRepository`, xem ghi chú rủi ro ở `board.md`), `next build` ✅ (`/upload` 6.49 kB, prerender tĩnh), lint: tăng từ 192→198 lỗi, toàn bộ 198 vẫn cùng 1 loại `no-restricted-syntax` đã biết (6 lỗi mới ở khối provenance vừa thêm vào `vocabulary/page.tsx`, file này vốn đã nằm trong diện dọn ở Phase 8 nên không phải nợ mới về loại).
 
 ## 2026-08-10 — Phase 7 — Bắt đầu: sửa dữ liệu giả ở Tiến độ
 
-`app/(stack)/tien-do/page.tsx`: 7 chấm hoạt động dùng `lastNDays(dayKey(now), 7)` + `weekdayVi()` từ `lib/srs/date.ts`, đọc thật `stats.history[dayKey]` thay vì `idx <= 4` hardcode (audit §I70). Accuracy fallback 0% thay vì 100% khi `totalReviews === 0` (audit §I72). Dòng "bắt đầu hành trình từ..." suy ra từ `Math.min(...words.map(w => w.createdAt))`, ẩn nếu sổ từ rỗng, thay vì luôn hiện ngày hôm nay (audit §I71).
+`app/(stack)/progress/page.tsx`: 7 chấm hoạt động dùng `lastNDays(dayKey(now), 7)` + `weekdayVi()` từ `lib/srs/date.ts`, đọc thật `stats.history[dayKey]` thay vì `idx <= 4` hardcode (audit §I70). Accuracy fallback 0% thay vì 100% khi `totalReviews === 0` (audit §I72). Dòng "bắt đầu hành trình từ..." suy ra từ `Math.min(...words.map(w => w.createdAt))`, ẩn nếu sổ từ rỗng, thay vì luôn hiện ngày hôm nay (audit §I71).
 
 **Phát hiện lỗ hổng data model khi thử nối Ngữ pháp vào SRS:** `StudyRepository.recordReview` bắt buộc `wordId` trỏ tới một `Word` thật (đọc từ DB, throw nếu không có) — nhưng `GrammarQuestion` không có quan hệ nào với `Word`. Đây không phải việc nối dây đơn giản như dự kiến; cần quyết định kiến trúc trước (entity `GrammarReview` riêng? liên kết `GrammarQuestion`→`Word`? hay giữ ngữ pháp độc lập hoàn toàn?). Ghi vào `spec-gaps.md` C8, **chưa làm**, để phiên sau quyết định.
 
@@ -48,7 +48,7 @@
 
 **Typed client:** `lib/api/client.ts` (`postJson`, `ApiError`, retry+backoff, gộp abort signal) + `lib/api/ai-client.ts` (`callTask`, `fetchSpeech`) — nơi duy nhất trong browser gọi `fetch` tới `/api/ai/*`.
 
-**Nối lại toàn bộ client cũ:** `stores/enrichment-store.ts`, `so-tu/page.tsx` (extract), `ExerciseListen.tsx` (tts, dùng Blob thay base64), `ExerciseWrite.tsx` (grade-sentence — **nhân tiện sửa bug #43**: nhánh lỗi mạng cũ tự chế một kết quả "đúng" giả và gán cho AI một câu nó chưa từng viết; giờ hiện lỗi thật). **Xoá `app/api/gemini/**` và `lib/models.ts`.**
+**Nối lại toàn bộ client cũ:** `stores/enrichment-store.ts`, `vocabulary/page.tsx` (extract), `ExerciseListen.tsx` (tts, dùng Blob thay base64), `ExerciseWrite.tsx` (grade-sentence — **nhân tiện sửa bug #43**: nhánh lỗi mạng cũ tự chế một kết quả "đúng" giả và gán cho AI một câu nó chưa từng viết; giờ hiện lỗi thật). **Xoá `app/api/gemini/**` và `lib/models.ts`.**
 
 **Bug hạ tầng test tự phát hiện:** package `server-only` throw ngay khi import ngoài bundler của Next (không phải lỗi code, là cơ chế của chính package đó khi chạy dưới Vitest thuần). Sửa bằng alias `server-only` → stub rỗng trong `vitest.config.ts`, cho phép test cả những file lẽ ra chỉ chạy trên server.
 
@@ -68,7 +68,7 @@
 
 `app/providers.tsx` thay `WordsProvider`: chạy `migrateFromLocalStorage()` + `seedIfEmpty()` một lần lúc mount, gate `children` sau cờ `ready` để tránh nháy trạng thái rỗng trong lúc import xong.
 
-**Nối toàn bộ 6 trang + `AppHeader`** (`/hom-nay`, `/so-tu`, `/lich`, `/tien-do`, `/cai-dat`, `AppHeader`) từ `useWords()` sang store/hook mới — `/ngu-phap` không đổi vì chưa từng dùng `WordsContext`. **Xoá `context/WordsContext.tsx`** (không còn nơi nào import).
+**Nối toàn bộ 6 trang + `AppHeader`** (`/today`, `/vocabulary`, `/calendar`, `/progress`, `/settings`, `AppHeader`) từ `useWords()` sang store/hook mới — `/grammar` không đổi vì chưa từng dùng `WordsContext`. **Xoá `context/WordsContext.tsx`** (không còn nơi nào import).
 
 **Xác minh:** `tsc --noEmit` ✅, **122/122 test xanh**, `next build` ✅ (7 route vẫn prerender tĩnh — xác nhận `getDb()`/Dexie không crash lúc SSR/build), smoke test server production: cả 7 route trả `200`, không "Application error"/"Unhandled Runtime" trong HTML. **Giới hạn xác minh:** môi trường này không có trình duyệt headless (Playwright/Puppeteer) để click-through thật — hành vi runtime (thêm từ → enrich hiển thị, F5 giữa buổi resume đúng thẻ) được xác nhận qua test tích hợp `study-repository.test.ts`/`migrations.test.ts` chạy trên `fake-indexeddb` (IndexedDB thật, không phải mock) cộng với đọc lại code, **chưa** phải kiểm thử UI đầu-cuối trong trình duyệt thật.
 
@@ -80,9 +80,9 @@
 
 **Xoá `lib/srs.ts` (file cũ)** — phát hiện xung đột tên với thư mục `lib/srs/` mới tạo ở Phase 3 (`@/lib/srs` có thể trỏ nhầm về file cũ còn bug timezone thay vì module mới); `context/WordsContext.tsx` (2 chỗ gọi `calculateNextReview`/`calculateUpdatedStats`) được vá tối thiểu sang `nextSchedule`/`nextStats` — tính năng SRS **đang chạy thật** trong app giờ dùng logic đã sửa bug, dù `WordsContext` bản thân vẫn còn tồn tại tới Phase 5.
 
-**Vá trực tiếp 2 component đang sống** (`ExerciseFillBlank.tsx`, `ExerciseListen.tsx`) sang dùng `splitForBlank`/`optionsForWord` thay vì code trùng lặp/lỗi cũ — không đợi Phase 5/7 vì đây là bug crash thật trên component hiện đang hiển thị ở `/hom-nay`.
+**Vá trực tiếp 2 component đang sống** (`ExerciseFillBlank.tsx`, `ExerciseListen.tsx`) sang dùng `splitForBlank`/`optionsForWord` thay vì code trùng lặp/lỗi cũ — không đợi Phase 5/7 vì đây là bug crash thật trên component hiện đang hiển thị ở `/today`.
 
-**Xác minh:** `tsc --noEmit` ✅, **118/118 test xanh** (thêm 12 test session + 7 test blank + 4 test shuffle so với Phase 3), `next build` ✅, smoke test production server: `/hom-nay` trả `200`, render từ mẫu **"trade-off"** không crash (bug regex đã sửa xác nhận ở runtime thật, không chỉ unit test).
+**Xác minh:** `tsc --noEmit` ✅, **118/118 test xanh** (thêm 12 test session + 7 test blank + 4 test shuffle so với Phase 3), `next build` ✅, smoke test production server: `/today` trả `200`, render từ mẫu **"trade-off"** không crash (bug regex đã sửa xác nhận ở runtime thật, không chỉ unit test).
 
 ## 2026-08-09/10 — Phase 3 — Tầng dữ liệu (+ lõi SRS kéo sớm từ Phase 4)
 
@@ -102,9 +102,9 @@ Kéo sớm từ Phase 4 (`recordReview` cần ngay): `lib/srs/date.ts` (1 timezo
 
 ## 2026-08-09 — Phase 2 — Routing thật
 
-Thay `useState<TabType>` trong `AppShell.tsx` bằng App Router thật. `app/(tabs)/layout.tsx` (server) + `components/layout/app-header.tsx` + `components/layout/tab-bar.tsx` (client) giữ nguyên markup/hành vi header + tab strip cũ, chỉ đổi cơ chế điều hướng (`Link`/`usePathname` thay vì state). `app/(stack)/layout.tsx` không có tab bar; mỗi trang stack tự render `<BackHeader title="..."/>` (lệch nhẹ so với plan gốc — layout không sở hữu header dùng chung được vì tiêu đề khác nhau theo route, xem lý do trong `board.md`). `app/page.tsx` thành server component `redirect('/hom-nay')` — bỏ client boundary ở root. 5 màn (`TodayScreen`→`/hom-nay`, `WordsScreen`→`/so-tu`, `ScheduleScreen`→`/lich`, `GrammarScreen`→`/ngu-phap`, `ProgressScreen`→`/tien-do`) chuyển nguyên logic vào `page.tsx` tương ứng, vẫn đọc `WordsContext` (chưa đổi sang repository — đó là Phase 5). Cài đặt tách khỏi Sheet-trong-AppShell thành trang thật `/cai-dat`. Nhân tiện sửa 2 chỗ a11y nhỏ khi di chuyển file (`<div onClick>` → `<button>` ở dòng từ vựng và chọn tutor) và 1 chỗ ép kiểu `as any` → `as UserSettings['level']`. Xoá `components/AppShell.tsx` và `screens/`.
+Thay `useState<TabType>` trong `AppShell.tsx` bằng App Router thật. `app/(tabs)/layout.tsx` (server) + `components/layout/app-header.tsx` + `components/layout/tab-bar.tsx` (client) giữ nguyên markup/hành vi header + tab strip cũ, chỉ đổi cơ chế điều hướng (`Link`/`usePathname` thay vì state). `app/(stack)/layout.tsx` không có tab bar; mỗi trang stack tự render `<BackHeader title="..."/>` (lệch nhẹ so với plan gốc — layout không sở hữu header dùng chung được vì tiêu đề khác nhau theo route, xem lý do trong `board.md`). `app/page.tsx` thành server component `redirect('/today')` — bỏ client boundary ở root. 5 màn (`TodayScreen`→`/today`, `WordsScreen`→`/vocabulary`, `ScheduleScreen`→`/calendar`, `GrammarScreen`→`/grammar`, `ProgressScreen`→`/progress`) chuyển nguyên logic vào `page.tsx` tương ứng, vẫn đọc `WordsContext` (chưa đổi sang repository — đó là Phase 5). Cài đặt tách khỏi Sheet-trong-AppShell thành trang thật `/settings`. Nhân tiện sửa 2 chỗ a11y nhỏ khi di chuyển file (`<div onClick>` → `<button>` ở dòng từ vựng và chọn tutor) và 1 chỗ ép kiểu `as any` → `as UserSettings['level']`. Xoá `components/AppShell.tsx` và `screens/`.
 
-**Xác minh:** `tsc --noEmit` ✅, `next build` ✅ (7 route tĩnh, mỗi route 2-7KB thay vì 1 bundle 20KB dùng chung), server production chạy thật: `/` trả `307` → `/hom-nay`, cả 7 route trả `200`, không lỗi hydration/runtime trong HTML.
+**Xác minh:** `tsc --noEmit` ✅, `next build` ✅ (7 route tĩnh, mỗi route 2-7KB thay vì 1 bundle 20KB dùng chung), server production chạy thật: `/` trả `307` → `/today`, cả 7 route trả `200`, không lỗi hydration/runtime trong HTML.
 
 ## 2026-08-09 — Phase 1 — Token hoá design (thu hẹp phạm vi)
 

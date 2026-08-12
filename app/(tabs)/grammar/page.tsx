@@ -152,7 +152,11 @@ export default function GrammarPage() {
         </span>
       </div>
 
-      <GrammarQuizCard question={currentQ} onAnswer={handleAnswerQuestion} />
+      {/* key=id forces a fresh GrammarQuizCard instance per question — otherwise
+          React reconciles the same instance across questions and its internal
+          selectedIndex/submitted state (bug report: picking "D" on Q1 still shows
+          "D" selected on Q2/Q3) survives the question change. */}
+      <GrammarQuizCard key={currentQ.id} question={currentQ} onAnswer={handleAnswerQuestion} />
     </div>
   );
 }

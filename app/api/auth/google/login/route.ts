@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
 
     if (!clientId || !clientSecret) {
       const referer = req.headers.get('referer') || '';
-      const returnPath = referer.includes('/cai-dat') ? '/cai-dat' : '/dang-nhap';
+      const returnPath = referer.includes('/settings') ? '/settings' : '/login';
       return NextResponse.redirect(
         new URL(`${returnPath}?gmail_error=config_missing`, req.nextUrl.origin)
       );
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     console.error('Google OAuth Login error:', err);
     return NextResponse.redirect(
-      new URL('/dang-nhap?gmail_error=oauth_error', req.nextUrl.origin)
+      new URL('/login?gmail_error=oauth_error', req.nextUrl.origin)
     );
   }
 }

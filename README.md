@@ -40,8 +40,8 @@ Chi tiết đầy đủ + lý do từng quyết định: [`docs/decision.md`](do
 ## Cấu trúc thư mục
 
 ```
-app/(tabs)/       4 tab chính: hom-nay, so-tu, lich, ngu-phap
-app/(stack)/      màn hình đẩy (back header, không tab bar): tien-do, cai-dat, tai-tai-lieu
+app/(tabs)/       4 tab chính: today, vocabulary, calendar, grammar
+app/(stack)/      màn hình đẩy (back header, không tab bar): progress, settings, upload
 app/api/ai/       5 route AI (enrich/extract/grade-sentence/analyze-doc/tts)
 lib/domain/       zod schema — nguồn sự thật duy nhất cho mọi type dùng chung
 lib/db/           Dexie schema + migration + đọc dữ liệu an toàn

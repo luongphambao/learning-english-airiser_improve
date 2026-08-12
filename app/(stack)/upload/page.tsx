@@ -339,7 +339,7 @@ export default function ImportPage() {
                 <RotateCcw size={16} />
                 Tải tài liệu khác
               </Button>
-              <Link href="/so-tu">
+              <Link href="/vocabulary">
                 <Button variant="primary">Xem sổ từ</Button>
               </Link>
             </div>
