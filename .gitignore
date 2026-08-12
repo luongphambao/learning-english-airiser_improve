@@ -6,3 +6,9 @@ coverage/
 .env*
 !.env.example
 *.tsbuildinfo
+
+# Cloud Run service exports — contain plaintext API keys pulled from the live
+# service's env vars (`gcloud run services describe ... --format=export`).
+# Never commit one of these.
+service.yaml
+service*.yaml
