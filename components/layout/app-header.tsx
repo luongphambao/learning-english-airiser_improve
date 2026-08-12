@@ -54,7 +54,7 @@ export function AppHeader() {
 
         <div className="flex items-center gap-2 sm:gap-4">
           <Link
-            href="/progress"
+            href="/tien-do"
             className="flex items-center gap-2 bg-amber-50 dark:bg-amber-950/40 px-3 py-1.5 rounded-full border border-amber-200/60 dark:border-amber-800/50 cursor-pointer hover:scale-105 transition-all"
             title="Xem tiến độ chuỗi ngày"
           >
@@ -73,7 +73,7 @@ export function AppHeader() {
           </button>
 
           <Link
-            href="/login"
+            href="/dang-nhap"
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border transition-all text-xs cursor-pointer ${
               userEmail
                 ? 'bg-green-wash border-green/30 text-green font-medium'
@@ -88,7 +88,7 @@ export function AppHeader() {
           </Link>
 
           <Link
-            href="/settings"
+            href="/cai-dat"
             className="p-2 rounded-xl text-ink-soft hover:bg-green-wash hover:text-ink transition-colors cursor-pointer"
             aria-label="Cài đặt"
           >

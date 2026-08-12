@@ -36,8 +36,8 @@ Browser (React 19)
 ```
 app/
   layout.tsx  globals.css  providers.tsx  page.tsx (redirect)
-  (tabs)/layout.tsx  today/  vocabulary/  calendar/  grammar/
-  (stack)/layout.tsx  progress/  settings/
+  (tabs)/layout.tsx  hom-nay/  so-tu/  lich/  ngu-phap/
+  (stack)/layout.tsx  tien-do/  cai-dat/
   api/ai/{enrich,extract,grade-sentence,analyze-doc,harvest,tts}/route.ts
   not-found.tsx  error.tsx
 
@@ -98,11 +98,11 @@ Không truy vấn `reviews` collection lúc render — `reviews` chỉ đọc kh
 ## 4. Routing
 
 ```
-/                → redirect('/today')
+/                → redirect('/hom-nay')
 (tabs)  — có TabBar, layout server-component
-  /today  /vocabulary (?tu=<id> mở sheet chi tiết)  /calendar  /grammar
+  /hom-nay  /so-tu (?tu=<id> mở sheet chi tiết)  /lich  /ngu-phap
 (stack) — có BackHeader, KHÔNG TabBar
-  /progress  /settings
+  /tien-do  /cai-dat
 ```
 Route group `(tabs)`/`(stack)` tách theo việc có/không có tab bar, tránh mọi `if (pathname === ...)` trong shell. Layout của `(tabs)` là server component; chỉ `<TabBar/>`/`<AppHeader/>` là `'use client'` — layout tồn tại xuyên suốt điều hướng nên tab bar không bị tháo/dựng lại (điều `useState` tab switching baseline vốn có sẵn "miễn phí", giữ lại ưu điểm đó bằng cách khác).
 

@@ -4,5 +4,5 @@ import { redirect } from 'next/navigation';
 // client at the root, shipping every screen + lib/grammarData + the seed words on
 // first load regardless of which tab was active. Real routes now own that split.
 export default function RootPage() {
-  redirect('/today');
+  redirect('/hom-nay');
 }

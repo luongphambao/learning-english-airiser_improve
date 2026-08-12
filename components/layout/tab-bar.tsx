@@ -9,10 +9,10 @@ import { BookOpen, BookCheck, Bookmark, Calendar } from 'lucide-react';
 // the AI-Studio look is kept as-is). Active state now comes from the URL instead of
 // a `useState<TabType>`, so each tab is a real, deep-linkable, bookmarkable route.
 const TABS = [
-  { href: '/today', label: 'Hôm nay', icon: BookOpen },
-  { href: '/grammar', label: 'Ngữ pháp', icon: BookCheck },
-  { href: '/vocabulary', label: 'Sổ từ', icon: Bookmark },
-  { href: '/calendar', label: 'Lịch học', icon: Calendar },
+  { href: '/hom-nay', label: 'Hôm nay', icon: BookOpen },
+  { href: '/ngu-phap', label: 'Ngữ pháp', icon: BookCheck },
+  { href: '/so-tu', label: 'Sổ từ', icon: Bookmark },
+  { href: '/lich', label: 'Lịch học', icon: Calendar },
 ] as const;
 
 export function TabBar() {

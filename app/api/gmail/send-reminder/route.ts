@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
           </div>
 
           <div style="margin-top: 28px; text-align: center;">
-            <a href="${appUrl}/today" style="display: inline-block; background-color: #2F6B4F; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 15px; padding: 14px 28px; border-radius: 12px; box-shadow: 0 2px 4px rgba(47,107,79,0.2);">
+            <a href="${appUrl}/hom-nay" style="display: inline-block; background-color: #2F6B4F; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 15px; padding: 14px 28px; border-radius: 12px; box-shadow: 0 2px 4px rgba(47,107,79,0.2);">
               Học 3 phút ngay
             </a>
           </div>

@@ -9,14 +9,14 @@ interface BackHeaderProps {
 
 // Header for pushed (stack) screens — Tiến độ, Cài đặt — reached from the gear/streak
 // icons in AppHeader. No tab strip here (docs/architecture.md §4: (stack) group has
-// no TabBar). router.back() falls back to /today if there is no history entry
-// (deep-linking straight to /progress would otherwise have nowhere to go back to).
+// no TabBar). router.back() falls back to /hom-nay if there is no history entry
+// (deep-linking straight to /tien-do would otherwise have nowhere to go back to).
 export function BackHeader({ title }: BackHeaderProps) {
   const router = useRouter();
 
   const goBack = () => {
     if (window.history.length > 1) router.back();
-    else router.push('/today');
+    else router.push('/hom-nay');
   };
 
   return (

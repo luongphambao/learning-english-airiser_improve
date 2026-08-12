@@ -106,7 +106,7 @@ export default function SettingsPage() {
               </div>
             </div>
             <a
-              href="/login"
+              href="/dang-nhap"
               className="px-3 py-1.5 rounded-xl border border-rule text-xs font-medium text-ink hover:border-green hover:text-green transition cursor-pointer"
             >
               {gmailStatus?.email ? 'Quản lý' : 'Đăng nhập'}

@@ -51,7 +51,7 @@ export default function TodayPage() {
           title="Bạn đã hoàn thành bài học hôm nay!"
           description="Không còn từ nào cần ôn tập lúc này. Hãy thêm từ mới hoặc quay lại vào ngày mai."
           actionLabel="Đến Sổ từ để thêm từ mới"
-          onAction={() => router.push('/vocabulary')}
+          onAction={() => router.push('/so-tu')}
         />
       </div>
     );
@@ -69,7 +69,7 @@ export default function TodayPage() {
         <p className="text-sm text-ink-soft mb-6">
           Chuỗi ngày học hiện tại: <span className="font-mono-utility font-semibold text-green">{stats.streak} ngày</span>
         </p>
-        <Button variant="quiet" onClick={() => router.push('/vocabulary')} className="w-full">
+        <Button variant="quiet" onClick={() => router.push('/so-tu')} className="w-full">
           Xem danh sách trong Sổ từ
         </Button>
       </div>

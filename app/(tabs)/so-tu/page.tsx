@@ -355,7 +355,7 @@ export default function WordsPage() {
                 Phân tích cả tài liệu (tệp .txt/.md hoặc dán văn bản dài) trên màn riêng — có bộ lọc theo trình độ và
                 phân loại từng từ trước khi thêm vào sổ.
               </p>
-              <Link href="/upload" onClick={() => setIsAddSheetOpen(false)}>
+              <Link href="/tai-tai-lieu" onClick={() => setIsAddSheetOpen(false)}>
                 <Button variant="primary" className="w-full">
                   Mở màn Tải tài liệu
                 </Button>
