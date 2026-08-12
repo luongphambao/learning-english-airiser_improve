@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getOAuth2Client } from '@/lib/auth/google';
+import { getOAuth2Client, resolveOrigin } from '@/lib/auth/google';
 
 export async function GET(req: NextRequest) {
+  const origin = resolveOrigin(req.nextUrl.origin);
   try {
-    const origin = req.nextUrl.origin;
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
       const referer = req.headers.get('referer') || '';
       const returnPath = referer.includes('/settings') ? '/settings' : '/login';
       return NextResponse.redirect(
-        new URL(`${returnPath}?gmail_error=config_missing`, req.nextUrl.origin)
+        new URL(`${returnPath}?gmail_error=config_missing`, origin)
       );
     }
 
@@ -32,8 +32,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(url);
   } catch (err) {
     console.error('Google OAuth Login error:', err);
-    return NextResponse.redirect(
-      new URL('/login?gmail_error=oauth_error', req.nextUrl.origin)
-    );
+    return NextResponse.redirect(new URL('/login?gmail_error=oauth_error', origin));
   }
 }

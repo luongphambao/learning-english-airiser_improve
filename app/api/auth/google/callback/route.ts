@@ -1,22 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
-import { getOAuth2Client, setStoredTokens } from '@/lib/auth/google';
+import { getOAuth2Client, resolveOrigin, setStoredTokens } from '@/lib/auth/google';
 import { setUserSession } from '@/lib/auth/user-session';
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code');
   const error = req.nextUrl.searchParams.get('error');
+  const origin = resolveOrigin(req.nextUrl.origin);
 
   if (error) {
-    return NextResponse.redirect(new URL('/settings?gmail_error=' + encodeURIComponent(error), req.nextUrl.origin));
+    return NextResponse.redirect(new URL('/settings?gmail_error=' + encodeURIComponent(error), origin));
   }
 
   if (!code) {
-    return NextResponse.redirect(new URL('/settings?gmail_error=missing_code', req.nextUrl.origin));
+    return NextResponse.redirect(new URL('/settings?gmail_error=missing_code', origin));
   }
 
   try {
-    const origin = req.nextUrl.origin;
     const oauth2Client = getOAuth2Client(origin);
 
     const { tokens } = await oauth2Client.getToken(code);
@@ -57,9 +57,9 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    return NextResponse.redirect(new URL('/settings?gmail=connected', req.nextUrl.origin));
+    return NextResponse.redirect(new URL('/settings?gmail=connected', origin));
   } catch (err) {
     console.error('OAuth callback error:', err instanceof Error ? err.message : String(err));
-    return NextResponse.redirect(new URL('/settings?gmail_error=auth_failed', req.nextUrl.origin));
+    return NextResponse.redirect(new URL('/settings?gmail_error=auth_failed', origin));
   }
 }
