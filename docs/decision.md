@@ -106,7 +106,7 @@ Xem `spec-gaps.md` §B — nội dung kỹ thuật đầy đủ nằm ở đó �
 
 **3 lựa chọn cân nhắc** (nêu trong spec-gaps.md C8 gốc): (a) entity `GrammarReview`/lịch sử riêng, tách khỏi `Word`/`Review`; (b) gán tạm một `Word` liên quan cho mỗi câu hỏi ngữ pháp; (c) bỏ hẳn việc lưu kết quả, giữ ngữ pháp hoàn toàn ephemeral như hiện trạng baseline.
 
-**Lựa chọn: (a).** Thêm bảng Dexie `grammarAttempts` (schema v2 — bảng mới qua `version(2).stores()`, không sửa `version(1)` đã phát hành) và `GrammarRepository.recordAttempt(topicId, score, total, now)`. Mỗi lần hoàn thành một quiz ghi đúng 1 dòng — không ghi theo từng câu hỏi (không cần độ chi tiết đó, và tránh 10 dòng/quiz làm phình bảng vô ích). `lastAttemptByTopic()` phục vụ badge "Lần trước: N/M" trên danh sách chủ đề ở `/ngu-phap`.
+**Lựa chọn: (a).** Thêm bảng Dexie `grammarAttempts` (schema v2 — bảng mới qua `version(2).stores()`, không sửa `version(1)` đã phát hành) và `GrammarRepository.recordAttempt(topicId, score, total, now)`. Mỗi lần hoàn thành một quiz ghi đúng 1 dòng — không ghi theo từng câu hỏi (không cần độ chi tiết đó, và tránh 10 dòng/quiz làm phình bảng vô ích). `lastAttemptByTopic()` phục vụ badge "Lần trước: N/M" trên danh sách chủ đề ở `/grammar`.
 
 **Vì sao không chọn (b):** một câu hỏi ngữ pháp như "chia đúng thì hoàn thành" không kiểm tra một từ vựng cụ thể nào — gán `wordId` sẽ là một liên kết giả tạo ra chỉ để thoả mãn kiểu dữ liệu, không phản ánh gì thật. Vì sao không chọn (c): điểm số bị tính xong rồi vứt ngay là hành vi baseline vốn đã bị coi là thiếu sót (không phải chủ đích thiết kế) — có một bảng lịch sử độc lập, rẻ, không đụng gì tới SRS là chi phí thấp để sửa nó.
 

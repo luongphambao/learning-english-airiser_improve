@@ -77,7 +77,7 @@ export default function LoginPage() {
         setUserSession(data.user);
         window.dispatchEvent(new Event('lexio-auth-changed'));
         setTimeout(() => {
-          router.push('/hom-nay');
+          router.push('/today');
         }, 800);
       } else {
         setNotice({ type: 'error', message: data.message || 'Đăng nhập thất bại. Vui lòng thử lại.' });
@@ -136,7 +136,7 @@ export default function LoginPage() {
 
             <div className="pt-2 flex flex-col gap-2">
               <button
-                onClick={() => router.push('/hom-nay')}
+                onClick={() => router.push('/today')}
                 className="w-full py-3 px-4 rounded-xl bg-green text-white text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer hover:bg-green/90 transition"
               >
                 Vào học ngay

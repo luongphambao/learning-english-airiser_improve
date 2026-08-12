@@ -8,11 +8,11 @@ export async function GET(req: NextRequest) {
   const error = req.nextUrl.searchParams.get('error');
 
   if (error) {
-    return NextResponse.redirect(new URL('/cai-dat?gmail_error=' + encodeURIComponent(error), req.nextUrl.origin));
+    return NextResponse.redirect(new URL('/settings?gmail_error=' + encodeURIComponent(error), req.nextUrl.origin));
   }
 
   if (!code) {
-    return NextResponse.redirect(new URL('/cai-dat?gmail_error=missing_code', req.nextUrl.origin));
+    return NextResponse.redirect(new URL('/settings?gmail_error=missing_code', req.nextUrl.origin));
   }
 
   try {
@@ -57,9 +57,9 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    return NextResponse.redirect(new URL('/cai-dat?gmail=connected', req.nextUrl.origin));
+    return NextResponse.redirect(new URL('/settings?gmail=connected', req.nextUrl.origin));
   } catch (err) {
     console.error('OAuth callback error:', err instanceof Error ? err.message : String(err));
-    return NextResponse.redirect(new URL('/cai-dat?gmail_error=auth_failed', req.nextUrl.origin));
+    return NextResponse.redirect(new URL('/settings?gmail_error=auth_failed', req.nextUrl.origin));
   }
 }

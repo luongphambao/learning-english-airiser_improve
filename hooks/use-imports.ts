@@ -3,7 +3,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { getRepos } from '@/lib/repositories';
 
-/** Reactive single Import row — drives the /tai-tai-lieu screen so it always shows
+/** Reactive single Import row — drives the /upload screen so it always shows
  * the live triage state, including from a background enrich/analyze update. */
 export function useImport(id: string | null | undefined) {
   return useLiveQuery(() => (id ? getRepos().imports.get(id) : null), [id]);
