@@ -2,6 +2,7 @@ import 'server-only';
 import { AiError } from '../errors';
 import { parseStructured } from '../parse';
 import type { OpenAiConfig } from '../config';
+import type { StructuredSchema } from '../schema';
 import type { AiProvider, GenerateJsonRequest, AiResult } from '../types';
 
 function toRetryAfterMs(res: Response): number | undefined {
@@ -20,6 +21,20 @@ async function toHttpError(res: Response, providerId: 'openai', taskId: string, 
   }
   if (status >= 500) return new AiError('upstream_unavailable', { providerId, taskId, requestId, status, cause: body });
   return new AiError('bad_request', { providerId, taskId, requestId, status, cause: body });
+}
+
+/** Not every OpenAI-compatible router actually honors `response_format:
+ * json_schema` — some (observed: an FPT Cloud / DeepSeek-V4-Flash deployment)
+ * silently return an empty `message.content` whenever `response_format` is
+ * present at all, json_schema or plain json_object alike, instead of erroring.
+ * So the schema is enforced by prompt instruction instead, with `parseStructured`
+ * + the task's own zod schema (see lib/ai/parse.ts) as the real gate — this is
+ * strictly a hint to the model, never trusted on its own. */
+function buildSchemaInstruction(schema: Pick<StructuredSchema<unknown>, 'name' | 'json'>): string {
+  return (
+    `Respond with ONLY a single JSON object, no markdown code fences, no prose before or after. ` +
+    `It must validate against this JSON Schema (name: ${schema.name}):\n${JSON.stringify(schema.json)}`
+  );
 }
 
 /** Default provider — hits an OpenAI-compatible chat/completions endpoint (the
@@ -51,13 +66,9 @@ export function createOpenAiProvider(cfg: OpenAiConfig): AiProvider {
             temperature: req.temperature ?? 0.4,
             max_tokens: req.maxOutputTokens ?? 2048,
             messages: [
-              { role: 'system', content: req.system },
+              { role: 'system', content: `${req.system}\n\n${buildSchemaInstruction(req.schema)}` },
               { role: 'user', content: userText },
             ],
-            response_format: {
-              type: 'json_schema',
-              json_schema: { name: req.schema.name, strict: true, schema: req.schema.json },
-            },
           }),
         });
       } catch (cause) {
