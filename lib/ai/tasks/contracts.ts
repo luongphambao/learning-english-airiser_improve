@@ -19,13 +19,18 @@ export const EnrichWordInput = z.object({
   contextTopic: z.string().trim().min(1).max(80).default('software engineering'),
 });
 export const EnrichWordOutput = z.object({
-  ipa: z.string().max(64),
-  partOfSpeech: z.string().max(24),
-  meaningVi: z.string().max(160),
-  exampleSentence: z.string().max(240),
-  distractors: z.array(z.string().max(48)).length(3),
-  collocations: z.array(z.object({ phrase: z.string().max(96), meaningVi: z.string().max(120) })).length(3),
-  wordFamily: z.array(z.string().max(48)).max(3),
+  ipa: z.string().transform((s) => s.slice(0, 64)),
+  partOfSpeech: z.string().transform((s) => s.slice(0, 32)),
+  meaningVi: z.string().transform((s) => s.slice(0, 200)),
+  exampleSentence: z.string().transform((s) => s.slice(0, 300)),
+  distractors: z.array(z.string().transform((s) => s.slice(0, 64))),
+  collocations: z.array(
+    z.object({
+      phrase: z.string().transform((s) => s.slice(0, 120)),
+      meaningVi: z.string().transform((s) => s.slice(0, 150)),
+    })
+  ),
+  wordFamily: z.array(z.string().transform((s) => s.slice(0, 64))),
 });
 
 export const ExtractWordsInput = z.object({
@@ -34,7 +39,12 @@ export const ExtractWordsInput = z.object({
   level: z.enum(['B1', 'B2', 'C1']).default('B2'),
 });
 export const ExtractWordsOutput = z.object({
-  words: z.array(z.object({ word: z.string().max(64), reason: z.string().max(160) })).max(12),
+  words: z.array(
+    z.object({
+      word: z.string().transform((s) => s.slice(0, 64)),
+      reason: z.string().transform((s) => s.slice(0, 200)),
+    })
+  ),
 });
 
 export const GradeSentenceInput = z.object({
@@ -43,9 +53,12 @@ export const GradeSentenceInput = z.object({
   contextTopic: z.string().trim().max(80).default('software engineering'),
 });
 export const GradeSentenceOutput = z.object({
-  isCorrect: z.boolean(),
-  feedbackVi: z.string().max(300),
-  improvedSentence: z.string().max(240),
+  isCorrect: z.union([
+    z.boolean(),
+    z.string().transform((val) => val.toLowerCase() === 'true' || val === '1'),
+  ]),
+  feedbackVi: z.string().transform((s) => s.slice(0, 500)),
+  improvedSentence: z.string().transform((s) => s.slice(0, 300)),
 });
 
 export const AnalyzeDocumentInput = z.object({
@@ -55,15 +68,15 @@ export const AnalyzeDocumentInput = z.object({
   excludeWords: z.array(z.string().max(64)).max(500).default([]),
 });
 const CandidateWordOutput = z.object({
-  word: z.string().max(64),
-  cefr: z.enum(['B1', 'B2', 'C1', 'C2']),
-  category: z.enum(['academic', 'technical', 'ielts', 'phrasal', 'idiom']),
-  meaningVi: z.string().max(160),
-  sentenceFromDoc: z.string().max(240),
-  sentenceSource: z.enum(['document', 'generated']),
+  word: z.string().transform((s) => s.slice(0, 64)),
+  cefr: z.enum(['B1', 'B2', 'C1', 'C2']).catch('B2'),
+  category: z.enum(['academic', 'technical', 'ielts', 'phrasal', 'idiom']).catch('technical'),
+  meaningVi: z.string().transform((s) => s.slice(0, 200)),
+  sentenceFromDoc: z.string().transform((s) => s.slice(0, 300)),
+  sentenceSource: z.enum(['document', 'generated']).catch('document'),
 });
 export const AnalyzeDocumentOutput = z.object({
-  candidates: z.array(CandidateWordOutput).max(40),
+  candidates: z.array(CandidateWordOutput),
 });
 
 export const TASK_IO = {
