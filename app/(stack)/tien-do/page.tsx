@@ -66,12 +66,14 @@ export default function ProgressPage() {
 
   const chartData = React.useMemo(() => {
     return last7Days.map((key) => {
+      const isToday = key === last7Days[last7Days.length - 1];
       const count = stats.history[key] ?? 0;
       return {
         key,
         day: weekdayVi(key),
         date: key,
         reviews: count,
+        fill: isToday ? 'var(--green)' : '#6366F1',
       };
     });
   }, [last7Days, stats.history]);
@@ -161,17 +163,14 @@ export default function ProgressPage() {
                   axisLine={{ stroke: 'var(--rule)' }}
                   tickLine={false}
                 />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--green-wash)', opacity: 0.5 }} />
-                <Bar dataKey="reviews" radius={[6, 6, 0, 0]}>
-                  {chartData.map((entry, index) => {
-                    const isToday = entry.key === last7Days[last7Days.length - 1];
-                    return (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={isToday ? 'var(--green)' : '#6366F1'}
-                      />
-                    );
-                  })}
+                <Tooltip
+                  content={(props) => <CustomTooltip active={props.active} payload={props.payload as TooltipProps['payload']} />}
+                  cursor={{ fill: 'var(--green-wash)', opacity: 0.5 }}
+                />
+                <Bar dataKey="reviews" radius={[6, 6, 0, 0]} fill="#6366F1">
+                  {chartData.map((entry) => (
+                    <Cell key={entry.key} fill={entry.fill} />
+                  ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>

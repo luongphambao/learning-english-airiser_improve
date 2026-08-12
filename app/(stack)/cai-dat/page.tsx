@@ -37,6 +37,8 @@ export default function SettingsPage() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('gmail') === 'connected') {
       setEmailNotice({ type: 'success', message: 'Đã kết nối tài khoản Gmail thành công!' });
+    } else if (urlParams.get('gmail_error') === 'config_missing') {
+      setEmailNotice({ type: 'error', message: 'Google OAuth chưa được cấu hình Client ID trên hệ thống.' });
     } else if (urlParams.get('gmail_error')) {
       setEmailNotice({ type: 'error', message: 'Kết nối Gmail thất bại. Vui lòng thử lại.' });
     }

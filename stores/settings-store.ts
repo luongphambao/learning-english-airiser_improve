@@ -24,7 +24,8 @@ function mirrorThemeForFoucScript(theme: UserSettings['theme']) {
   try {
     const raw = localStorage.getItem('lexio_settings');
     const existing = raw ? JSON.parse(raw) : {};
-    localStorage.setItem('lexio_settings', JSON.stringify({ ...existing, theme }));
+    const safeExisting = typeof existing === 'object' && existing !== null && !Array.isArray(existing) ? existing : {};
+    localStorage.setItem('lexio_settings', JSON.stringify({ ...safeExisting, theme }));
   } catch {
     // best-effort only — a failed mirror just means the next cold load may flash
   }

@@ -35,6 +35,22 @@ export default function LoginPage() {
 
   useEffect(() => {
     checkAuthStatus();
+
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const errorParam = urlParams.get('gmail_error') || urlParams.get('error');
+      if (errorParam === 'config_missing') {
+        setNotice({
+          type: 'error',
+          message: 'Google Sign-In chưa được cấu hình Client ID. Vui lòng đăng nhập bằng Email.',
+        });
+      } else if (errorParam) {
+        setNotice({
+          type: 'error',
+          message: 'Đăng nhập Google không thành công. Vui lòng thử lại hoặc đăng nhập bằng Email.',
+        });
+      }
+    }
   }, []);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
@@ -59,6 +75,7 @@ export default function LoginPage() {
       if (res.ok && data.success) {
         setNotice({ type: 'success', message: 'Đăng nhập bằng email thành công!' });
         setUserSession(data.user);
+        window.dispatchEvent(new Event('lexio-auth-changed'));
         setTimeout(() => {
           router.push('/hom-nay');
         }, 800);
@@ -76,6 +93,7 @@ export default function LoginPage() {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
       setUserSession(null);
+      window.dispatchEvent(new Event('lexio-auth-changed'));
       setNotice({ type: 'success', message: 'Đã đăng xuất tài khoản.' });
     } catch {
       setNotice({ type: 'error', message: 'Không thể đăng xuất. Thử lại sau.' });

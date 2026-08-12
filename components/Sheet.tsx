@@ -28,7 +28,7 @@ export function Sheet({ isOpen, onClose, title, children }: SheetProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-xs transition-opacity animate-fade-in">
       {/* Backdrop click */}
-      <div className="absolute inset-0" onClick={onClose} />
+      <div className="absolute inset-0" onClick={() => onClose()} />
 
       {/* Bottom Sheet Box */}
       <div className="relative w-full max-w-[480px] bg-surface border-t border-rule rounded-t-[24px] shadow-2xl p-6 max-h-[88vh] overflow-y-auto animate-slide-up z-10">
@@ -39,7 +39,7 @@ export function Sheet({ isOpen, onClose, title, children }: SheetProps) {
             <div className="w-12 h-1 bg-rule rounded-full mx-auto" />
           )}
           <button
-            onClick={onClose}
+            onClick={() => onClose()}
             className="p-1 rounded-full text-ink-soft hover:bg-paper transition-colors cursor-pointer"
             aria-label="Đóng"
           >

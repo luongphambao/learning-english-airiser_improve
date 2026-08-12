@@ -13,16 +13,26 @@ export function AppHeader() {
 
   useEffect(() => {
     let active = true;
-    fetch('/api/auth/me')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (active && data?.authenticated && data?.user?.email) {
-          setUserEmail(data.user.email);
-        }
-      })
-      .catch(() => {});
+    const loadUser = () => {
+      fetch('/api/auth/me')
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (active) {
+            if (data?.authenticated && data?.user?.email) {
+              setUserEmail(data.user.email);
+            } else {
+              setUserEmail(null);
+            }
+          }
+        })
+        .catch(() => {});
+    };
+
+    loadUser();
+    window.addEventListener('lexio-auth-changed', loadUser);
     return () => {
       active = false;
+      window.removeEventListener('lexio-auth-changed', loadUser);
     };
   }, []);
 

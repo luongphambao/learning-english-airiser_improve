@@ -11,10 +11,16 @@
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
+    "dexie": "^4.4.4",
+    "dexie-react-hooks": "^4.4.0",
+    "googleapis": "^174.0.1",
     "lucide-react": "^0.553.0",
     "next": "^15.4.9",
     "react": "^19.2.1",
-    "react-dom": "^19.2.1"
+    "react-dom": "^19.2.1",
+    "recharts": "^3.10.1",
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",

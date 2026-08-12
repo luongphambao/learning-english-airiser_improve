@@ -4,6 +4,17 @@ import { getOAuth2Client } from '@/lib/auth/google';
 export async function GET(req: NextRequest) {
   try {
     const origin = req.nextUrl.origin;
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      const referer = req.headers.get('referer') || '';
+      const returnPath = referer.includes('/cai-dat') ? '/cai-dat' : '/dang-nhap';
+      return NextResponse.redirect(
+        new URL(`${returnPath}?gmail_error=config_missing`, req.nextUrl.origin)
+      );
+    }
+
     const oauth2Client = getOAuth2Client(origin);
 
     const scopes = [
@@ -21,9 +32,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(url);
   } catch (err) {
     console.error('Google OAuth Login error:', err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'OAuth setup error' },
-      { status: 500 }
+    return NextResponse.redirect(
+      new URL('/dang-nhap?gmail_error=oauth_error', req.nextUrl.origin)
     );
   }
 }
