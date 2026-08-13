@@ -2,7 +2,11 @@ import 'server-only';
 import { z } from 'zod';
 
 const EnvSchema = z.object({
-  AI_PROVIDER: z.enum(['openai', 'gemini']).default('openai'),
+  // Gemini is the primary provider for the AI Riser competition build (Google
+  // technology integration is a scored criterion) — the OpenAI-compatible provider
+  // stays wired as a fallback (docs/decision.md ADR-003), just no longer the
+  // default. See docs/decision.md ADR-012.
+  AI_PROVIDER: z.enum(['openai', 'gemini']).default('gemini'),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_API_URL: z.string().optional(),
   OPENAI_MODEL_NAME: z.string().optional(),

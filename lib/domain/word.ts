@@ -19,6 +19,17 @@ export type WordSource = z.infer<typeof WordSourceSchema>;
 export const WordStatusSchema = z.enum(['new', 'learning', 'known']);
 export type WordStatus = z.infer<typeof WordStatusSchema>;
 
+// docs/decision.md ADR-014 — "Học từ công việc thật" (Learn From Work) saves
+// phrases and grammar fixes as `words` rows carrying this discriminator, instead
+// of a separate `phrases` table. Absent (pre-v3 rows) means 'word'. This is what
+// lets nextSchedule/recordReview/buildSession/isEligible (lib/srs/**,
+// lib/repositories/dexie/study-repository.ts) schedule and practice a saved phrase
+// with zero changes to any of them — they only ever see a `Word`. A saved
+// professional-rewrite's reusable phrase is tagged 'phrase' too (not a 4th value)
+// — nothing in scheduling/practice distinguishes it from a phrase found directly.
+export const EntryTypeSchema = z.enum(['word', 'phrase', 'grammar']);
+export type EntryType = z.infer<typeof EntryTypeSchema>;
+
 export const WordSchema = z.object({
   id: z.string(),
   word: z.string(),
@@ -47,5 +58,12 @@ export const WordSchema = z.object({
   consecutiveCorrect: z.number().optional(),
   updatedAt: z.number().optional(),
   deletedAt: z.number().nullable().optional(),
+
+  // v3 fields — docs/decision.md ADR-014. Optional for the same reason as the
+  // ADR-007 fields above: absent on every pre-v3 row, backfilled by Dexie v3's
+  // upgrade() (lib/db/dexie.ts) rather than required here.
+  entryType: EntryTypeSchema.optional(), // absent/undefined means 'word'
+  noteVi: z.string().optional(), // why it matters / when to use it / the grammar rule, in Vietnamese
+  originalText: z.string().nullable().optional(), // grammar/rewrite only: what the user actually wrote
 });
 export type Word = z.infer<typeof WordSchema>;

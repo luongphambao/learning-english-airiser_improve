@@ -4,6 +4,7 @@
 export * from './word';
 export * from './review';
 export * from './user';
-export * from './tutor-session';
+export * from './tutor-session'; // Session only — see that file's header comment.
+export * from './work';
 export * from './import';
 export * from './grammar';

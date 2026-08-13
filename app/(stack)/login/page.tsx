@@ -137,7 +137,7 @@ export default function LoginPage() {
             <div className="pt-2 flex flex-col gap-2">
               <button
                 onClick={() => router.push('/today')}
-                className="w-full py-3 px-4 rounded-xl bg-green text-white text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer hover:bg-green/90 transition"
+                className="w-full py-3 px-4 rounded-xl bg-green text-paper text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer hover:bg-green/90 transition"
               >
                 Vào học ngay
                 <ArrowRight className="w-4 h-4" />
@@ -192,7 +192,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 px-4 rounded-xl bg-green text-white text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer hover:bg-green/90 transition active:scale-98 disabled:opacity-50"
+                className="w-full py-3.5 px-4 rounded-xl bg-green text-paper text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer hover:bg-green/90 transition active:scale-98 disabled:opacity-50"
               >
                 {loading ? (
                   <>

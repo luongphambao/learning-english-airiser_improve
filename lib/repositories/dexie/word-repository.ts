@@ -4,7 +4,8 @@ import { newId } from '@/lib/db/ids';
 import { fromRow, toRow, type WordRow } from '@/lib/db/rows';
 import { safeParseRow, quarantineRow } from '@/lib/db/read';
 import { WordSchema, type Word, type WordStatus } from '@/lib/domain';
-import type { ListWordsQuery, NewWordInput, WordRepository } from '../types';
+import { applyTriage } from '@/lib/srs/schedule';
+import type { ListWordsQuery, NewInsightWordInput, NewWordInput, WordRepository } from '../types';
 
 async function readRows(rows: WordRow[]): Promise<Word[]> {
   const db = getDb();
@@ -78,6 +79,71 @@ async function addWord(input: NewWordInput): Promise<Word> {
   });
 }
 
+async function addFromInsight(input: NewInsightWordInput): Promise<Word> {
+  const db = getDb();
+  const wordLower = input.text.toLowerCase();
+
+  // Same check-then-write-in-one-transaction pattern as addWord() above, against
+  // the same &wordLower unique index — a phrase and a plain word share one
+  // namespace on purpose (docs/decision.md ADR-014): "extend the deadline" saved
+  // once from Learn and once from a plain paste must still be one row, not two.
+  return db.transaction('rw', db.words, async () => {
+    const existingRow = await db.words.where('wordLower').equals(wordLower).first();
+    if (existingRow) {
+      const current = fromRow(existingRow);
+      const updated: Word = {
+        ...current,
+        // Content refreshes to the newest AI output...
+        meaningVi: input.meaningVi,
+        exampleSentence: input.exampleSentence,
+        distractors: input.distractors,
+        entryType: input.entryType,
+        noteVi: input.noteVi,
+        originalText: input.originalText,
+        updatedAt: input.now,
+        deletedAt: null, // resurrect if it had been soft-deleted
+        // ...but SRS state does NOT reset — re-saving something already being
+        // practiced must not throw away its progress. current.* already carries
+        // dueAt/easeLevel/reviewCount/lapseCount/isLeech/status/consecutiveCorrect
+        // forward via the spread above; this comment exists so a future edit
+        // doesn't "simplify" that away.
+      };
+      await db.words.put(toRow(updated, input.now));
+      return updated;
+    }
+
+    const schedule = applyTriage('unknown', input.now)!; // 'unknown' never returns null
+    const draft: Word = {
+      id: newId('w_'),
+      word: input.text,
+      ipa: '',
+      partOfSpeech: '',
+      meaningVi: input.meaningVi,
+      exampleSentence: input.exampleSentence,
+      distractors: input.distractors,
+      collocations: [],
+      wordFamily: [],
+      source: input.source,
+      audioUrl: null,
+      createdAt: input.now,
+      dueAt: schedule.dueAt,
+      easeLevel: schedule.easeLevel,
+      reviewCount: schedule.reviewCount,
+      lapseCount: schedule.lapseCount,
+      consecutiveCorrect: schedule.consecutiveCorrect,
+      isLeech: schedule.isLeech,
+      status: schedule.status,
+      updatedAt: input.now,
+      deletedAt: null,
+      entryType: input.entryType,
+      noteVi: input.noteVi,
+      originalText: input.originalText,
+    };
+    await db.words.put(toRow(draft, input.now));
+    return draft;
+  });
+}
+
 export function createDexieWordRepository(): WordRepository {
   const db = getDb();
 
@@ -102,6 +168,9 @@ export function createDexieWordRepository(): WordRepository {
         : db.words.orderBy('createdAt');
       let rows = await collection.toArray();
       rows = rows.filter((r) => !r.deletedAt);
+      if (query.entryType) {
+        rows = rows.filter((r) => r.entryType === query.entryType);
+      }
       if (query.search) {
         const needle = query.search.toLowerCase();
         rows = rows.filter(
@@ -124,6 +193,7 @@ export function createDexieWordRepository(): WordRepository {
     },
 
     add: addWord,
+    addFromInsight,
 
     async addMany(inputs: NewWordInput[]) {
       const results: Word[] = [];

@@ -111,3 +111,23 @@ Xem `spec-gaps.md` §B — nội dung kỹ thuật đầy đủ nằm ở đó �
 **Vì sao không chọn (b):** một câu hỏi ngữ pháp như "chia đúng thì hoàn thành" không kiểm tra một từ vựng cụ thể nào — gán `wordId` sẽ là một liên kết giả tạo ra chỉ để thoả mãn kiểu dữ liệu, không phản ánh gì thật. Vì sao không chọn (c): điểm số bị tính xong rồi vứt ngay là hành vi baseline vốn đã bị coi là thiếu sót (không phải chủ đích thiết kế) — có một bảng lịch sử độc lập, rẻ, không đụng gì tới SRS là chi phí thấp để sửa nó.
 
 **Hệ quả:** Ngữ pháp và Từ vựng là 2 hệ thống tiến độ song song, không chia sẻ `Review`/`recordReview`/lịch ôn tập — nhất quán với việc `isEligible('grammar', ...)` luôn `false`. Đánh đổi: nếu sau này sản phẩm thực sự muốn "làm tốt ngữ pháp giúp từ vựng liên quan được ôn sớm hơn", đây sẽ là một tính năng mới cần thiết kế lại từ đầu (map câu hỏi ↔ từ vựng liên quan), không phải bật lại nhánh (b) đã bỏ qua.
+
+---
+
+### ADR-012 — Gemini là provider mặc định, OpenAI-compatible lùi thành fallback
+
+**Bối cảnh:** ADR-003 chọn OpenAI-compatible làm mặc định vì tại thời điểm đó `.env` chỉ có credential thật cho router đó. Production hiện chạy `AI_PROVIDER=openai` trỏ tới `DeepSeek-V4-Flash` qua FPT Cloud; `GEMINI_API_KEY` có sẵn nhưng chỉ được dùng cho TTS. Dự án dự thi Google AI Riser Vietnam 2026 — hạng mục có thêm điểm cộng cho việc tích hợp công nghệ Google, và bản demo hiện tại không thật sự chạy trên Gemini dù key đã có.
+
+**Lựa chọn:** Đổi giá trị mặc định của `AI_PROVIDER` (`lib/ai/config.ts`) từ `'openai'` sang `'gemini'`. Giữ nguyên toàn bộ interface `AiProvider` và implementation OpenAI-compatible — không xoá, chỉ không còn là lựa chọn ngầm định. Đã xác minh model `gemini-3.6-flash` (hằng số `GEMINI_TEXT_MODEL`) gọi được thật với key đang cấu hình trước khi đổi mặc định.
+
+**Hệ quả:** Structured output nghiêm ngặt hơn khi chạy Gemini — provider Gemini dùng `responseSchema` thật, còn provider OpenAI-compatible phải nhét schema vào system prompt vì router hiện tại trả rỗng nếu gửi `response_format` (xem `lib/ai/providers/openai.ts`). Môi trường Cloud Run (`service.yaml`, không commit vào repo) cần cập nhật `AI_PROVIDER=gemini` thủ công — đổi giá trị trong code không tự động đổi service đang chạy. `OPENAI_*` vẫn nên giữ trong env để fallback dùng được nếu Gemini gặp sự cố khi demo.
+
+---
+
+### ADR-013 — Đảo ngược ADR-006: áp dụng bảng màu ấm (`docs/design.md` §4) thay cho AI Studio indigo
+
+**Bối cảnh:** ADR-006 tự nhận là "ADR có khả năng cao nhất bị đảo ngược" và ghi rõ lý do có thể đảo ngược rẻ: primitive tiêu thụ token (`@theme inline`), không tiêu thụ giá trị màu cụ thể. Với mục tiêu dự thi AI Riser, diện mạo indigo/gradient hiện tại đọc như một dashboard SaaS mẫu (AI Studio/Tailwind admin) thay vì một sản phẩm có bản sắc riêng — bảng màu giấy ấm/xanh rừng đã có sẵn trong `docs/design.md` §4 và 23 file mockup ở `docs/ui/` từ trước, chỉ chưa từng được áp dụng vào code đang chạy.
+
+**Lựa chọn:** Theo yêu cầu trực tiếp của chủ dự án — áp dụng bảng màu ở `docs/design.md` §4 vào `app/globals.css` (`:root` và `[data-theme="dark"]`), xoá token `--violet`/`--color-violet` (hệ mới cấm gradient hoàn toàn), và quét thay toàn bộ class Tailwind hardcode (`indigo-*`, `emerald-*`, `rose-*`, `bg-gradient-to-*`) sang token ngữ nghĩa (`bg-green`/`text-wrong`/...) ở các file liệt kê trong `progress/board.md` Phase 1/7 kế tiếp.
+
+**Hệ quả:** Đúng như ADR-006 dự đoán — không cần viết lại `Button`/`Sheet`/`EmptyState`/... vì các component này vốn đã tiêu thụ token, chỉ các nơi dùng trực tiếp `indigo-*`/`emerald-*`/`rose-*` (không qua token) mới cần sửa tay. Không dựng 26 primitive `components/ui/` liệt kê ở `docs/design.md` §2 — `board.md` Phase 1 đã hoãn việc đó lại vì trừu tượng hoá sớm khi chưa có đủ consumer thật, và lý do đó vẫn đúng ở phạm vi lần này.

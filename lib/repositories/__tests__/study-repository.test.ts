@@ -138,3 +138,38 @@ describe('WordRepository duplicate handling', () => {
     expect(results[0]!.id).toBe(results[1]!.id);
   });
 });
+
+// docs/decision.md ADR-014's load-bearing claim: nextSchedule/recordReview are
+// entity-agnostic — they operate on the SrsState-shaped fields of a Word row and
+// never inspect `entryType`, so a saved phrase is scheduled through the exact same
+// code path as a plain word, with zero changes to StudyRepository.
+describe('StudyRepository.recordReview schedules a phrase entryType identically to a plain word', () => {
+  beforeEach(() => {
+    resetDbForTests();
+  });
+
+  it('produces the same easeLevel/dueAt/reviewCount progression for both', async () => {
+    const db = resetDbForTests();
+    const now = Date.UTC(2026, 0, 1, 12);
+    const base = {
+      ipa: '', partOfSpeech: '', meaningVi: '', exampleSentence: 'x', distractors: ['a', 'b', 'c'],
+      collocations: [], wordFamily: [], source: { kind: 'manual' as const, label: '', at: now },
+      audioUrl: null, createdAt: now, dueAt: now, easeLevel: 0, reviewCount: 0,
+      lapseCount: 0, consecutiveCorrect: 0, isLeech: false, status: 'new' as const,
+    };
+    await db.words.add(toRow({ ...base, id: 'plain_word', word: 'mitigate' }, now));
+    await db.words.add(
+      toRow({ ...base, id: 'saved_phrase', word: 'extend the deadline', entryType: 'phrase', noteVi: 'x' }, now),
+    );
+    await db.user.add({ id: USER_ID, settings: DEFAULT_SETTINGS, stats: DEFAULT_STATS, updatedAt: now });
+
+    const study = createDexieStudyRepository();
+    const wordResult = await study.recordReview({ wordId: 'plain_word', kind: 'fillBlank', correct: true, now, sessionId: 's1' });
+    const phraseResult = await study.recordReview({ wordId: 'saved_phrase', kind: 'fillBlank', correct: true, now, sessionId: 's1' });
+
+    expect(phraseResult.word.easeLevel).toBe(wordResult.word.easeLevel);
+    expect(phraseResult.word.dueAt).toBe(wordResult.word.dueAt);
+    expect(phraseResult.word.reviewCount).toBe(wordResult.word.reviewCount);
+    expect(phraseResult.word.entryType).toBe('phrase'); // the tag itself survives the round trip
+  });
+});

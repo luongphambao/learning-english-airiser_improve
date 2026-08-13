@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 // localStorage only exists under a DOM environment — the rest of the suite runs
 // under `node` for speed; this file opts into jsdom just for itself.
+import Dexie from 'dexie';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { getDb, resetDbForTests, USER_ID } from '@/lib/db/dexie';
+import { getDb, resetDbForTests, LexioDb, USER_ID } from '@/lib/db/dexie';
 import { migrateFromLocalStorage, seedIfEmpty } from '../migrate-local-storage';
 
 const BASE_TIME = 1738800000000; // the frozen timestamp the old TodayScreen bug used
@@ -95,6 +96,61 @@ describe('migrateFromLocalStorage', () => {
   });
 });
 
+describe('v2 -> v3 upgrade (docs/decision.md ADR-014)', () => {
+  const DB_NAME = 'lexio-test-v2-to-v3-upgrade';
+
+  it('backfills entryType on a pre-v3 word row, and it becomes findable via the new index', async () => {
+    // Declare ONLY v1+v2 — exactly what a real pre-upgrade browser's IndexedDB
+    // already contains. Copied verbatim from lib/db/dexie.ts's v1/v2 blocks; must
+    // stay verbatim, since this test's whole point is exercising the real upgrade
+    // path a live v1/v2 database would go through, not a schema this test invents.
+    const legacyDb = new Dexie(DB_NAME);
+    legacyDb.version(1).stores({
+      words: 'id, &wordLower, dueAt, createdAt, status, [status+createdAt], [isLeech+dueAt], updatedAt',
+      reviews: 'id, wordId, answeredAt, dayKey, [wordId+answeredAt]',
+      user: 'id',
+      studySessions: 'id, dayKey, status',
+      tutorSessions: 'id, startsAt, status',
+      imports: 'id, createdAt, status',
+      skipped: '&wordLower, at',
+      meta: 'key',
+    });
+    legacyDb.version(2).stores({ grammarAttempts: 'id, topicId, at' });
+    await legacyDb.open();
+
+    const now = Date.UTC(2026, 5, 1);
+    await legacyDb.table('words').add({
+      id: 'legacy_w1', word: 'legacy', ipa: '', partOfSpeech: '', meaningVi: '', exampleSentence: '',
+      distractors: [], collocations: [], wordFamily: [], source: { kind: 'manual', label: '', at: now },
+      audioUrl: null, createdAt: now, dueAt: now, easeLevel: 0, reviewCount: 0, lapseCount: 0,
+      consecutiveCorrect: 0, isLeech: 0, status: 'new', updatedAt: now, deletedAt: null,
+      wordLower: 'legacy',
+      // deliberately no entryType/noteVi/originalText — the pre-v3 shape
+    });
+    legacyDb.close();
+
+    // Reopen the SAME database name through the real LexioDb — this runs the
+    // actual version(3).upgrade() defined in lib/db/dexie.ts, not a copy of it.
+    const upgraded = new LexioDb(DB_NAME);
+    await upgraded.open();
+
+    const row = await upgraded.words.get('legacy_w1');
+    expect(row?.entryType).toBe('word');
+    expect(row?.noteVi).toBe('');
+    expect(row?.originalText).toBeNull();
+
+    // The failure mode this backfill exists to prevent: IndexedDB omits a record
+    // from an index entirely when its key path is undefined at index-creation
+    // time. If the upgrade() had been skipped, this word would exist in the table
+    // but be invisible here — a silently empty result, not a thrown error.
+    const foundByIndex = await upgraded.words.where('entryType').equals('word').toArray();
+    expect(foundByIndex.map((w) => w.id)).toContain('legacy_w1');
+
+    upgraded.close();
+    await Dexie.delete(DB_NAME);
+  });
+});
+
 describe('seedIfEmpty', () => {
   beforeEach(() => {
     resetDbForTests();
@@ -131,7 +187,7 @@ describe('seedIfEmpty', () => {
       distractors: [], collocations: [], wordFamily: [], source: { kind: 'manual', label: '', at: now },
       audioUrl: null, createdAt: now, dueAt: now, easeLevel: 0, reviewCount: 0, lapseCount: 0,
       consecutiveCorrect: 0, isLeech: 0, status: 'new', updatedAt: now, deletedAt: null,
-      wordLower: 'x',
+      wordLower: 'x', entryType: 'word', noteVi: '', originalText: null,
     });
 
     const seeded = await seedIfEmpty(now);

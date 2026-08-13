@@ -64,6 +64,49 @@ export class LexioDb extends Dexie {
     this.version(2).stores({
       grammarAttempts: 'id, topicId, at',
     });
+
+    // v3 — "Học từ công việc thật" (docs/decision.md ADR-014).
+    //
+    // Two deliberate non-additions, so the absence of new tables here isn't an
+    // oversight:
+    //  - No `phrases` table. A saved phrase/grammar-fix is a `words` row carrying
+    //    an `entryType` discriminator (lib/domain/word.ts), so StudyRepository.
+    //    recordReview (ADR-005), buildSession and nextSchedule schedule it with
+    //    zero modification — they only ever see a `Word`.
+    //  - No `workAnalyses` table. A work analysis is an `imports` row with
+    //    kind:'work' and an `analysis` payload (lib/domain/import.ts) — the
+    //    existing 'id, createdAt, status' index already serves every query this
+    //    needs, same as it does for kind:'text'/'pdf'/'image' rows.
+    //
+    // The one real change: `words` gains `entryType` and a compound
+    // `[entryType+dueAt]`. Dexie requires the FULL index list when a table is
+    // re-declared in a new version — v1's block above is still never edited,
+    // which is what the additive-only rule actually protects.
+    //   entryType alone backs a future "Words vs Phrases" filter as an index
+    //   range instead of a full-table scan; [entryType+dueAt] backs "how many
+    //   phrases are due today" without reading every word row. Neither is
+    //   consumed yet in this pass, but the index costs nothing to add now and
+    //   everything to retrofit onto an already-large table later.
+    //
+    // The upgrade() backfill is NOT optional: IndexedDB omits a record from an
+    // index entirely when its key path is undefined, so without this every
+    // pre-v3 word would be invisible to `where('entryType')` — a silently empty
+    // filter result, not a loud failure.
+    this.version(3)
+      .stores({
+        words:
+          'id, &wordLower, dueAt, createdAt, status, [status+createdAt], [isLeech+dueAt], updatedAt, entryType, [entryType+dueAt]',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('words')
+          .toCollection()
+          .modify((w) => {
+            w.entryType ??= 'word';
+            w.noteVi ??= '';
+            w.originalText ??= null;
+          }),
+      );
   }
 }
 

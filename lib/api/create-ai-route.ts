@@ -9,8 +9,7 @@ import { logAiUsage } from '@/lib/ai/usage';
 import { AiError } from '@/lib/ai/errors';
 import type { ServerTask } from '@/lib/ai/tasks/registry.server';
 
-const DEFAULT_MAX_BODY_BYTES = 8 * 1024; // 8KB — analyze-doc overrides to 2MB (docs/api_document.md §4)
-const ANALYZE_DOC_MAX_BODY_BYTES = 2 * 1024 * 1024;
+const DEFAULT_MAX_BODY_BYTES = 8 * 1024; // 8KB — tasks with larger input set ServerTask.maxBodyBytes (docs/api_document.md §4)
 
 function codeToProblem(code: AiError['code']): ProblemCode {
   return code; // AiErrorCode is a strict subset of ProblemCode's vocabulary
@@ -30,7 +29,7 @@ export function createAiRoute<I, O>(task: ServerTask<I, O>) {
       return problemResponse('forbidden_origin', requestId);
     }
 
-    const maxBytes = task.id === 'analyzeDocument' ? ANALYZE_DOC_MAX_BODY_BYTES : DEFAULT_MAX_BODY_BYTES;
+    const maxBytes = task.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
     const bodyResult = await readBodyWithCap(req, maxBytes);
     if (!bodyResult.ok) {
       return problemResponse('payload_too_large', requestId);
@@ -76,6 +75,7 @@ export function createAiRoute<I, O>(task: ServerTask<I, O>) {
             parts: task.prompt(input),
             schema: task.output,
             temperature: task.temperature,
+            maxOutputTokens: task.maxOutputTokens,
             signal,
           });
         },

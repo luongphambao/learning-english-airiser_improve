@@ -23,6 +23,8 @@ export function createDexieImportRepository(): ImportRepository {
         candidates: [],
         addedCount: 0,
         error: null,
+        rawText: input.rawText,
+        analysis: null,
       };
       await db.imports.put(row);
       return row;
@@ -41,6 +43,15 @@ export function createDexieImportRepository(): ImportRepository {
       return db.transaction('rw', db.imports, async () => {
         const row = await getOrThrow(id);
         const updated: Import = { ...row, status: 'ready', candidates, error: null };
+        await db.imports.put(updated);
+        return updated;
+      });
+    },
+
+    async setAnalysis(id, analysis) {
+      return db.transaction('rw', db.imports, async () => {
+        const row = await getOrThrow(id);
+        const updated: Import = { ...row, status: 'ready', analysis, error: null };
         await db.imports.put(updated);
         return updated;
       });

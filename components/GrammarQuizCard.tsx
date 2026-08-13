@@ -36,13 +36,13 @@ export function GrammarQuizCard({ question, onAnswer }: GrammarQuizCardProps) {
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto bg-surface border border-rule rounded-3xl p-6 sm:p-8 shadow-xs">
+    <div className="w-full max-w-lg mx-auto bg-surface border border-rule rounded-card p-6 sm:p-8">
       {/* Title */}
       <div className="mb-4 pb-3 border-b border-rule flex items-center justify-between">
-        <span className="font-mono-utility text-xs text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wider block">
+        <span className="font-mono-utility text-xs text-green font-semibold uppercase tracking-wider block">
           Grammar Quiz: {question.title}
         </span>
-        <span className="text-xs bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 font-bold px-2.5 py-0.5 rounded-full">
+        <span className="text-xs bg-green-wash text-green font-bold px-2.5 py-0.5 rounded-full">
           Level B2
         </span>
       </div>
@@ -50,7 +50,7 @@ export function GrammarQuizCard({ question, onAnswer }: GrammarQuizCardProps) {
       <p className="text-sm text-ink-soft font-medium mb-3">{question.prompt}</p>
 
       {/* Sentence Box */}
-      <div className="my-5 p-5 rounded-2xl bg-paper border border-rule flex items-center justify-center min-h-[90px]">
+      <div className="my-5 p-5 rounded-card bg-paper border border-rule flex items-center justify-center min-h-[90px]">
         {renderSentenceWithBlank()}
       </div>
 
@@ -58,15 +58,15 @@ export function GrammarQuizCard({ question, onAnswer }: GrammarQuizCardProps) {
       <div className="space-y-2.5 my-4">
         {question.options.map((opt, idx) => {
           let btnStyle =
-            'w-full p-4 rounded-xl text-left text-sm font-semibold border border-rule bg-paper hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 text-ink transition-all cursor-pointer flex items-center justify-between';
+            'w-full p-4 rounded-btn text-left text-sm font-semibold border border-rule bg-paper hover:border-green hover:bg-green-wash text-ink transition-all cursor-pointer flex items-center justify-between';
 
           if (submitted) {
             if (idx === question.correctIndex) {
               btnStyle =
-                'w-full p-4 rounded-xl text-left text-sm font-semibold border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-between';
+                'w-full p-4 rounded-btn text-left text-sm font-semibold border-2 border-green bg-green-wash text-green flex items-center justify-between';
             } else if (idx === selectedIndex) {
               btnStyle =
-                'w-full p-4 rounded-xl text-left text-sm font-semibold border-2 border-rose-500 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 flex items-center justify-between';
+                'w-full p-4 rounded-btn text-left text-sm font-semibold border-2 border-wrong bg-wrong/10 text-wrong flex items-center justify-between';
             }
           }
 
@@ -78,9 +78,9 @@ export function GrammarQuizCard({ question, onAnswer }: GrammarQuizCardProps) {
               className={btnStyle}
             >
               <span lang="en">{opt}</span>
-              {submitted && idx === question.correctIndex && <CheckCircle2 size={18} className="text-emerald-600" />}
+              {submitted && idx === question.correctIndex && <CheckCircle2 size={18} className="text-green" />}
               {submitted && idx === selectedIndex && idx !== question.correctIndex && (
-                <XCircle size={18} className="text-rose-600" />
+                <XCircle size={18} className="text-wrong" />
               )}
             </button>
           );
@@ -89,8 +89,8 @@ export function GrammarQuizCard({ question, onAnswer }: GrammarQuizCardProps) {
 
       {/* Explanation Box */}
       {submitted && (
-        <div className="mt-5 p-4 rounded-2xl bg-paper border border-rule animate-fade-in space-y-2">
-          <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+        <div className="mt-5 p-4 rounded-card bg-paper border border-rule animate-fade-in space-y-2">
+          <div className="flex items-center gap-2 text-amber-ink">
             <Lightbulb size={18} />
             <span className="text-xs font-mono-utility font-semibold uppercase tracking-wider">
               Giải thích & Quy tắc ngữ pháp

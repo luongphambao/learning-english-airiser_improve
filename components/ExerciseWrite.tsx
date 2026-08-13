@@ -43,9 +43,9 @@ export function ExerciseWrite({ word, onAnswer, contextTopic = 'software enginee
       : null;
 
   return (
-    <div className="w-full max-w-lg mx-auto bg-surface border border-rule rounded-3xl p-6 sm:p-8 shadow-xs">
+    <div className="w-full max-w-lg mx-auto bg-surface border border-rule rounded-card p-6 sm:p-8">
       <div className="flex items-center justify-between mb-3">
-        <span className="font-mono-utility text-xs text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wider">
+        <span className="font-mono-utility text-xs text-green font-semibold uppercase tracking-wider">
           Bài tập: Tự đặt câu
         </span>
         <span className="text-xs italic text-ink-soft">{word.partOfSpeech}</span>
@@ -55,7 +55,7 @@ export function ExerciseWrite({ word, onAnswer, contextTopic = 'software enginee
       <div className="mb-5 text-center">
         <h3 lang="en" className="font-serif-display text-4xl sm:text-5xl text-ink mb-1">{word.word}</h3>
         <p lang="en" className="font-mono-utility text-xs text-ink-soft mb-2">{word.ipa}</p>
-        <p className="text-base font-semibold text-emerald-600 dark:text-emerald-400">{word.meaningVi}</p>
+        <p className="text-base font-semibold text-green">{word.meaningVi}</p>
       </div>
 
       {/* Input Textarea */}
@@ -70,7 +70,7 @@ export function ExerciseWrite({ word, onAnswer, contextTopic = 'software enginee
           placeholder={`Ví dụ: We need to ${word.word} the process...`}
           disabled={loading || result !== null}
           rows={3}
-          className="w-full p-4 rounded-xl bg-paper border border-rule text-ink text-sm focus:outline-none focus:border-indigo-500 resize-none transition-all"
+          className="w-full p-4 rounded-btn bg-paper border border-rule text-ink text-sm focus:outline-none focus:border-green resize-none transition-all"
         />
         {hintCollocation && (
           <p className="mt-1.5 text-xs text-ink-soft italic">

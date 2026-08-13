@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useProfile } from '@/hooks/use-profile';
 import { useSettingsStore } from '@/stores/settings-store';
 import { BackHeader } from '@/components/layout/back-header';
+import { getRepos } from '@/lib/repositories';
 import type { UserSettings } from '@/types';
-import { Mail, CheckCircle2, AlertCircle, Send, Loader2, LogOut } from 'lucide-react';
+import { Mail, CheckCircle2, AlertCircle, Send, Loader2, LogOut, Calendar, ChevronRight } from 'lucide-react';
 
 export default function SettingsPage() {
   const { settings } = useProfile();
@@ -62,10 +64,21 @@ export default function SettingsPage() {
     try {
       setSendingEmail(true);
       setEmailNotice(null);
+      // Send the user's actual due words — without this the route falls back to a
+      // hardcoded sample ("constitute", ...) regardless of what's in the notebook,
+      // which would make the email lie about what needs reviewing.
+      const dueWords = await getRepos().words.dueBefore(Date.now(), 5);
       const res = await fetch('/api/gmail/send-reminder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
+        body: JSON.stringify({
+          words: dueWords.map((w) => ({
+            word: w.word,
+            meaningVi: w.meaningVi,
+            exampleSentence: w.exampleSentence,
+            ipa: w.ipa,
+          })),
+        }),
       });
 
       const data = await res.json();
@@ -121,7 +134,8 @@ export default function SettingsPage() {
             <h2 className="text-sm font-semibold text-ink">Nhắc nhở học tập qua Gmail</h2>
           </div>
           <p className="text-xs text-ink-soft leading-relaxed">
-            Nhận email tự động chứa 5 từ vựng cần ôn tập mỗi ngày trực tiếp vào hộp thư Gmail của bạn.
+            Nhận email chứa các từ vựng cần ôn tập trực tiếp vào hộp thư Gmail của bạn. Hiện tại cần bấm nút bên
+            dưới để gửi — gửi tự động mỗi ngày sẽ có ở bản sau.
           </p>
 
           {loadingStatus ? (
@@ -150,7 +164,7 @@ export default function SettingsPage() {
               <button
                 onClick={handleSendTestEmail}
                 disabled={sendingEmail}
-                className="w-full py-2.5 px-3 rounded-xl bg-green text-white text-xs font-medium flex items-center justify-center gap-2 cursor-pointer hover:bg-green/90 transition disabled:opacity-50"
+                className="w-full py-2.5 px-3 rounded-xl bg-green text-paper text-xs font-medium flex items-center justify-center gap-2 cursor-pointer hover:bg-green/90 transition disabled:opacity-50"
               >
                 {sendingEmail ? (
                   <>
@@ -169,7 +183,7 @@ export default function SettingsPage() {
             <div className="pt-1">
               <button
                 onClick={handleConnectGmail}
-                className="w-full py-2.5 px-3 rounded-xl bg-green text-white text-xs font-medium flex items-center justify-center gap-2 cursor-pointer hover:bg-green/90 transition"
+                className="w-full py-2.5 px-3 rounded-xl bg-green text-paper text-xs font-medium flex items-center justify-center gap-2 cursor-pointer hover:bg-green/90 transition"
               >
                 <Mail className="w-4 h-4" />
                 Kết nối tài khoản Gmail
@@ -248,6 +262,17 @@ export default function SettingsPage() {
             </button>
           </div>
         </div>
+
+        <Link
+          href="/calendar"
+          className="flex items-center justify-between p-4 rounded-2xl bg-surface border border-rule hover:border-green transition-colors"
+        >
+          <span className="flex items-center gap-2 text-sm font-semibold text-ink">
+            <Calendar size={18} className="text-green" />
+            Kế hoạch học
+          </span>
+          <ChevronRight size={18} className="text-ink-soft" />
+        </Link>
       </div>
     </>
   );

@@ -1,132 +1,160 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSessionStore } from '@/stores/session-store';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useProfile } from '@/hooks/use-profile';
-import { ExerciseFillBlank } from '@/components/ExerciseFillBlank';
-import { ExerciseListen } from '@/components/ExerciseListen';
-import { ExerciseWrite } from '@/components/ExerciseWrite';
-import { ExerciseRecall } from '@/components/ExerciseRecall';
+import { useDailyPlan } from '@/hooks/use-daily-plan';
+import { SESSION_SIZE } from '@/stores/session-store';
 import { Button } from '@/components/Button';
-import { EmptyState } from '@/components/EmptyState';
-import { CheckCircle2, Sparkles, BookOpen } from 'lucide-react';
+import { FileText, Upload, ChevronRight } from 'lucide-react';
 
-// Rewritten on stores/session-store.ts (Phase 5) — replaces screens/TodayScreen.tsx.
-// The two bugs that lived here (docs/progress/00-baseline-audit.md #10/#11) are now
-// structurally impossible: `session.items` is built once by lib/srs/session.ts and
-// never re-derived from the (mutating) word list, and `now` is always Date.now()
-// passed explicitly to start()/answer() — no frozen module-level timestamp.
+// Home — answers "what should I do next?" instead of auto-starting a session
+// (that used to happen here; the session itself moved to /practice unchanged,
+// docs/decision.md ADR-013). No useSessionStore import: navigating to /today
+// starts no session and writes nothing to Dexie.
 export default function TodayPage() {
-  const router = useRouter();
-  const { session, status, error, start, answer } = useSessionStore();
-  const { stats, settings } = useProfile();
+  const { stats } = useProfile();
+  const plan = useDailyPlan();
+  const [greeting, setGreeting] = useState('Chào bạn.');
 
+  // new Date().getHours() would mismatch between SSR prerender and hydration if
+  // computed at render time — resolve it client-side only, after mount, same
+  // pattern as the suppressHydrationWarning clock reads elsewhere (calendar,
+  // progress pages).
   useEffect(() => {
-    if (status === 'idle') void start({ now: Date.now() });
-  }, [status, start]);
+    const h = new Date().getHours();
+    setGreeting(h < 11 ? 'Chào buổi sáng.' : h < 18 ? 'Chào buổi chiều.' : 'Chào buổi tối.');
+  }, []);
 
-  if (status === 'idle' || status === 'building') {
-    return (
-      <div className="py-16 text-center text-sm text-ink-soft font-mono-utility" aria-live="polite">
-        Đang chuẩn bị bài học...
-      </div>
-    );
-  }
+  const practiceCount = Math.min(plan.dueCount + plan.freshCount, SESSION_SIZE);
+  const estimatedMinutes = Math.max(1, Math.round(practiceCount * 0.5)); // ~30s/thẻ
+  const hasNotebook = plan.totalWords > 0;
+  const hasWorkToday = practiceCount > 0;
 
-  if (status === 'error') {
-    return (
-      <div className="py-16 text-center text-sm text-wrong" role="alert">
-        Không tải được bài học hôm nay. Kiểm tra kết nối rồi thử lại.
-        {error ? <span className="block text-xs text-ink-soft mt-1 font-mono-utility">{error}</span> : null}
-      </div>
-    );
-  }
+  const accuracy = stats.totalReviews > 0 ? Math.round((stats.totalCorrect / stats.totalReviews) * 100) : null;
 
-  if (!session || session.items.length === 0) {
-    return (
-      <div className="py-8">
-        <EmptyState
-          icon={<CheckCircle2 size={32} className="text-green" />}
-          title="Bạn đã hoàn thành bài học hôm nay!"
-          description="Không còn từ nào cần ôn tập lúc này. Hãy thêm từ mới hoặc quay lại vào ngày mai."
-          actionLabel="Đến Sổ từ để thêm từ mới"
-          onAction={() => router.push('/vocabulary')}
-        />
-      </div>
-    );
-  }
-
-  if (session.status === 'done') {
-    return (
-      <div className="py-12 px-4 text-center max-w-md mx-auto bg-surface border border-rule rounded-[16px] shadow-xs">
-        <div className="w-16 h-16 rounded-full bg-green-wash text-green flex items-center justify-center mx-auto mb-4">
-          <Sparkles size={32} />
-        </div>
-        <h2 className="font-serif-display text-3xl sm:text-4xl text-ink mb-2">
-          Xuất sắc! Đã học xong {session.items.length} từ.
-        </h2>
-        <p className="text-sm text-ink-soft mb-6">
-          Chuỗi ngày học hiện tại: <span className="font-mono-utility font-semibold text-green">{stats.streak} ngày</span>
-        </p>
-        <Button variant="quiet" onClick={() => router.push('/vocabulary')} className="w-full">
-          Xem danh sách trong Sổ từ
-        </Button>
-      </div>
-    );
-  }
-
-  const item = session.items[session.index];
-  if (!item) return null;
-  const word = item.snapshot;
+  // Priority ladder over real data only — no invented per-skill percentages.
+  const focus =
+    plan.leechCount > 0
+      ? { text: `Bạn hay quên ${plan.leechCount} từ. Ôn lại trước tiên.`, href: '/practice' }
+      : accuracy !== null && stats.totalReviews >= 10 && accuracy < 70
+        ? { text: `Tỉ lệ đúng của bạn là ${accuracy}%. Luyện thêm để nhớ lâu hơn.`, href: '/practice' }
+        : plan.totalWords < 10
+          ? { text: 'Sổ tay còn ít từ. Thêm một tài liệu công việc để có nội dung học riêng.', href: '/learn' }
+          : { text: `Bạn đang giữ nhịp tốt. Chuỗi ${stats.streak} ngày.`, href: '/progress' };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-lg shadow-indigo-200/50 dark:shadow-none">
-        <div className="relative z-10">
-          <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3 inline-block">
-            Bài học hôm nay
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Luyện từ vựng công sở</h1>
-          <p className="text-indigo-100 text-sm sm:text-base max-w-md">
-            Luyện tập {session.items.length} từ vựng then chốt hôm nay thông qua bài tập phản xạ, chọn từ và nghe phát âm.
+    <div className="space-y-8">
+      <div>
+        <h1 className="font-serif-display text-3xl text-ink mb-1">{greeting}</h1>
+        <p className="text-sm text-ink-soft">Hôm nay luyện tiếng Anh cho công việc của bạn.</p>
+      </div>
+
+      {!hasNotebook ? (
+        <div className="space-y-3">
+          <p className="text-sm text-ink-soft leading-relaxed">
+            Sổ tay của bạn còn trống. Dán một email hoặc tài liệu tiếng Anh bạn đang dùng ở công ty — Gemini sẽ tìm
+            ra những gì đáng học.
           </p>
+          <Link href="/learn">
+            <Button variant="primary" className="w-full">
+              Học từ tài liệu của bạn
+            </Button>
+          </Link>
         </div>
-        <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl pointer-events-none" />
-      </div>
-
-      <div className="flex items-center justify-between pb-3 border-b border-rule">
-        <div className="flex items-center gap-2">
-          <BookOpen size={18} className="text-indigo-600 dark:text-indigo-400" />
-          <span className="text-xs font-mono-utility text-ink-soft font-semibold uppercase">
-            Tiến độ câu hỏi
+      ) : (
+        <div className="space-y-3">
+          <span className="font-mono-utility text-xs uppercase tracking-wider text-ink-soft block pb-2 border-b border-rule">
+            Hôm nay
           </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <div
-            className="w-24 sm:w-32 h-2 bg-paper border border-rule rounded-full overflow-hidden"
-            role="progressbar"
-            aria-valuenow={session.index + 1}
-            aria-valuemin={1}
-            aria-valuemax={session.items.length}
-          >
-            <div
-              className="h-full bg-indigo-600 dark:bg-indigo-400 rounded-full transition-all duration-300"
-              style={{ width: `${((session.index + 1) / session.items.length) * 100}%` }}
-            />
-          </div>
-          <span className="font-mono-utility text-xs font-semibold text-ink">
-            {session.index + 1} / {session.items.length}
-          </span>
-        </div>
-      </div>
 
-      {item.kind === 'fillBlank' && <ExerciseFillBlank word={word} onAnswer={answer} />}
-      {item.kind === 'listen' && <ExerciseListen word={word} onAnswer={answer} />}
-      {item.kind === 'write' && (
-        <ExerciseWrite word={word} onAnswer={answer} contextTopic={settings.contextTopic} />
+          {hasWorkToday ? (
+            <>
+              <div className="space-y-1.5">
+                {plan.dueCount > 0 && <PlanRow label="từ đến hạn ôn" value={plan.dueCount} />}
+                {plan.freshCount > 0 && <PlanRow label="từ mới chưa học" value={plan.freshCount} />}
+                {plan.leechCount > 0 && <PlanRow label="từ bạn hay quên" value={plan.leechCount} />}
+              </div>
+              <p className="font-mono-utility text-xs text-ink-soft pt-1">
+                Khoảng {estimatedMinutes} phút · {practiceCount} thẻ trong buổi này
+              </p>
+              <Link href="/practice">
+                <Button variant="primary" className="w-full">
+                  Bắt đầu luyện tập hôm nay
+                </Button>
+              </Link>
+            </>
+          ) : (
+            <div className="space-y-3 py-2">
+              <p className="text-sm text-ink-soft">Bạn đã học xong hôm nay. Quay lại vào ngày mai, hoặc thêm tài liệu mới để học tiếp.</p>
+              <Link href="/learn">
+                <Button variant="primary" className="w-full">
+                  Học từ tài liệu của bạn
+                </Button>
+              </Link>
+            </div>
+          )}
+        </div>
       )}
-      {item.kind === 'recall' && <ExerciseRecall word={word} onAnswer={answer} />}
+
+      <div className="space-y-3">
+        <span className="font-mono-utility text-xs uppercase tracking-wider text-ink-soft block">
+          Học từ công việc thật
+        </span>
+        <div className="bg-surface border border-rule rounded-card shadow-card p-5 space-y-4">
+          <p className="text-sm text-ink-soft leading-relaxed">
+            Dán một email, báo cáo hay tài liệu công việc. Gemini sẽ tìm từ vựng, cụm từ chuyên nghiệp và lỗi ngữ
+            pháp đáng học trong đó.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/learn">
+              <Button variant="quiet">
+                <FileText size={16} />
+                Dán văn bản
+              </Button>
+            </Link>
+            <Link href="/learn?mode=file">
+              <Button variant="quiet">
+                <Upload size={16} />
+                Tải tài liệu
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {hasNotebook && (
+        <Link
+          href={focus.href}
+          className="flex items-center justify-between py-3 border-t border-rule text-sm text-ink hover:text-green transition-colors"
+        >
+          <span>
+            <span className="font-mono-utility text-xs uppercase tracking-wider text-ink-soft block mb-1">
+              Cần chú ý
+            </span>
+            {focus.text}
+          </span>
+          <ChevronRight size={18} className="text-ink-soft shrink-0" />
+        </Link>
+      )}
+
+      <div className="flex items-center justify-between text-xs font-mono-utility text-ink-soft">
+        <Link href="/progress" className="hover:text-ink transition-colors">
+          Chuỗi {stats.streak} ngày · dài nhất {stats.longestStreak} ngày · Xem tiến độ →
+        </Link>
+        <Link href="/calendar" className="hover:text-ink transition-colors">
+          Kế hoạch học →
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function PlanRow({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span className="text-ink-soft">{label}</span>
+      <span className="font-mono-utility font-semibold text-ink">{value}</span>
     </div>
   );
 }

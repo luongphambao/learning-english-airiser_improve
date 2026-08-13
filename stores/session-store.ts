@@ -5,7 +5,10 @@ import { dayKey } from '@/lib/srs/date';
 import { newId } from '@/lib/db/ids';
 import type { StudySession } from '@/lib/srs/types';
 
-const SESSION_SIZE = 5;
+// Exported so Home (app/(tabs)/today/page.tsx) can render a due/fresh count that
+// matches what /practice will actually serve — never a number the session can't
+// deliver.
+export const SESSION_SIZE = 5;
 
 interface SessionStoreState {
   session: StudySession | null;

@@ -25,9 +25,9 @@ export function ExerciseRecall({ word, onAnswer }: ExerciseRecallProps) {
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto bg-surface border border-rule rounded-3xl p-6 sm:p-8 shadow-xs">
+    <div className="w-full max-w-lg mx-auto bg-surface border border-rule rounded-card p-6 sm:p-8">
       <div className="flex items-center justify-between mb-4">
-        <span className="font-mono-utility text-xs text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wider">
+        <span className="font-mono-utility text-xs text-green font-semibold uppercase tracking-wider">
           Bài tập: Nhớ từ từ nghĩa tiếng Việt
         </span>
         <span className="text-xs italic text-ink-soft">{word.partOfSpeech}</span>
@@ -47,7 +47,7 @@ export function ExerciseRecall({ word, onAnswer }: ExerciseRecallProps) {
           placeholder="Nhập từ tiếng Anh..."
           disabled={submitted}
           autoFocus
-          className="w-full p-4 rounded-xl bg-paper border border-rule text-ink text-center text-lg font-semibold focus:outline-none focus:border-indigo-500 transition-all mb-4"
+          className="w-full p-4 rounded-btn bg-paper border border-rule text-ink text-center text-lg font-semibold focus:outline-none focus:border-green transition-all mb-4"
         />
 
         {!submitted ? (
@@ -58,10 +58,8 @@ export function ExerciseRecall({ word, onAnswer }: ExerciseRecallProps) {
           <div className="space-y-4 animate-fade-in">
             <div
               aria-live="polite"
-              className={`p-4 rounded-xl text-center font-semibold ${
-                isCorrect
-                  ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
-                  : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800'
+              className={`p-4 rounded-btn text-center font-semibold border ${
+                isCorrect ? 'bg-green-wash text-green border-green/30' : 'bg-wrong/10 text-wrong border-wrong/30'
               }`}
             >
               {isCorrect ? 'Chính xác!' : <>Từ đúng là: <span lang="en">{word.word}</span></>}

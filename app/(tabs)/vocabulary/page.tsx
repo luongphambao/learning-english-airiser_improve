@@ -115,7 +115,7 @@ export default function WordsPage() {
                   </div>
                   <p className="text-xs text-ink-soft mt-0.5 line-clamp-1">
                     {isEnriching ? (
-                      <span className="animate-pulse text-amber">Đang tải nghĩa AI...</span>
+                      <span className="animate-pulse text-amber-ink">Đang tải nghĩa AI...</span>
                     ) : (
                       word.meaningVi || 'Đang chờ làm giàu nội dung...'
                     )}
@@ -128,7 +128,7 @@ export default function WordsPage() {
                       word.status === 'known'
                         ? 'bg-green-wash text-green'
                         : word.status === 'learning'
-                        ? 'bg-amber/10 text-amber'
+                        ? 'bg-amber/10 text-amber-ink'
                         : 'bg-rule text-ink-soft'
                     }`}
                   >
@@ -143,7 +143,7 @@ export default function WordsPage() {
 
       <button
         onClick={() => setIsAddSheetOpen(true)}
-        className="fixed bottom-20 right-6 w-14 h-14 rounded-full bg-green text-white shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-all cursor-pointer z-30"
+        className="fixed bottom-20 right-6 w-14 h-14 rounded-full bg-green text-paper shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-all cursor-pointer z-30"
         aria-label="Thêm từ mới"
       >
         <Plus size={28} />

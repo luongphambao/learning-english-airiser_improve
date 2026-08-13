@@ -44,22 +44,20 @@ export function AppHeader() {
   return (
       <header className="sticky top-0 z-40 bg-surface/90 backdrop-blur-md border-b border-rule px-4 sm:px-8 h-16 flex items-center justify-between shrink-0 shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-sm shadow-indigo-200 dark:shadow-none">
+          <div className="w-9 h-9 bg-green text-paper rounded-xl flex items-center justify-center font-serif-display text-lg">
             L
           </div>
-          <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-500">
-            Lexio
-          </span>
+          <span className="font-serif-display text-xl text-ink">Lexio</span>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
           <Link
             href="/progress"
-            className="flex items-center gap-2 bg-amber-50 dark:bg-amber-950/40 px-3 py-1.5 rounded-full border border-amber-200/60 dark:border-amber-800/50 cursor-pointer hover:scale-105 transition-all"
+            className="flex items-center gap-2 bg-amber/10 px-3 py-1.5 rounded-full border border-amber/30 cursor-pointer hover:scale-105 transition-all"
             title="Xem tiến độ chuỗi ngày"
           >
-            <Flame size={16} className="text-amber-500 fill-amber-500" />
-            <span className="text-xs sm:text-sm font-semibold text-amber-700 dark:text-amber-400 font-mono-utility">
+            <Flame size={16} className="text-amber fill-amber" />
+            <span className="text-xs sm:text-sm font-semibold text-amber-ink font-mono-utility">
               {stats.streak} ngày
             </span>
           </Link>

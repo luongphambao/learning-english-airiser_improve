@@ -27,9 +27,9 @@ function CustomTooltip({ active, payload }: TooltipProps) {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="bg-surface border border-rule rounded-xl p-3 shadow-md text-xs font-sans">
+      <div className="bg-surface border border-rule rounded-xl p-3 shadow-card text-xs font-sans">
         <p className="font-semibold text-ink">{data.day} ({data.date})</p>
-        <p className="text-indigo-600 dark:text-indigo-400 font-mono-utility mt-1">
+        <p className="text-green font-mono-utility mt-1">
           Lượt ôn tập: <span className="font-bold">{data.reviews} lượt</span>
         </p>
       </div>
@@ -73,7 +73,7 @@ export default function ProgressPage() {
         day: weekdayVi(key),
         date: key,
         reviews: count,
-        fill: isToday ? 'var(--green)' : '#6366F1',
+        fill: isToday ? 'var(--green)' : 'var(--rule)',
       };
     });
   }, [last7Days, stats.history]);
@@ -86,24 +86,21 @@ export default function ProgressPage() {
     <>
       <BackHeader title="Tiến độ" />
       <div className="space-y-6 animate-fade-in pt-6">
-        <div className="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-lg shadow-indigo-200/50 dark:shadow-none">
-          <div className="relative z-10">
-            <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-3 inline-block">
-              Tổng quan tiến độ
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Thói quen học tập mỗi ngày</h1>
-            <p className="text-indigo-100 text-sm sm:text-base max-w-md">
-              Duy trì 3 phút ôn tập từ vựng & ngữ pháp để đạt sự tự tin tối đa trong công việc.
-            </p>
-          </div>
-          <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl pointer-events-none" />
+        <div className="bg-green rounded-card p-6 sm:p-8 text-paper">
+          <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-3 inline-block">
+            Tổng quan tiến độ
+          </span>
+          <h1 className="font-serif-display text-2xl sm:text-3xl mb-2">Thói quen học tập mỗi ngày</h1>
+          <p className="text-paper/80 text-sm sm:text-base max-w-md">
+            Duy trì 3 phút ôn tập từ vựng & ngữ pháp để đạt sự tự tin tối đa trong công việc.
+          </p>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="bg-surface border border-rule rounded-2xl p-4 shadow-xs text-center">
+          <div className="bg-surface border border-rule rounded-card p-4 text-center">
             <span className="text-xs font-mono-utility text-ink-soft uppercase block mb-1">Chuỗi ngày</span>
-            <div className="flex items-center justify-center gap-1.5 text-2xl sm:text-3xl font-bold text-amber-500 font-mono-utility">
-              <Flame size={24} className="fill-amber-500" />
+            <div className="flex items-center justify-center gap-1.5 text-2xl sm:text-3xl font-bold text-amber-ink font-mono-utility">
+              <Flame size={24} className="fill-amber text-amber" />
               {stats.streak}
             </div>
             <span className="text-[11px] text-ink-soft block mt-1">Dài nhất: {stats.longestStreak} ngày</span>
@@ -119,7 +116,7 @@ export default function ProgressPage() {
 
           <div className="bg-surface border border-rule rounded-2xl p-4 shadow-xs text-center">
             <span className="text-xs font-mono-utility text-ink-soft uppercase block mb-1">Đang học</span>
-            <div className="text-2xl sm:text-3xl font-bold text-amber font-mono-utility">
+            <div className="text-2xl sm:text-3xl font-bold text-amber-ink font-mono-utility">
               {learningWordsCount}
             </div>
             <span className="text-[11px] text-ink-soft block mt-1">Đang ôn tập định kỳ</span>
@@ -135,16 +132,16 @@ export default function ProgressPage() {
         </div>
 
         {/* Recharts Chart for 7 Days Total Reviews */}
-        <div className="bg-surface border border-rule rounded-2xl p-6 shadow-xs space-y-4">
+        <div className="bg-surface border border-rule rounded-card p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <BarChart2 size={18} className="text-indigo-600 dark:text-indigo-400" />
+              <BarChart2 size={18} className="text-green" />
               <div>
                 <h3 className="font-semibold text-base text-ink">Biểu đồ lượt ôn tập (7 ngày qua)</h3>
                 <p className="text-xs text-ink-soft">Tổng số lượt ôn: <span className="font-mono-utility font-semibold text-ink">{reviewsLast7Days}</span> lượt</p>
               </div>
             </div>
-            <span className="text-xs font-mono-utility text-indigo-600 dark:text-indigo-400 font-semibold">Tỉ lệ đúng {accuracy}%</span>
+            <span className="text-xs font-mono-utility text-green font-semibold">Tỉ lệ đúng {accuracy}%</span>
           </div>
 
           <div className="h-56 w-full pt-2">
@@ -167,7 +164,7 @@ export default function ProgressPage() {
                   content={(props) => <CustomTooltip active={props.active} payload={props.payload as unknown as TooltipProps['payload']} />}
                   cursor={{ fill: 'var(--green-wash)', opacity: 0.5 }}
                 />
-                <Bar dataKey="reviews" radius={[6, 6, 0, 0]} fill="#6366F1">
+                <Bar dataKey="reviews" radius={[6, 6, 0, 0]} fill="var(--rule)">
                   {chartData.map((entry) => (
                     <Cell key={entry.key} fill={entry.fill} />
                   ))}
@@ -195,7 +192,7 @@ export default function ProgressPage() {
                   <div
                     className={`w-full h-10 rounded-xl flex items-center justify-center transition-all ${
                       isCompleted
-                        ? 'bg-green text-white shadow-xs'
+                        ? 'bg-green text-paper shadow-xs'
                         : isToday
                         ? 'bg-paper border-2 border-dashed border-rule text-ink-soft'
                         : 'bg-paper border border-rule text-ink-soft'
@@ -211,8 +208,8 @@ export default function ProgressPage() {
         </div>
 
         {leechWords.length > 0 && (
-          <div className="bg-surface border border-rose-200 dark:border-rose-900/50 rounded-2xl p-6 shadow-xs space-y-3">
-            <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
+          <div className="bg-surface border border-wrong/30 rounded-card p-6 space-y-3">
+            <div className="flex items-center gap-2 text-wrong">
               <RotateCcw size={18} />
               <h3 className="font-semibold text-base">Từ vựng hay trả lời sai ({leechWords.length})</h3>
             </div>

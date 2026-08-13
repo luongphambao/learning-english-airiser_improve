@@ -10,42 +10,55 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 :root {
-  /* Design tokens — keep these exact values (docs/decision.md ADR-006: the current
-     AI-Studio look is intentional, not a placeholder to be replaced). */
-  --paper: #F8FAFC;
+  /* Design tokens — warm paper/forest palette (docs/design.md §4, docs/decision.md
+     ADR-013 reversing ADR-006). Gradients are banned under this system — there is
+     deliberately no second accent hue to feed one (the old --violet token and its 3
+     gradient usages are gone). */
+  --paper: #FAF8F5;
   --surface: #FFFFFF;
-  --ink: #0F172A;
-  --ink-soft: #64748B;
-  --rule: #E2E8F0;
-  --green: #4F46E5;
-  --green-wash: #EEF2FF;
-  --amber: #D97706;
-  --wrong: #E11D48;
-  --violet: #8B5CF6; /* second gradient stop for the hero banners — not a new accent hue,
-                         just naming the indigo→violet gradient already in use so it has
-                         one source instead of being hardcoded per-component. */
+  --ink: #232120;
+  --ink-soft: #6B655E;
+  --rule: #E5DFD6;
+  --green: #2F6B4F;
+  --green-wash: #EDF3EF;
+  --amber: #B07C36;
+  /* Not in the mockups — added because raw --amber as TEXT only scores 3.45:1 on
+     --paper (WCAG AA text needs 4.5:1). --amber stays the fill/border/icon colour
+     (icons only need the 3:1 non-text threshold, which --amber clears); any actual
+     amber TEXT must use --amber-ink instead (6.0:1). */
+  --amber-ink: #7A5320;
+  --wrong: #9C4A3F;
 
   --radius-card: 16px;
   --radius-btn: 12px;
   --radius-sheet: 24px;
-  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08);
+  --shadow-card: 0 1px 2px rgba(35, 33, 32, 0.04), 0 8px 24px rgba(35, 33, 32, 0.06);
+
+  /* Height of the fixed bottom nav on mobile (components/layout/tab-bar.tsx) — read
+     by .pb-nav/.above-nav below so pages never hardcode it. 0 at md+, where the nav
+     becomes an inline strip under the header instead of a fixed bottom bar. */
+  --nav-h: 60px;
 
   color-scheme: light;
 }
 
-[data-theme="dark"] {
-  --paper: #0F172A;
-  --surface: #1E293B;
-  --ink: #F8FAFC;
-  --ink-soft: #94A3B8;
-  --rule: #334155;
-  --green: #818CF8;
-  --green-wash: #1E1B4B;
-  --amber: #FBBF24;
-  --wrong: #FB7185;
-  --violet: #A78BFA;
+@media (min-width: 48rem) {
+  :root { --nav-h: 0px; }
+}
 
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+[data-theme="dark"] {
+  --paper: #171614;
+  --surface: #211F1D;
+  --ink: #F2EDE6;
+  --ink-soft: #9A938A;
+  --rule: #322F2B;
+  --green: #6FA98A;
+  --green-wash: #23302A;
+  --amber: #C79B5C;
+  --amber-ink: #C79B5C; /* on dark washes this already clears AA (5.7:1) */
+  --wrong: #C4736A;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
 
   color-scheme: dark;
 }
@@ -66,8 +79,8 @@
   --color-green: var(--green);
   --color-green-wash: var(--green-wash);
   --color-amber: var(--amber);
+  --color-amber-ink: var(--amber-ink);
   --color-wrong: var(--wrong);
-  --color-violet: var(--violet);
 
   --radius-card: var(--radius-card);
   --radius-btn: var(--radius-btn);
@@ -94,6 +107,14 @@
     outline-offset: 2px;
   }
 
+  /* On filled-accent surfaces the green ring can disappear into the background
+     (most visibly in dark mode, where --green is itself a light colour) — flip the
+     ring to --paper there instead. */
+  .bg-green:focus-visible,
+  .bg-wrong:focus-visible {
+    outline-color: var(--paper);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
@@ -113,6 +134,23 @@
 
 .font-mono-utility {
   font-family: var(--font-mono);
+}
+
+/* Bottom-nav clearance (components/layout/tab-bar.tsx). .pb-nav is for scroll
+   containers that must not be covered by the fixed bottom bar; .above-nav is for
+   anything that must float directly above it (sticky confirm bars); .pb-safe adds
+   just the iOS home-indicator inset, for the nav bar itself. All three collapse to
+   plain padding at md+, where the nav is an inline strip instead of a fixed bar. */
+.pb-nav {
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 1rem);
+}
+
+.above-nav {
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Ruled blank line for interactive fill-in-the-blank exercises */

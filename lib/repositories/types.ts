@@ -1,4 +1,4 @@
-import type { CandidateWord, ExerciseKind, GrammarAttempt, Import, Review, UserSettings, UserStats, Word, WordSource, WordStatus } from '@/lib/domain';
+import type { CandidateWord, EntryType, ExerciseKind, GrammarAttempt, Import, Review, UserSettings, UserStats, Word, WordSource, WordStatus, WorkAnalysis } from '@/lib/domain';
 import type { StudySession } from '@/lib/srs/types';
 
 export interface NewWordInput {
@@ -11,8 +11,25 @@ export interface NewWordInput {
   // id, so the caller never has to search an in-memory array for it again.
 }
 
+/** One saved "Học từ công việc thật" insight (docs/decision.md ADR-014) — a phrase
+ * or grammar-fix, written as a `words` row with `entryType` set, in one transaction.
+ * Unlike NewWordInput, the AI has already supplied everything enrichWord would have
+ * filled in later, so there is no placeholder-then-enrich step here. */
+export interface NewInsightWordInput {
+  text: string; // becomes Word.word
+  entryType: EntryType;
+  source: WordSource;
+  meaningVi: string;
+  noteVi: string;
+  exampleSentence: string;
+  distractors: string[];
+  originalText: string | null;
+  now: number; // caller owns the clock — see docs/decision.md ADR-004
+}
+
 export interface ListWordsQuery {
   status?: WordStatus;
+  entryType?: EntryType;
   search?: string;
   limit: number;
   offset?: number;
@@ -25,6 +42,12 @@ export interface WordRepository {
   countByStatus(): Promise<Record<WordStatus, number>>;
   add(input: NewWordInput): Promise<Word>;
   addMany(inputs: NewWordInput[]): Promise<Word[]>;
+  /** Scheduled immediately (dueAt=now, like a fresh `applyTriage('unknown', ...)`
+   * word) — saving from Learn is always "I want to learn this", never "I already
+   * know this". On a duplicate `wordLower`, updates the content fields but
+   * PRESERVES the existing SRS state (dueAt/easeLevel/reviewCount/...) — re-saving
+   * an already-practiced phrase must not reset its schedule. */
+  addFromInsight(input: NewInsightWordInput): Promise<Word>;
   patch(id: string, patch: Partial<Word>): Promise<Word>;
   remove(id: string): Promise<void>;
   dueBefore(now: number, limit: number): Promise<Word[]>;
@@ -77,18 +100,25 @@ export interface StudyRepository {
 export interface NewImportInput {
   fileName: string;
   kind: Import['kind'];
+  /** kind 'work' only — persisted so a failed analysis can be retried without the
+   * user re-pasting their text. */
+  rawText?: string;
 }
 
-/** Backs the "Tải tài liệu" screen (docs/progress/board.md Phase 7). One row per
- * paste/upload: starts 'analyzing', becomes 'ready' with AI-extracted candidates,
- * 'done' once the user confirms triage and words are added, or 'failed' with a
- * Vietnamese `error` message. */
+/** Backs the "Tải tài liệu" / "Học từ công việc thật" screens (docs/progress/board.md
+ * Phase 7; docs/decision.md ADR-014). One row per paste/upload: starts 'analyzing',
+ * becomes 'ready' with AI-extracted candidates (kind text/pdf/image) or a work
+ * analysis (kind 'work'), 'done' once the user confirms and words are added, or
+ * 'failed' with a Vietnamese `error` message. */
 export interface ImportRepository {
   create(input: NewImportInput): Promise<Import>;
   get(id: string): Promise<Import | null>;
   list(limit?: number): Promise<Import[]>;
   setCandidates(id: string, candidates: CandidateWord[]): Promise<Import>;
   setTriage(id: string, word: string, triage: CandidateWord['triage']): Promise<Import>;
+  /** kind 'work' — the analogue of setCandidates for a work analysis: writes the
+   * normalized result and moves status to 'ready'. */
+  setAnalysis(id: string, analysis: WorkAnalysis): Promise<Import>;
   fail(id: string, error: string): Promise<Import>;
   complete(id: string, addedCount: number): Promise<Import>;
 }

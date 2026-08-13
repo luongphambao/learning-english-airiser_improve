@@ -110,9 +110,9 @@ export function ExerciseListen({ word, onAnswer }: ExerciseListenProps) {
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto bg-surface border border-rule rounded-3xl p-6 sm:p-8 shadow-xs">
+    <div className="w-full max-w-lg mx-auto bg-surface border border-rule rounded-card p-6 sm:p-8">
       <div className="flex items-center justify-between mb-4">
-        <span className="font-mono-utility text-xs text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wider">
+        <span className="font-mono-utility text-xs text-green font-semibold uppercase tracking-wider">
           Bài tập: Nghe và chọn từ
         </span>
         <span className="text-xs italic text-ink-soft">{word.partOfSpeech}</span>
@@ -122,7 +122,7 @@ export function ExerciseListen({ word, onAnswer }: ExerciseListenProps) {
       <div className="my-8 flex flex-col items-center justify-center text-center">
         <button
           onClick={() => (audioUrl ? playUrl(audioUrl) : fetchAndPlay())}
-          className="w-20 h-20 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-md shadow-indigo-100 dark:shadow-none mb-3"
+          className="w-20 h-20 rounded-card bg-green-wash text-green flex items-center justify-center hover:scale-105 active:scale-95 transition-all cursor-pointer mb-3"
           aria-label="Phát âm thanh"
         >
           {isPlaying ? <RefreshCw className="animate-spin" size={32} /> : <Volume2 size={36} />}
@@ -134,10 +134,10 @@ export function ExerciseListen({ word, onAnswer }: ExerciseListenProps) {
 
       {/* Reveal sentence after answering */}
       {showAnswer && (
-        <div aria-live="polite" className="mb-6 p-4 rounded-2xl bg-paper border border-rule text-center animate-fade-in">
+        <div aria-live="polite" className="mb-6 p-4 rounded-card bg-paper border border-rule text-center animate-fade-in">
           <p lang="en" className="font-serif-display text-2xl text-ink mb-1">{word.word}</p>
           <p lang="en" className="text-sm text-ink-soft italic mb-2">&ldquo;{word.exampleSentence}&rdquo;</p>
-          <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{word.meaningVi}</p>
+          <p className="text-sm font-semibold text-green">{word.meaningVi}</p>
         </div>
       )}
 
@@ -145,15 +145,15 @@ export function ExerciseListen({ word, onAnswer }: ExerciseListenProps) {
       <div className="grid grid-cols-2 gap-3 mt-4">
         {options.map((option, idx) => {
           let btnClass =
-            'p-3.5 rounded-xl text-base font-semibold border border-rule text-ink bg-paper hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer text-center';
+            'p-3.5 rounded-btn text-base font-semibold border border-rule text-ink bg-paper hover:border-green hover:bg-green-wash transition-all cursor-pointer text-center';
 
           if (selectedOption === option) {
             if (isCorrect) {
               btnClass =
-                'p-3.5 rounded-xl text-base font-semibold border-2 border-emerald-500 text-white bg-emerald-600 shadow-sm text-center';
+                'p-3.5 rounded-btn text-base font-semibold border-2 border-green text-paper bg-green text-center';
             } else {
               btnClass =
-                'p-3.5 rounded-xl text-base font-semibold border-2 border-rose-500 text-white bg-rose-600 text-center';
+                'p-3.5 rounded-btn text-base font-semibold border-2 border-wrong text-paper bg-wrong text-center';
             }
           }
 

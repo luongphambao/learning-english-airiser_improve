@@ -32,7 +32,24 @@ export function toGeminiSchema(schema: Record<string, unknown>): GeminiSchema {
   return convert(schema);
 }
 
-function convert(node: Record<string, unknown>): GeminiSchema {
+/**
+ * zod v4's z.toJSONSchema() emits `.nullable()` fields as `{ anyOf: [<inner>, {type:
+ * 'null'}] }` — no top-level `type` key. Before this unwrap, `convert()` fell through
+ * its `typeof node.type === 'string' ? node.type : 'object'` default straight to
+ * `'object'`, and since such a node has no `properties` either, the result was a
+ * bare `{type:'OBJECT'}` with nothing inside — silently wrong for Gemini, whatever
+ * the field actually was. No shipped task uses `.nullable()` today so this was
+ * latent, not active; lib/ai/__tests__/schema.test.ts guards it going forward.
+ */
+function unwrapNullableAnyOf(node: Record<string, unknown>): Record<string, unknown> {
+  if (!Array.isArray(node.anyOf)) return node;
+  const branches = node.anyOf as Record<string, unknown>[];
+  const nonNull = branches.filter((b) => b.type !== 'null');
+  return nonNull.length === 1 ? nonNull[0]! : node;
+}
+
+function convert(rawNode: Record<string, unknown>): GeminiSchema {
+  const node = unwrapNullableAnyOf(rawNode);
   const jsonType = typeof node.type === 'string' ? node.type : 'object';
   const geminiType = JSON_TYPE_TO_GEMINI[jsonType] ?? 'STRING';
 

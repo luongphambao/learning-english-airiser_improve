@@ -10,7 +10,7 @@ interface WordCardProps {
 
 export function WordCard({ word, onPlayAudio, showDetails = true }: WordCardProps) {
   return (
-    <div className="bg-surface border border-rule rounded-3xl p-6 shadow-xs relative transition-all">
+    <div className="bg-surface border border-rule rounded-card p-6 relative transition-all">
       {/* Header: Word & Audio */}
       <div className="flex items-start justify-between gap-4">
         <div>
@@ -25,7 +25,7 @@ export function WordCard({ word, onPlayAudio, showDetails = true }: WordCardProp
               {word.partOfSpeech || 'word'}
             </span>
             {word.isLeech && (
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold font-mono-utility bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold font-mono-utility bg-amber/10 text-amber-ink border border-amber/30">
                 Từ khó
               </span>
             )}
@@ -35,7 +35,7 @@ export function WordCard({ word, onPlayAudio, showDetails = true }: WordCardProp
         {onPlayAudio && (
           <button
             onClick={onPlayAudio}
-            className="p-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:scale-105 active:scale-95 transition-all cursor-pointer flex-shrink-0"
+            className="p-3 rounded-card bg-green-wash text-green hover:scale-105 active:scale-95 transition-all cursor-pointer flex-shrink-0"
             title="Nghe phát âm"
             aria-label="Nghe phát âm"
           >
@@ -53,7 +53,7 @@ export function WordCard({ word, onPlayAudio, showDetails = true }: WordCardProp
 
       {/* Example Sentence */}
       {showDetails && word.exampleSentence && (
-        <div className="mt-4 p-4 rounded-2xl bg-paper border-l-4 border-indigo-600 dark:border-indigo-400">
+        <div className="mt-4 p-4 rounded-card bg-paper border-l-4 border-green">
           <p lang="en" className="text-sm text-ink italic leading-relaxed">
             &ldquo;{word.exampleSentence}&rdquo;
           </p>

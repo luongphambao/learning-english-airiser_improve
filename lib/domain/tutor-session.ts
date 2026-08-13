@@ -1,18 +1,12 @@
 import { z } from 'zod';
 
-// Tutor booking domain — distinct from the "study session" concept in lib/srs/session.ts
-// (a frozen list of 5 exercise items, docs/decision.md ADR-004). This `Session` name is
-// kept from the original types.ts for backward compatibility with existing imports.
-export const TutorSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  email: z.string(),
-  photoUrl: z.string(),
-  bio: z.string(),
-  availableSlots: z.array(z.number()),
-});
-export type Tutor = z.infer<typeof TutorSchema>;
-
+// The tutor-booking FEATURE was removed (docs/decision.md ADR-013 / the AI Riser
+// strategy doc §18 — the old UI faked a Google Meet link with Math.random() and
+// claimed a booking had been saved when nothing was). `Session` survives here only
+// because `lib/db/dexie.ts`'s `tutorSessions` table was declared in the shipped
+// `version(1).stores()` block, and that block can never be edited (additive-only
+// migrations — see docs/data-model.md). The table stays empty/unused; this type
+// exists solely so its `Table<Session, string>` declaration still compiles.
 export const SessionSchema = z.object({
   id: z.string(),
   tutorId: z.string(),

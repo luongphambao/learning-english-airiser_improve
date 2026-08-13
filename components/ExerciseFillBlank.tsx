@@ -52,9 +52,9 @@ export function ExerciseFillBlank({ word, onAnswer }: ExerciseFillBlankProps) {
         }`}
       >
         {/* Front side */}
-        <div className="backface-hidden bg-surface border border-rule rounded-3xl p-6 shadow-xs">
+        <div className="backface-hidden bg-surface border border-rule rounded-card p-6">
           <div className="flex items-center justify-between mb-4">
-            <span className="font-mono-utility text-xs text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wider">
+            <span className="font-mono-utility text-xs text-green font-semibold uppercase tracking-wider">
               Bài tập: Điền từ vào chỗ trống
             </span>
             <span className="text-xs italic text-ink-soft">{word.partOfSpeech}</span>
@@ -65,7 +65,7 @@ export function ExerciseFillBlank({ word, onAnswer }: ExerciseFillBlankProps) {
               {blank ? (
                 <>
                   {blank.before}
-                  <span className="ruled-blank font-medium text-indigo-600 dark:text-indigo-400">
+                  <span className="ruled-blank font-medium text-green">
                     {selectedOption && isCorrect ? word.word : ''}
                   </span>
                   {blank.after}
@@ -80,15 +80,15 @@ export function ExerciseFillBlank({ word, onAnswer }: ExerciseFillBlankProps) {
           <div className="grid grid-cols-2 gap-3 mt-6">
             {options.map((option, idx) => {
               let btnClass =
-                'p-3.5 rounded-xl text-base font-semibold border border-rule text-ink bg-paper hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer text-center';
+                'p-3.5 rounded-btn text-base font-semibold border border-rule text-ink bg-paper hover:border-green hover:bg-green-wash transition-all cursor-pointer text-center';
 
               if (selectedOption === option) {
                 if (isCorrect) {
                   btnClass =
-                    'p-3.5 rounded-xl text-base font-semibold border-2 border-emerald-500 text-white bg-emerald-600 shadow-sm text-center';
+                    'p-3.5 rounded-btn text-base font-semibold border-2 border-green text-paper bg-green text-center';
                 } else {
                   btnClass =
-                    'p-3.5 rounded-xl text-base font-semibold border-2 border-rose-500 text-white bg-rose-600 text-center';
+                    'p-3.5 rounded-btn text-base font-semibold border-2 border-wrong text-paper bg-wrong text-center';
                 }
               }
 
@@ -108,7 +108,7 @@ export function ExerciseFillBlank({ word, onAnswer }: ExerciseFillBlankProps) {
         </div>
 
         {/* Back side (Flipped on wrong answer) */}
-        <div className="absolute inset-0 backface-hidden rotate-y-180 bg-surface border border-rose-300 dark:border-rose-900 rounded-3xl p-6 shadow-md flex flex-col justify-between">
+        <div className="absolute inset-0 backface-hidden rotate-y-180 bg-surface border border-wrong/30 rounded-card p-6 shadow-card flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-mono-utility text-wrong">Chưa chính xác</span>
