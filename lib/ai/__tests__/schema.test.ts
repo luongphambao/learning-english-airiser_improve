@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { defineSchema } from '../schema';
+import { CefrSchema } from '@/lib/domain';
+import { EnrichWordBatchOutput } from '../tasks/contracts';
 
 // Minimal shape for poking at the raw JSON Schema output in tests, without `any`.
 interface JsonSchemaNode {
@@ -101,6 +103,34 @@ describe('lib/ai/schema defineSchema', () => {
       if (node.items) assertNoEmptyObject(node.items, `${path}[]`);
     }
     const { gemini } = defineSchema('nullable_schema', NullableSchema);
+    expect(() => assertNoEmptyObject(gemini as unknown as JsonSchemaNode, 'root')).not.toThrow();
+  });
+
+  // docs/decision.md ADR-019 — enrichWordBatch (lib/ai/tasks/registry.server.ts)
+  // is the first task built on top of the widened CefrSchema; guard both together.
+  it('CefrSchema projects as a Gemini enum', () => {
+    const { gemini } = defineSchema('cefr_schema', z.object({ level: CefrSchema }));
+    expect(gemini.properties?.level?.enum).toEqual(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']);
+  });
+
+  it('EnrichWordBatchOutput sets propertyOrdering with "word" first, per item', () => {
+    const { gemini } = defineSchema('enrich_word_batch', EnrichWordBatchOutput);
+    const itemSchema = gemini.properties?.items?.items;
+    expect(itemSchema?.propertyOrdering?.[0]).toBe('word');
+  });
+
+  it('EnrichWordBatchOutput has no bare typeless OBJECT node anywhere in its tree', () => {
+    function assertNoEmptyObject(node: JsonSchemaNode | undefined, path: string) {
+      if (!node) return;
+      if (node.type === 'OBJECT' && !node.properties) {
+        throw new Error(`Empty OBJECT node with no properties at ${path}`);
+      }
+      if (node.properties) {
+        for (const [key, child] of Object.entries(node.properties)) assertNoEmptyObject(child, `${path}.${key}`);
+      }
+      if (node.items) assertNoEmptyObject(node.items, `${path}[]`);
+    }
+    const { gemini } = defineSchema('enrich_word_batch', EnrichWordBatchOutput);
     expect(() => assertNoEmptyObject(gemini as unknown as JsonSchemaNode, 'root')).not.toThrow();
   });
 });

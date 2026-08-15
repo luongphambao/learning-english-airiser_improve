@@ -29,7 +29,20 @@ export function isEligible(kind: ExerciseKind, word: Word, caps: SessionCaps): b
       // triage grants immediate recall via easeLevel 2 at reviewCount 0). The
       // easeLevel>=2 branch is only reachable through applyTriage('partial'), so
       // this exception is narrow and self-documenting.
-      return word.reviewCount >= 3 || (word.easeLevel >= 2 && word.reviewCount === 0);
+      //
+      // Third clause (docs/decision.md ADR-018): a corpus top-up word saved on the
+      // "degraded" path (AI unreachable — offline or rate-limited) has only its
+      // Vietnamese gloss, no exampleSentence/distractors yet. Without this, such a
+      // word is eligible for nothing (fillBlank needs distractors, listen needs a
+      // sentence, this recall branch needs reviewCount/easeLevel it doesn't have
+      // yet) and falls through to the terminal 'write' fallback — which needs
+      // gradeSentence, exactly the AI call that's unavailable. "A word we know the
+      // meaning of and nothing else can only be recalled."
+      return (
+        word.reviewCount >= 3 ||
+        (word.easeLevel >= 2 && word.reviewCount === 0) ||
+        (word.reviewCount === 0 && word.exampleSentence === '' && word.meaningVi !== '')
+      );
     case 'write':
       return caps.aiAvailable;
     case 'grammar':

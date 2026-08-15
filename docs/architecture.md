@@ -38,7 +38,7 @@ app/
   layout.tsx  globals.css  providers.tsx  page.tsx (redirect)
   (tabs)/layout.tsx  today/  vocabulary/  calendar/  grammar/
   (stack)/layout.tsx  progress/  settings/
-  api/ai/{enrich,extract,grade-sentence,analyze-doc,harvest,tts}/route.ts
+  api/ai/{enrich,enrich-batch,extract,grade-sentence,analyze-doc,analyze-work,tts}/route.ts
   not-found.tsx  error.tsx
 
 lib/
@@ -46,19 +46,23 @@ lib/
   api/          create-ai-route guards rate-limit problem client ai-client
   db/           dexie rows read migrate-local-storage ids
   repositories/ types index dexie/*.ts  (firestore/ — slot dự phòng)
-  domain/       word review user session import grammar index (zod schemas)
+  domain/       word review user session import grammar work index (zod schemas)
   srs/          date intervals schedule streak session types
+  corpus/       types load pick exclude          (ADR-015 — kho từ vựng, thuần trừ load.ts)
+  level/        cefr placement srs-signal resolve (ADR-017 — bộ máy phân trình độ, THUẦN)
   text/         blank shuffle normalize
   audio/        pcm-to-wav
   models.ts  format.ts  grammarData.ts   (giữ nguyên)
 
-stores/     session-store  settings-store  enrichment-store
-hooks/      use-words  use-profile  use-due-preview  use-theme  use-media-query
-components/ ui/  layout/  exercises/  words/  progress/
+stores/     session-store  settings-store  enrichment-store  work-store  level-store  topup-store
+hooks/      use-words  use-profile  use-due-preview  use-theme  use-media-query  use-daily-plan
+components/ ui/  layout/  exercises/  words/  progress/  TriageList
 types.ts    -> export * from '@/lib/domain'
 ```
 
 `context/WordsContext.tsx`, `components/AppShell.tsx`, `screens/*`, `lib/utils.ts`, `hooks/use-mobile.ts` bị xoá — logic chuyển vào `app/(tabs)/*/page.tsx` + `components/*` + `stores/*`.
+
+**`lib/level/**` soi gương `lib/srs/**`:** thuần, không I/O, `now` luôn là tham số — cùng rule `no-restricted-syntax` (`eslint.config.mjs`) áp cho cả hai thư mục. `lib/corpus/**` gần thuần nhưng `load.ts` có I/O thật (fetch + cache `meta`) vì nó là ranh giới nạp dữ liệu, không phải logic quyết định — `pick.ts`/`exclude.ts`/`types.ts` vẫn thuần. `stores/level-store.ts` và `stores/topup-store.ts` là 2 orchestrator không thuần duy nhất chạm vào 2 tầng này — theo đúng quy ước `enrichment-store`/`work-store`: store giữ luồng (đọc repo, gọi hàm thuần, ghi repo), page chỉ trình bày.
 
 ## 3. Luồng dữ liệu — 3 ví dụ cụ thể
 

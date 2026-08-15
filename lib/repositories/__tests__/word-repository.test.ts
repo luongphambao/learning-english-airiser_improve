@@ -23,6 +23,7 @@ describe('WordRepository.addFromInsight', () => {
       exampleSentence: 'Would it be possible to extend the deadline until Friday?',
       distractors: ['delay the deadline', 'push the deadline', 'move the deadline'],
       originalText: null,
+      cefr: null,
       now,
     });
 
@@ -47,6 +48,7 @@ describe('WordRepository.addFromInsight', () => {
       exampleSentence: "Let's circle back on this next week.",
       distractors: ['follow up', 'touch base', 'check in'],
       originalText: null,
+      cefr: null,
       now: t0,
     });
 
@@ -66,6 +68,7 @@ describe('WordRepository.addFromInsight', () => {
       exampleSentence: "I'll circle back with the team.",
       distractors: ['loop back', 'follow up', 'reconnect'],
       originalText: null,
+      cefr: null,
       now: t1,
     });
 
@@ -88,7 +91,7 @@ describe('WordRepository.addFromInsight', () => {
       text: 'extend the deadline',
       entryType: 'phrase',
       source: { kind: 'paste', label: '', at: now },
-      meaningVi: '', noteVi: '', exampleSentence: '', distractors: [], originalText: null, now,
+      meaningVi: '', noteVi: '', exampleSentence: '', distractors: [], originalText: null, cefr: null, now,
     });
 
     const onlyWords = await words.list({ entryType: 'word', limit: 50 });
@@ -96,5 +99,83 @@ describe('WordRepository.addFromInsight', () => {
 
     expect(onlyWords.map((w) => w.word)).toEqual(['mitigate']);
     expect(onlyPhrases.map((w) => w.word)).toEqual(['extend the deadline']);
+  });
+});
+
+// docs/decision.md ADR-018 — corpus top-up and placement triage both write words
+// through this path, sharing the &wordLower namespace with every other add path.
+describe('WordRepository.addFromCorpus', () => {
+  beforeEach(() => {
+    resetDbForTests();
+  });
+
+  it('creates a new word scheduled per the triage choice, tagged with its corpus cefr', async () => {
+    const words = createDexieWordRepository();
+    const now = Date.UTC(2026, 0, 1);
+
+    const saved = await words.addFromCorpus({
+      word: 'mitigate', meaningVi: 'giảm thiểu', exampleSentence: '', distractors: [],
+      cefr: 'B2', source: { kind: 'session', label: 'Gợi ý theo trình độ B2', at: now },
+      triage: 'unknown', now,
+    });
+
+    expect(saved.cefr).toBe('B2');
+    expect(saved.status).toBe('new');
+    expect(saved.dueAt).toBe(now); // 'unknown' schedules due immediately
+  });
+
+  it('schedules a "partial" triage 3 days out, not immediately', async () => {
+    const words = createDexieWordRepository();
+    const now = Date.UTC(2026, 0, 1);
+
+    const saved = await words.addFromCorpus({
+      word: 'leverage', meaningVi: 'tận dụng', exampleSentence: '', distractors: [],
+      cefr: 'B2', source: { kind: 'session', label: '', at: now }, triage: 'partial', now,
+    });
+
+    expect(saved.dueAt).toBe(now + 3 * 86_400_000);
+    expect(saved.easeLevel).toBe(2);
+  });
+
+  it('re-seeding an existing word fills empty content but PRESERVES its SRS state', async () => {
+    const words = createDexieWordRepository();
+    const t0 = Date.UTC(2026, 0, 1);
+
+    const manual = await words.add({ word: 'bottleneck', source: { kind: 'manual', label: '', at: t0 } });
+    const practiced = await words.patch(manual.id, { easeLevel: 3, reviewCount: 5, dueAt: t0 + 10 * 86_400_000 });
+    expect(practiced.meaningVi).toBe(''); // placeholder, not yet enriched
+
+    const t1 = t0 + 86_400_000;
+    const reseeded = await words.addFromCorpus({
+      word: 'bottleneck', meaningVi: 'điểm nghẽn', exampleSentence: 'A bottleneck slowed the release.',
+      distractors: ['a', 'b', 'c'], cefr: 'B2', source: { kind: 'session', label: '', at: t1 },
+      triage: 'unknown', now: t1,
+    });
+
+    expect(reseeded.id).toBe(manual.id); // same row, not a duplicate
+    expect(reseeded.meaningVi).toBe('điểm nghẽn'); // filled in — was empty
+    expect(reseeded.dueAt).toBe(practiced.dueAt); // SRS progress untouched
+    expect(reseeded.easeLevel).toBe(3);
+    expect(reseeded.reviewCount).toBe(5);
+  });
+
+  it('does not overwrite existing content with a corpus placeholder', async () => {
+    const words = createDexieWordRepository();
+    const now = Date.UTC(2026, 0, 1);
+
+    const first = await words.addFromCorpus({
+      word: 'redundant', meaningVi: 'dư thừa', exampleSentence: 'The system is redundant.',
+      distractors: ['a', 'b', 'c'], cefr: 'B2', source: { kind: 'session', label: '', at: now },
+      triage: 'unknown', now,
+    });
+
+    const resaved = await words.addFromCorpus({
+      word: 'redundant', meaningVi: 'khác', exampleSentence: '', distractors: [],
+      cefr: 'B2', source: { kind: 'session', label: '', at: now + 1 }, triage: 'unknown', now: now + 1,
+    });
+
+    expect(resaved.id).toBe(first.id);
+    expect(resaved.meaningVi).toBe('dư thừa'); // NOT overwritten by the empty re-seed
+    expect(resaved.exampleSentence).toBe('The system is redundant.');
   });
 });

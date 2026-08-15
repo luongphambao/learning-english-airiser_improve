@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSessionStore } from '@/stores/session-store';
+import { useTopupStore } from '@/stores/topup-store';
 import { useProfile } from '@/hooks/use-profile';
 import { useLastGrammarAttempts } from '@/hooks/use-grammar';
 import { ExerciseFillBlank } from '@/components/ExerciseFillBlank';
@@ -22,13 +23,21 @@ import { CheckCircle2, Sparkles, AlertTriangle, BookCheck, Bookmark } from 'luci
 export default function PracticePage() {
   const router = useRouter();
   const { session, status, error, start, answer, reset } = useSessionStore();
+  const ensureSupply = useTopupStore((s) => s.ensureSupply);
   const { stats, settings } = useProfile();
   const lastGrammarAttempts = useLastGrammarAttempts();
   const grammarTopicsAttempted = Object.keys(lastGrammarAttempts).length;
 
   useEffect(() => {
-    if (status === 'idle') void start({ now: Date.now() });
-  }, [status, start]);
+    // docs/decision.md ADR-018 — top up BEFORE start(): ensureSupply writes real
+    // `words` rows if the notebook is running dry, so start()'s dueBefore/
+    // newNeverReviewed queries see them. The existing 'building' state below
+    // already covers this; top-up just extends how long it shows.
+    if (status === 'idle') {
+      const now = Date.now();
+      void ensureSupply({ now, targetSize: settings.sessionSize }).then(() => start({ now }));
+    }
+  }, [status, start, ensureSupply, settings.sessionSize]);
 
   if (status === 'idle' || status === 'building') {
     return (

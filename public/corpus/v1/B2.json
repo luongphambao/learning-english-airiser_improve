@@ -1,0 +1,307 @@
+{
+  "band": "B2",
+  "count": 49,
+  "source": "authored",
+  "cols": [
+    "w",
+    "pos",
+    "rank",
+    "vi"
+  ],
+  "rows": [
+    [
+      "implement",
+      "v",
+      1,
+      "triển khai, thực thi"
+    ],
+    [
+      "prioritize",
+      "v",
+      2,
+      "ưu tiên"
+    ],
+    [
+      "streamline",
+      "v",
+      3,
+      "tinh gọn quy trình"
+    ],
+    [
+      "delegate",
+      "v",
+      4,
+      "ủy quyền, giao việc"
+    ],
+    [
+      "optimize",
+      "v",
+      5,
+      "tối ưu hóa"
+    ],
+    [
+      "collaborate",
+      "v",
+      6,
+      "hợp tác"
+    ],
+    [
+      "facilitate",
+      "v",
+      7,
+      "tạo điều kiện thuận lợi"
+    ],
+    [
+      "mitigate",
+      "v",
+      8,
+      "giảm thiểu rủi ro"
+    ],
+    [
+      "leverage",
+      "v",
+      9,
+      "tận dụng (nguồn lực)"
+    ],
+    [
+      "escalate",
+      "v",
+      10,
+      "chuyển lên cấp trên xử lý"
+    ],
+    [
+      "benchmark",
+      "v",
+      11,
+      "đối chuẩn, so sánh chuẩn"
+    ],
+    [
+      "outsource",
+      "v",
+      12,
+      "thuê ngoài"
+    ],
+    [
+      "downsize",
+      "v",
+      13,
+      "thu hẹp quy mô, cắt giảm"
+    ],
+    [
+      "restructure",
+      "v",
+      14,
+      "tái cấu trúc"
+    ],
+    [
+      "diversify",
+      "v",
+      15,
+      "đa dạng hóa"
+    ],
+    [
+      "consolidate",
+      "v",
+      16,
+      "hợp nhất, củng cố"
+    ],
+    [
+      "forecast",
+      "v",
+      17,
+      "dự báo"
+    ],
+    [
+      "allocate",
+      "v",
+      18,
+      "phân bổ"
+    ],
+    [
+      "comply",
+      "v",
+      19,
+      "tuân thủ"
+    ],
+    [
+      "accommodate",
+      "v",
+      20,
+      "đáp ứng, thích nghi với"
+    ],
+    [
+      "undermine",
+      "v",
+      21,
+      "làm suy yếu, phá hoại ngầm"
+    ],
+    [
+      "reinforce",
+      "v",
+      22,
+      "củng cố, tăng cường"
+    ],
+    [
+      "enhance",
+      "v",
+      23,
+      "nâng cao, cải thiện"
+    ],
+    [
+      "capitalize",
+      "v",
+      24,
+      "tận dụng cơ hội"
+    ],
+    [
+      "differentiate",
+      "v",
+      25,
+      "tạo sự khác biệt"
+    ],
+    [
+      "incentivize",
+      "v",
+      26,
+      "tạo động lực bằng ưu đãi"
+    ],
+    [
+      "standardize",
+      "v",
+      27,
+      "chuẩn hóa"
+    ],
+    [
+      "synchronize",
+      "v",
+      28,
+      "đồng bộ hóa"
+    ],
+    [
+      "troubleshoot",
+      "v",
+      29,
+      "khắc phục sự cố"
+    ],
+    [
+      "brainstorm",
+      "v",
+      30,
+      "động não, lên ý tưởng"
+    ],
+    [
+      "onboard",
+      "v",
+      31,
+      "hướng dẫn nhân viên mới hòa nhập"
+    ],
+    [
+      "bottleneck",
+      "n",
+      32,
+      "điểm nghẽn"
+    ],
+    [
+      "workflow",
+      "n",
+      33,
+      "quy trình làm việc"
+    ],
+    [
+      "milestone",
+      "n",
+      34,
+      "cột mốc quan trọng"
+    ],
+    [
+      "stakeholder",
+      "n",
+      35,
+      "bên liên quan"
+    ],
+    [
+      "deliverable",
+      "n",
+      36,
+      "sản phẩm bàn giao"
+    ],
+    [
+      "turnaround",
+      "n",
+      37,
+      "thời gian xử lý/xoay chuyển"
+    ],
+    [
+      "overhead",
+      "n",
+      38,
+      "chi phí vận hành chung"
+    ],
+    [
+      "contingency",
+      "n",
+      39,
+      "phương án dự phòng"
+    ],
+    [
+      "redundant",
+      "adj",
+      40,
+      "dư thừa; dôi dư nhân sự"
+    ],
+    [
+      "feasible",
+      "adj",
+      41,
+      "khả thi"
+    ],
+    [
+      "viable",
+      "adj",
+      42,
+      "khả thi, có thể tồn tại được"
+    ],
+    [
+      "robust",
+      "adj",
+      43,
+      "vững chắc, mạnh mẽ"
+    ],
+    [
+      "scalable",
+      "adj",
+      44,
+      "có thể mở rộng quy mô"
+    ],
+    [
+      "sustainable",
+      "adj",
+      45,
+      "bền vững"
+    ],
+    [
+      "transparent",
+      "adj",
+      46,
+      "minh bạch"
+    ],
+    [
+      "accountable",
+      "adj",
+      47,
+      "có trách nhiệm giải trình"
+    ],
+    [
+      "proactive",
+      "adj",
+      48,
+      "chủ động"
+    ],
+    [
+      "trade-off",
+      "n",
+      49,
+      "sự đánh đổi"
+    ]
+  ]
+}

@@ -19,6 +19,23 @@ export type WordSource = z.infer<typeof WordSourceSchema>;
 export const WordStatusSchema = z.enum(['new', 'learning', 'known']);
 export type WordStatus = z.infer<typeof WordStatusSchema>;
 
+// docs/decision.md ADR-016 — CEFR band, added once the app gained an actual
+// vocabulary corpus (lib/corpus/**) and a leveling engine (lib/level/**) to make use
+// of it. `CEFR_ORDER` is the single ordering every level-comparison in the app reads
+// (lib/level/cefr.ts's cefrIndex/clampCefr/stepCefr are thin wrappers over it).
+export const CEFR_ORDER = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const;
+export const CefrSchema = z.enum(CEFR_ORDER);
+export type Cefr = z.infer<typeof CefrSchema>;
+
+// `Word.cefr` allows 'unknown' in the DOMAIN enum (not only the row) on purpose: if
+// this were the strict 6-band CefrSchema, `fromRow` (lib/db/rows.ts) would have to
+// map 'unknown' -> undefined, and forgetting that turns into every word in the
+// notebook failing safeParseRow and getting quarantined — a silently empty notebook,
+// not a loud error. Keeping 'unknown' valid here keeps `fromRow` a pure spread; the
+// worst case of getting this wrong is a badge rendering the string "unknown".
+export const CefrOrUnknownSchema = z.enum([...CEFR_ORDER, 'unknown']);
+export type CefrOrUnknown = z.infer<typeof CefrOrUnknownSchema>;
+
 // docs/decision.md ADR-014 — "Học từ công việc thật" (Learn From Work) saves
 // phrases and grammar fixes as `words` rows carrying this discriminator, instead
 // of a separate `phrases` table. Absent (pre-v3 rows) means 'word'. This is what
@@ -65,5 +82,10 @@ export const WordSchema = z.object({
   entryType: EntryTypeSchema.optional(), // absent/undefined means 'word'
   noteVi: z.string().optional(), // why it matters / when to use it / the grammar rule, in Vietnamese
   originalText: z.string().nullable().optional(), // grammar/rewrite only: what the user actually wrote
+
+  // v4 field — docs/decision.md ADR-016. Optional for the same reason as the v3
+  // fields above: absent on every pre-v4 row, backfilled to 'unknown' by Dexie v4's
+  // upgrade() (lib/db/dexie.ts) rather than required here.
+  cefr: CefrOrUnknownSchema.optional(), // absent/undefined means 'unknown' (not assessed)
 });
 export type Word = z.infer<typeof WordSchema>;

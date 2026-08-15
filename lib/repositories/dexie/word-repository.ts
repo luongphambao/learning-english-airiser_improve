@@ -5,7 +5,7 @@ import { fromRow, toRow, type WordRow } from '@/lib/db/rows';
 import { safeParseRow, quarantineRow } from '@/lib/db/read';
 import { WordSchema, type Word, type WordStatus } from '@/lib/domain';
 import { applyTriage } from '@/lib/srs/schedule';
-import type { ListWordsQuery, NewInsightWordInput, NewWordInput, WordRepository } from '../types';
+import type { ListWordsQuery, NewCorpusWordInput, NewInsightWordInput, NewWordInput, WordRepository } from '../types';
 
 async function readRows(rows: WordRow[]): Promise<Word[]> {
   const db = getDb();
@@ -100,6 +100,9 @@ async function addFromInsight(input: NewInsightWordInput): Promise<Word> {
         entryType: input.entryType,
         noteVi: input.noteVi,
         originalText: input.originalText,
+        // Fill-if-unknown only (docs/decision.md ADR-016) — re-saving an existing
+        // word must not churn its band any more than it resets its SRS state.
+        cefr: current.cefr === undefined || current.cefr === 'unknown' ? (input.cefr ?? current.cefr) : current.cefr,
         updatedAt: input.now,
         deletedAt: null, // resurrect if it had been soft-deleted
         // ...but SRS state does NOT reset — re-saving something already being
@@ -138,6 +141,63 @@ async function addFromInsight(input: NewInsightWordInput): Promise<Word> {
       entryType: input.entryType,
       noteVi: input.noteVi,
       originalText: input.originalText,
+      cefr: input.cefr ?? undefined,
+    };
+    await db.words.put(toRow(draft, input.now));
+    return draft;
+  });
+}
+
+async function addFromCorpus(input: NewCorpusWordInput): Promise<Word> {
+  const db = getDb();
+  const wordLower = input.word.toLowerCase();
+
+  // Same check-then-write-in-one-transaction pattern as addWord/addFromInsight
+  // above, against the same &wordLower unique index.
+  return db.transaction('rw', db.words, async () => {
+    const existingRow = await db.words.where('wordLower').equals(wordLower).first();
+    if (existingRow) {
+      const current = fromRow(existingRow);
+      const updated: Word = {
+        ...current,
+        // Fill-if-empty only — re-seeding a word the user already has (typed,
+        // pasted, or from a previous top-up) must not overwrite real content with
+        // a placeholder, and must not touch SRS state either.
+        meaningVi: current.meaningVi || input.meaningVi,
+        exampleSentence: current.exampleSentence || input.exampleSentence,
+        distractors: current.distractors.length > 0 ? current.distractors : input.distractors,
+        cefr: current.cefr === undefined || current.cefr === 'unknown' ? input.cefr : current.cefr,
+        updatedAt: input.now,
+        deletedAt: null, // resurrect if it had been soft-deleted (e.g. re-suggested before the skip took effect)
+      };
+      await db.words.put(toRow(updated, input.now));
+      return updated;
+    }
+
+    const schedule = applyTriage(input.triage, input.now)!; // 'partial'/'unknown' never return null
+    const draft: Word = {
+      id: newId('w_'),
+      word: input.word,
+      ipa: '',
+      partOfSpeech: '',
+      meaningVi: input.meaningVi,
+      exampleSentence: input.exampleSentence,
+      distractors: input.distractors,
+      collocations: [],
+      wordFamily: [],
+      source: input.source,
+      audioUrl: null,
+      createdAt: input.now,
+      dueAt: schedule.dueAt,
+      easeLevel: schedule.easeLevel,
+      reviewCount: schedule.reviewCount,
+      lapseCount: schedule.lapseCount,
+      consecutiveCorrect: schedule.consecutiveCorrect,
+      isLeech: schedule.isLeech,
+      status: schedule.status,
+      updatedAt: input.now,
+      deletedAt: null,
+      cefr: input.cefr,
     };
     await db.words.put(toRow(draft, input.now));
     return draft;
@@ -194,6 +254,7 @@ export function createDexieWordRepository(): WordRepository {
 
     add: addWord,
     addFromInsight,
+    addFromCorpus,
 
     async addMany(inputs: NewWordInput[]) {
       const results: Word[] = [];

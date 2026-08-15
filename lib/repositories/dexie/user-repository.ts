@@ -1,5 +1,6 @@
 import { getDb, USER_ID } from '@/lib/db/dexie';
-import type { UserSettings, UserStats } from '@/lib/domain';
+import { UserSettingsSchema, type UserSettings, type UserStats } from '@/lib/domain';
+import { safeParseRow } from '@/lib/db/read';
 import type { UserRepository } from '../types';
 
 export const DEFAULT_SETTINGS: UserSettings = {
@@ -8,6 +9,15 @@ export const DEFAULT_SETTINGS: UserSettings = {
   theme: 'system',
   contextTopic: 'software engineering',
   level: 'B2',
+  sessionSize: 5,
+  levelProfile: {
+    declared: null,
+    placement: null,
+    work: null,
+    srs: null,
+    updatedAt: null,
+    lastPromptedAt: null,
+  },
 };
 
 export const DEFAULT_STATS: UserStats = {
@@ -43,7 +53,17 @@ export function createDexieUserRepository(): UserRepository {
     // time updateSettings() runs, inside a proper read-write transaction.
     async getProfile() {
       const row = await db.user.get(USER_ID);
-      return row ? { settings: row.settings, stats: row.stats } : { settings: DEFAULT_SETTINGS, stats: DEFAULT_STATS };
+      if (!row) return { settings: DEFAULT_SETTINGS, stats: DEFAULT_STATS };
+
+      // A row written before v4 by a still-open tab can be missing
+      // levelProfile/sessionSize at runtime while TypeScript believes they're
+      // present (the v4 upgrade() merge is the durable fix; this is the belt to its
+      // suspenders). safeParse, never parse — this runs inside useLiveQuery's
+      // read-only transaction, where a throw blanks the screen instead of erroring
+      // loudly somewhere visible.
+      const parsed = safeParseRow(UserSettingsSchema, { ...DEFAULT_SETTINGS, ...row.settings });
+      const settings = parsed.ok ? parsed.value : DEFAULT_SETTINGS;
+      return { settings, stats: row.stats };
     },
 
     async updateSettings(patch) {

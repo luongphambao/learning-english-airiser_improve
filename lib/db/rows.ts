@@ -1,4 +1,4 @@
-import type { EntryType, Word } from '@/lib/domain';
+import type { CefrOrUnknown, EntryType, Word } from '@/lib/domain';
 
 // IndexedDB (and therefore Dexie's `.where()`) cannot index a boolean column, and a
 // compound index needs a plain lowercase string to dedupe "is this word already in
@@ -19,6 +19,10 @@ export interface WordRow
   entryType: EntryType;
   noteVi: string;
   originalText: string | null;
+  // v4 (docs/decision.md ADR-016) — concrete here for the same reason as entryType
+  // above: 'unknown' rather than undefined, so `cefr` and `[cefr+status]` never drop
+  // a row from their index.
+  cefr: CefrOrUnknown;
 }
 
 export function toRow(word: Word, now: number): WordRow {
@@ -32,6 +36,7 @@ export function toRow(word: Word, now: number): WordRow {
     entryType: word.entryType ?? 'word',
     noteVi: word.noteVi ?? '',
     originalText: word.originalText ?? null,
+    cefr: word.cefr ?? 'unknown',
   };
 }
 

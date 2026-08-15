@@ -4,11 +4,13 @@ import { createDexieUserRepository } from './dexie/user-repository';
 import { createDexieStudyRepository } from './dexie/study-repository';
 import { createDexieImportRepository } from './dexie/import-repository';
 import { createDexieGrammarRepository } from './dexie/grammar-repository';
+import { createDexieSkippedRepository } from './dexie/skipped-repository';
+import { createDexieMetaRepository } from './dexie/meta-repository';
 import type { Repositories } from './types';
 
 export type { Repositories, WordRepository, ReviewRepository, UserRepository, StudyRepository, ImportRepository,
-  GrammarRepository, NewWordInput, ListWordsQuery, RecordReviewInput, RecordReviewResult, UserProfile,
-  NewImportInput } from './types';
+  GrammarRepository, SkippedRepository, MetaRepository, NewWordInput, NewInsightWordInput, NewCorpusWordInput,
+  ListWordsQuery, RecordReviewInput, RecordReviewResult, UserProfile, NewImportInput } from './types';
 
 let cached: Repositories | null = null;
 
@@ -27,6 +29,8 @@ export function getRepos(): Repositories {
       study: createDexieStudyRepository(),
       imports: createDexieImportRepository(),
       grammar: createDexieGrammarRepository(),
+      skipped: createDexieSkippedRepository(),
+      meta: createDexieMetaRepository(),
     };
   }
   return cached;

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CefrSchema } from '@/lib/domain';
 
 // Client-safe: imported from both the route handlers AND the browser
 // (lib/api/ai-client.ts). No prompts, no server config — those live in the
@@ -7,6 +8,7 @@ import { z } from 'zod';
 
 export const TASK_ROUTES = {
   enrichWord: '/api/ai/enrich',
+  enrichWordBatch: '/api/ai/enrich-batch',
   extractWords: '/api/ai/extract',
   gradeSentence: '/api/ai/grade-sentence',
   analyzeDocument: '/api/ai/analyze-doc',
@@ -32,12 +34,52 @@ export const EnrichWordOutput = z.object({
     })
   ),
   wordFamily: z.array(z.string().max(64)),
+  // Declared LAST so propertyOrdering (lib/ai/gemini-schema.ts) for the existing
+  // fields above is unperturbed. Feeds the SRS level signal (lib/level/srs-signal.ts)
+  // for words added by hand, not just words that came from the corpus or Learn.
+  cefr: CefrSchema.catch('B2'),
+});
+
+// docs/decision.md ADR-019 — one request for up to 8 words instead of N separate
+// enrichWord calls. The auto top-up (stores/topup-store.ts) needs to enrich a
+// handful of corpus words at session-build time; N round trips at enrichWord's
+// 20/min-per-IP limit would 429 a shared office NAT in minutes, and N system
+// prompts costs N times the token overhead for the same content. `word` is declared
+// FIRST in each output item (unlike EnrichWordOutput, where cefr trails) so the
+// model anchors each item to the word it's enriching before generating content —
+// propertyOrdering (lib/ai/gemini-schema.ts) follows declaration order.
+export const EnrichWordBatchInput = z.object({
+  words: z.array(z.string().trim().min(1).max(64)).min(1).max(8),
+  contextTopic: z.string().trim().min(1).max(80).default('software engineering'),
+  level: CefrSchema.default('B2'),
+});
+const EnrichWordBatchItem = z.object({
+  word: z.string().max(64), // echoed back verbatim — the re-keying anchor (stores/topup-store.ts)
+  ipa: z.string().max(64),
+  partOfSpeech: z.string().max(32),
+  meaningVi: z.string().max(200),
+  exampleSentence: z.string().max(300),
+  distractors: z.array(z.string().max(64)),
+  collocations: z.array(
+    z.object({
+      phrase: z.string().max(120),
+      meaningVi: z.string().max(150),
+    })
+  ),
+  wordFamily: z.array(z.string().max(64)),
+});
+export const EnrichWordBatchOutput = z.object({
+  items: z.array(EnrichWordBatchItem),
 });
 
 export const ExtractWordsInput = z.object({
   text: z.string().trim().min(1).max(4000),
   contextTopic: z.string().trim().max(80).default('software engineering'),
-  level: z.enum(['B1', 'B2', 'C1']).default('B2'),
+  // Widened from 'B1'|'B2'|'C1' to the full CEFR range (docs/decision.md ADR-017) —
+  // this is the fix for the break that widening UserSettings.level caused: ai-client.ts
+  // parses this input CLIENT-SIDE before the fetch, so a 'C2'/'A1' settings.level would
+  // have thrown locally the moment a caller passed it through unchanged.
+  level: CefrSchema.default('B2'),
 });
 export const ExtractWordsOutput = z.object({
   words: z.array(
@@ -48,17 +90,10 @@ export const ExtractWordsOutput = z.object({
   ),
 });
 
-// `mode: 'rewriteProfessionally'` (docs/decision.md ADR-014) reuses this task for
-// grading a saved professional-rewrite exercise instead of adding a 5th task —
-// GradeSentenceOutput's shape ({isCorrect, feedbackVi, improvedSentence}) already
-// fits that grading exactly. Both new fields default so every existing caller
-// (components/ExerciseWrite.tsx's plain word-usage grading) is unaffected.
 export const GradeSentenceInput = z.object({
   word: z.string().trim().min(1).max(64),
   sentence: z.string().trim().min(1).max(300),
   contextTopic: z.string().trim().max(80).default('software engineering'),
-  mode: z.enum(['useWord', 'rewriteProfessionally']).default('useWord'),
-  original: z.string().trim().max(300).default(''),
 });
 export const GradeSentenceOutput = z.object({
   isCorrect: z.boolean(),
@@ -68,13 +103,13 @@ export const GradeSentenceOutput = z.object({
 
 export const AnalyzeDocumentInput = z.object({
   documentText: z.string().trim().min(1).max(10_000),
-  level: z.enum(['B1', 'B2', 'C1']).default('B2'),
+  level: CefrSchema.default('B2'),
   contextTopic: z.string().trim().max(80).default('software engineering'),
   excludeWords: z.array(z.string().max(64)).max(500).default([]),
 });
 const CandidateWordOutput = z.object({
   word: z.string().max(64),
-  cefr: z.enum(['B1', 'B2', 'C1', 'C2']).catch('B2'),
+  cefr: CefrSchema.catch('B2'),
   category: z.enum(['academic', 'technical', 'ielts', 'phrasal', 'idiom']).catch('technical'),
   meaningVi: z.string().max(200),
   sentenceFromDoc: z.string().max(300),
@@ -96,14 +131,14 @@ export const AnalyzeDocumentOutput = z.object({
 export const AnalyzeWorkInput = z.object({
   workText: z.string().trim().min(20).max(10_000),
   sourceType: z.enum(['email', 'report', 'chat', 'other']).default('email'),
-  level: z.enum(['B1', 'B2', 'C1']).default('B2'),
+  level: CefrSchema.default('B2'),
   contextTopic: z.string().trim().max(80).default('software engineering'),
   excludeWords: z.array(z.string().max(64)).max(300).default([]),
 });
 
 const WorkVocabItem = z.object({
   text: z.string().max(64),
-  cefr: z.enum(['B1', 'B2', 'C1', 'C2']).catch('B2'),
+  cefr: CefrSchema.catch('B2'),
   meaningVi: z.string().max(160),
   whyVi: z.string().max(160),
   exampleSentence: z.string().max(240),
@@ -147,7 +182,7 @@ export const AnalyzeWorkOutput = z.object({
   professionalRewrites: z.array(WorkRewriteItem),
   summary: z.object({
     inputTypeVi: z.string().max(60),
-    estimatedLevel: z.enum(['A2', 'B1', 'B2', 'C1', 'C2']).catch('B2'),
+    estimatedLevel: CefrSchema.catch('B2'),
     headlineVi: z.string().max(200),
     wordCount: z.number().int(),
     phraseCount: z.number().int(),
@@ -159,6 +194,7 @@ export const AnalyzeWorkOutput = z.object({
 
 export const TASK_IO = {
   enrichWord: { input: EnrichWordInput, output: EnrichWordOutput },
+  enrichWordBatch: { input: EnrichWordBatchInput, output: EnrichWordBatchOutput },
   extractWords: { input: ExtractWordsInput, output: ExtractWordsOutput },
   gradeSentence: { input: GradeSentenceInput, output: GradeSentenceOutput },
   analyzeDocument: { input: AnalyzeDocumentInput, output: AnalyzeDocumentOutput },

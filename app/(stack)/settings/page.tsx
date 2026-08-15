@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useProfile } from '@/hooks/use-profile';
 import { useSettingsStore } from '@/stores/settings-store';
+import { useLevelStore } from '@/stores/level-store';
 import { BackHeader } from '@/components/layout/back-header';
 import { getRepos } from '@/lib/repositories';
 import type { UserSettings } from '@/types';
@@ -12,6 +13,7 @@ import { Mail, CheckCircle2, AlertCircle, Send, Loader2, LogOut, Calendar, Chevr
 export default function SettingsPage() {
   const { settings } = useProfile();
   const updateSettings = useSettingsStore((s) => s.updateSettings);
+  const setDeclaredLevel = useLevelStore((s) => s.setDeclared);
 
   const [gmailStatus, setGmailStatus] = useState<{ connected: boolean; email?: string } | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
@@ -228,13 +230,53 @@ export default function SettingsPage() {
           </label>
           <select
             value={settings.level}
-            onChange={(e) => updateSettings({ level: e.target.value as UserSettings['level'] })}
+            onChange={(e) => setDeclaredLevel(e.target.value as UserSettings['level'], Date.now())}
             className="w-full p-3 rounded-xl bg-paper border border-rule text-sm text-ink"
           >
+            <option value="A2">A2 — Elementary</option>
             <option value="B1">B1 — Intermediate</option>
             <option value="B2">B2 — Upper-Intermediate</option>
             <option value="C1">C1 — Advanced</option>
+            <option value="C2">C2 — Proficient</option>
           </select>
+          {/* docs/decision.md ADR-017 — a level change is never silent (unlike the
+              streak freeze): this line shows WHY the app thinks the user is at this
+              level, so a self-declared choice and an auto-detected one both stay
+              legible. */}
+          <p className="mt-2 text-xs text-ink-soft">
+            {settings.levelProfile.declared
+              ? 'Bạn đã tự chọn trình độ này.'
+              : settings.levelProfile.placement
+                ? 'Dựa trên bài kiểm tra trình độ bạn đã làm.'
+                : settings.levelProfile.work || settings.levelProfile.srs
+                  ? 'Được điều chỉnh tự động dựa trên kết quả học và luyện tập của bạn.'
+                  : 'Mức mặc định — hãy làm bài kiểm tra trình độ để có kết quả chính xác hơn.'}
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-xs font-mono-utility text-ink-soft mb-2">Số thẻ mỗi buổi:</label>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => updateSettings({ sessionSize: Math.max(3, settings.sessionSize - 1) })}
+              disabled={settings.sessionSize <= 3}
+              className="w-10 h-10 rounded-xl border border-rule text-ink text-lg font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:border-green transition-colors"
+              aria-label="Giảm số thẻ mỗi buổi"
+            >
+              −
+            </button>
+            <span className="font-mono-utility text-sm text-ink w-8 text-center">{settings.sessionSize}</span>
+            <button
+              type="button"
+              onClick={() => updateSettings({ sessionSize: Math.min(20, settings.sessionSize + 1) })}
+              disabled={settings.sessionSize >= 20}
+              className="w-10 h-10 rounded-xl border border-rule text-ink text-lg font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:border-green transition-colors"
+              aria-label="Tăng số thẻ mỗi buổi"
+            >
+              +
+            </button>
+          </div>
         </div>
 
         <div>

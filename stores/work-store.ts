@@ -3,13 +3,14 @@ import { getRepos } from '@/lib/repositories';
 import { callTask } from '@/lib/api/ai-client';
 import { ApiError } from '@/lib/api/client';
 import { mapAnalyzeWorkOutput, entryTypeForInsight } from '@/lib/work/insights';
-import type { WorkAnalysis } from '@/lib/domain';
+import { useLevelStore } from './level-store';
+import type { Cefr, WorkAnalysis } from '@/lib/domain';
 
 interface AnalyzeInput {
   text: string;
   fileName: string;
   sourceType: 'email' | 'report' | 'chat' | 'other';
-  level: 'B1' | 'B2' | 'C1';
+  level: Cefr;
   contextTopic: string;
   excludeWords: string[];
 }
@@ -60,6 +61,11 @@ export const useWorkStore = create<WorkStoreState>()((set, get) => ({
       const analysis = mapAnalyzeWorkOutput(result);
       await repos.imports.setAnalysis(created.id, analysis);
       set({ analysis, status: 'ready' });
+      // docs/decision.md ADR-017 — this is where summary.estimatedLevel (parsed
+      // since lib/ai/tasks/contracts.ts always returned it) finally lands instead of
+      // being discarded. Fire-and-forget: a failed level update must not block the
+      // Learn result screen the user is already looking at.
+      void useLevelStore.getState().recordWorkSignal(analysis.summary.estimatedLevel as Cefr, Date.now());
     } catch (err) {
       const message = err instanceof ApiError ? err.messageVi : 'Không phân tích được văn bản. Thử lại sau.';
       await repos.imports.fail(created.id, message);
@@ -108,6 +114,7 @@ export const useWorkStore = create<WorkStoreState>()((set, get) => ({
         exampleSentence: insight.exampleSentence,
         distractors: insight.distractors,
         originalText: insight.originalText,
+        cefr: insight.cefr,
         now,
       });
       wordIds.push(saved.id);
@@ -124,6 +131,7 @@ export const useWorkStore = create<WorkStoreState>()((set, get) => ({
         exampleSentence: rewrite.rewrite,
         distractors: [],
         originalText: rewrite.original,
+        cefr: null, // a reusable phrase has no meaningful band
         now,
       });
       wordIds.push(saved.id);

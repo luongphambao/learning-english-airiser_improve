@@ -89,6 +89,21 @@ describe('lib/srs/session buildSession', () => {
     expect(isEligible('recall', word, FULL_CAPS)).toBe(true);
   });
 
+  it('docs/decision.md ADR-018 — a "degraded" corpus word (gloss only, no example/distractors) is eligible for recall', () => {
+    const word = makeWord({ easeLevel: 0, reviewCount: 0, exampleSentence: '', distractors: [], meaningVi: 'giảm thiểu' });
+    expect(isEligible('recall', word, FULL_CAPS)).toBe(true);
+  });
+
+  it('a fully-enriched word (has an exampleSentence) is unaffected by the degraded-word exception', () => {
+    const word = makeWord({ easeLevel: 0, reviewCount: 0 }); // default has a real exampleSentence
+    expect(isEligible('recall', word, FULL_CAPS)).toBe(false); // still governed by the normal rule
+  });
+
+  it('a word with neither content nor review history (empty meaningVi too) is NOT eligible for recall', () => {
+    const word = makeWord({ easeLevel: 0, reviewCount: 0, exampleSentence: '', distractors: [], meaningVi: '' });
+    expect(isEligible('recall', word, FULL_CAPS)).toBe(false);
+  });
+
   it('when audio is unavailable, no item is assigned `listen`', () => {
     const noAudio: SessionCaps = { audioAvailable: false, aiAvailable: true };
     const due = Array.from({ length: 5 }, (_, i) => makeWord({ id: `due${i}` }));

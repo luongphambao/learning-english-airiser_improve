@@ -1,0 +1,193 @@
+{
+  "band": "C2",
+  "count": 30,
+  "source": "authored",
+  "cols": [
+    "w",
+    "pos",
+    "rank",
+    "vi"
+  ],
+  "rows": [
+    [
+      "preclude",
+      "v",
+      1,
+      "ngăn cản, loại trừ khả năng"
+    ],
+    [
+      "ratify",
+      "v",
+      2,
+      "phê chuẩn"
+    ],
+    [
+      "indemnify",
+      "v",
+      3,
+      "bồi thường, bảo đảm không chịu thiệt hại"
+    ],
+    [
+      "fiduciary",
+      "adj",
+      4,
+      "liên quan đến trách nhiệm ủy thác"
+    ],
+    [
+      "proprietary",
+      "adj",
+      5,
+      "thuộc sở hữu độc quyền"
+    ],
+    [
+      "statutory",
+      "adj",
+      6,
+      "theo luật định"
+    ],
+    [
+      "tantamount",
+      "adj",
+      7,
+      "tương đương với"
+    ],
+    [
+      "disparate",
+      "adj",
+      8,
+      "khác biệt hoàn toàn, không cùng loại"
+    ],
+    [
+      "exorbitant",
+      "adj",
+      9,
+      "quá cao, cắt cổ (giá)"
+    ],
+    [
+      "protracted",
+      "adj",
+      10,
+      "kéo dài dai dẳng"
+    ],
+    [
+      "circumscribe",
+      "v",
+      11,
+      "giới hạn, khoanh vùng phạm vi"
+    ],
+    [
+      "onerous",
+      "adj",
+      12,
+      "nặng nề, khó khăn (nghĩa vụ)"
+    ],
+    [
+      "punitive",
+      "adj",
+      13,
+      "mang tính trừng phạt"
+    ],
+    [
+      "discretionary",
+      "adj",
+      14,
+      "tùy quyền quyết định"
+    ],
+    [
+      "ancillary",
+      "adj",
+      15,
+      "phụ trợ, kèm theo"
+    ],
+    [
+      "contingent",
+      "adj",
+      16,
+      "phụ thuộc vào điều kiện khác"
+    ],
+    [
+      "adjudicate",
+      "v",
+      17,
+      "phân xử, phán quyết"
+    ],
+    [
+      "culpable",
+      "adj",
+      18,
+      "có lỗi, đáng trách"
+    ],
+    [
+      "exonerate",
+      "v",
+      19,
+      "minh oan, miễn trách"
+    ],
+    [
+      "moot",
+      "adj",
+      20,
+      "không còn thực tiễn để bàn"
+    ],
+    [
+      "waiver",
+      "n",
+      21,
+      "sự từ bỏ quyền, miễn trừ"
+    ],
+    [
+      "breach",
+      "n",
+      22,
+      "sự vi phạm (hợp đồng)"
+    ],
+    [
+      "covenant",
+      "n",
+      23,
+      "điều khoản cam kết"
+    ],
+    [
+      "warranty",
+      "n",
+      24,
+      "sự bảo hành, cam kết bảo đảm"
+    ],
+    [
+      "ubiquitous",
+      "adj",
+      25,
+      "có mặt khắp nơi"
+    ],
+    [
+      "esoteric",
+      "adj",
+      26,
+      "thâm sâu, chỉ ít người hiểu"
+    ],
+    [
+      "cogent",
+      "adj",
+      27,
+      "thuyết phục, chặt chẽ"
+    ],
+    [
+      "immutable",
+      "adj",
+      28,
+      "bất biến, không thể thay đổi"
+    ],
+    [
+      "ostensible",
+      "adj",
+      29,
+      "bề ngoài, danh nghĩa"
+    ],
+    [
+      "incontrovertible",
+      "adj",
+      30,
+      "không thể chối cãi"
+    ]
+  ]
+}

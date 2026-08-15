@@ -1,0 +1,237 @@
+// The master word list `scripts/build-corpus.ts` slices into public/corpus/v1/**.
+//
+// HONEST PROVENANCE NOTE (docs/decision.md ADR-015): the original plan for this
+// corpus was to derive CEFR bands from the New General Service List + New Academic
+// Word List + Business Service List (Browne/Culligan/Phillips, CC BY-SA 4.0) plus a
+// Gemini-generated C2 top-up. That pipeline is still the RIGHT long-term shape — see
+// the CSV-ingestion path documented in build-corpus.ts — but this session had no way
+// to fetch, parse, and verify those exact source files accurately. Rather than claim
+// a CC BY-SA attribution for content that was not actually verified against NGSL/
+// NAWL/BSL, this file is an ORIGINALLY-COMPILED starter list: real English words,
+// hand-picked and hand-banded for a Vietnamese professional audience (the same
+// audience BSL targets), with original Vietnamese glosses. No external license
+// applies to it — it is Lexio's own compiled content, same as lib/grammarData.ts.
+// Swapping in a real NGSL/NAWL/BSL-derived list later is a data-only change: replace
+// this file's contents (or point build-corpus.ts at corpus-src/*.csv instead) and
+// rerun `npm run corpus:build`; nothing downstream (lib/corpus/**, lib/level/**)
+// needs to change.
+//
+// `pos` uses short tags: n (noun), v (verb), adj (adjective), adv (adverb), phr
+// (multi-word phrase/expression).
+
+export type SourcePos = 'n' | 'v' | 'adj' | 'adv' | 'phr';
+export interface SourceEntry {
+  w: string;
+  pos: SourcePos;
+  vi: string;
+}
+
+// A2 — everyday workplace vocabulary a beginner-plus learner already half-knows.
+export const A2: SourceEntry[] = [
+  { w: 'job', pos: 'n', vi: 'công việc' },
+  { w: 'meeting', pos: 'n', vi: 'cuộc họp' },
+  { w: 'email', pos: 'n', vi: 'thư điện tử' },
+  { w: 'manager', pos: 'n', vi: 'quản lý' },
+  { w: 'customer', pos: 'n', vi: 'khách hàng' },
+  { w: 'order', pos: 'n', vi: 'đơn đặt hàng' },
+  { w: 'price', pos: 'n', vi: 'giá cả' },
+  { w: 'plan', pos: 'n', vi: 'kế hoạch' },
+  { w: 'message', pos: 'n', vi: 'tin nhắn' },
+  { w: 'office', pos: 'n', vi: 'văn phòng' },
+  { w: 'team', pos: 'n', vi: 'đội, nhóm làm việc' },
+  { w: 'report', pos: 'n', vi: 'báo cáo' },
+  { w: 'schedule', pos: 'n', vi: 'lịch trình' },
+  { w: 'contract', pos: 'n', vi: 'hợp đồng' },
+  { w: 'salary', pos: 'n', vi: 'lương' },
+  { w: 'interview', pos: 'n', vi: 'buổi phỏng vấn' },
+  { w: 'colleague', pos: 'n', vi: 'đồng nghiệp' },
+  { w: 'deadline', pos: 'n', vi: 'hạn chót' },
+  { w: 'invoice', pos: 'n', vi: 'hóa đơn' },
+  { w: 'address', pos: 'n', vi: 'địa chỉ' },
+  { w: 'document', pos: 'n', vi: 'tài liệu' },
+  { w: 'project', pos: 'n', vi: 'dự án' },
+  { w: 'company', pos: 'n', vi: 'công ty' },
+  { w: 'department', pos: 'n', vi: 'phòng ban' },
+  { w: 'client', pos: 'n', vi: 'khách hàng, thân chủ' },
+  { w: 'product', pos: 'n', vi: 'sản phẩm' },
+  { w: 'service', pos: 'n', vi: 'dịch vụ' },
+  { w: 'holiday', pos: 'n', vi: 'ngày nghỉ lễ' },
+  { w: 'lunch', pos: 'n', vi: 'bữa trưa' },
+  { w: 'travel', pos: 'v', vi: 'đi công tác, du lịch' },
+  { w: 'training', pos: 'n', vi: 'đào tạo' },
+  { w: 'staff', pos: 'n', vi: 'nhân viên (nói chung)' },
+  { w: 'budget', pos: 'n', vi: 'ngân sách' },
+  { w: 'reply', pos: 'v', vi: 'trả lời, phúc đáp' },
+  { w: 'invite', pos: 'v', vi: 'mời' },
+];
+
+// B1 — everyday professional actions and small-talk-level workplace verbs.
+export const B1: SourceEntry[] = [
+  { w: 'negotiate', pos: 'v', vi: 'đàm phán, thương lượng' },
+  { w: 'promote', pos: 'v', vi: 'thăng chức; quảng bá' },
+  { w: 'resign', pos: 'v', vi: 'từ chức, xin nghỉ việc' },
+  { w: 'complain', pos: 'v', vi: 'phàn nàn, khiếu nại' },
+  { w: 'apologize', pos: 'v', vi: 'xin lỗi' },
+  { w: 'recommend', pos: 'v', vi: 'đề xuất, giới thiệu' },
+  { w: 'organize', pos: 'v', vi: 'tổ chức, sắp xếp' },
+  { w: 'participate', pos: 'v', vi: 'tham gia' },
+  { w: 'achieve', pos: 'v', vi: 'đạt được' },
+  { w: 'improve', pos: 'v', vi: 'cải thiện' },
+  { w: 'announce', pos: 'v', vi: 'thông báo' },
+  { w: 'confirm', pos: 'v', vi: 'xác nhận' },
+  { w: 'cancel', pos: 'v', vi: 'hủy bỏ' },
+  { w: 'postpone', pos: 'v', vi: 'hoãn lại' },
+  { w: 'arrange', pos: 'v', vi: 'sắp xếp, thu xếp' },
+  { w: 'employ', pos: 'v', vi: 'tuyển dụng, thuê' },
+  { w: 'supervise', pos: 'v', vi: 'giám sát' },
+  { w: 'evaluate', pos: 'v', vi: 'đánh giá' },
+  { w: 'communicate', pos: 'v', vi: 'giao tiếp, trao đổi' },
+  { w: 'consult', pos: 'v', vi: 'tham vấn, hỏi ý kiến' },
+  { w: 'attend', pos: 'v', vi: 'tham dự' },
+  { w: 'present', pos: 'v', vi: 'trình bày' },
+  { w: 'discuss', pos: 'v', vi: 'thảo luận' },
+  { w: 'resolve', pos: 'v', vi: 'giải quyết' },
+  { w: 'handle', pos: 'v', vi: 'xử lý' },
+  { w: 'manage', pos: 'v', vi: 'quản lý, xoay xở' },
+  { w: 'assist', pos: 'v', vi: 'hỗ trợ, giúp đỡ' },
+  { w: 'request', pos: 'v', vi: 'yêu cầu, đề nghị' },
+  { w: 'respond', pos: 'v', vi: 'phản hồi' },
+  { w: 'review', pos: 'v', vi: 'xem xét lại, rà soát' },
+  { w: 'update', pos: 'v', vi: 'cập nhật' },
+  { w: 'submit', pos: 'v', vi: 'nộp, gửi (hồ sơ)' },
+  { w: 'clarify', pos: 'v', vi: 'làm rõ' },
+  { w: 'verify', pos: 'v', vi: 'xác minh' },
+  { w: 'estimate', pos: 'v', vi: 'ước tính' },
+];
+
+// B2 — the app's default level: office jargon and abstract business concepts.
+export const B2: SourceEntry[] = [
+  { w: 'implement', pos: 'v', vi: 'triển khai, thực thi' },
+  { w: 'prioritize', pos: 'v', vi: 'ưu tiên' },
+  { w: 'streamline', pos: 'v', vi: 'tinh gọn quy trình' },
+  { w: 'delegate', pos: 'v', vi: 'ủy quyền, giao việc' },
+  { w: 'optimize', pos: 'v', vi: 'tối ưu hóa' },
+  { w: 'collaborate', pos: 'v', vi: 'hợp tác' },
+  { w: 'facilitate', pos: 'v', vi: 'tạo điều kiện thuận lợi' },
+  { w: 'mitigate', pos: 'v', vi: 'giảm thiểu rủi ro' },
+  { w: 'leverage', pos: 'v', vi: 'tận dụng (nguồn lực)' },
+  { w: 'escalate', pos: 'v', vi: 'chuyển lên cấp trên xử lý' },
+  { w: 'benchmark', pos: 'v', vi: 'đối chuẩn, so sánh chuẩn' },
+  { w: 'outsource', pos: 'v', vi: 'thuê ngoài' },
+  { w: 'downsize', pos: 'v', vi: 'thu hẹp quy mô, cắt giảm' },
+  { w: 'restructure', pos: 'v', vi: 'tái cấu trúc' },
+  { w: 'diversify', pos: 'v', vi: 'đa dạng hóa' },
+  { w: 'consolidate', pos: 'v', vi: 'hợp nhất, củng cố' },
+  { w: 'forecast', pos: 'v', vi: 'dự báo' },
+  { w: 'allocate', pos: 'v', vi: 'phân bổ' },
+  { w: 'comply', pos: 'v', vi: 'tuân thủ' },
+  { w: 'accommodate', pos: 'v', vi: 'đáp ứng, thích nghi với' },
+  { w: 'undermine', pos: 'v', vi: 'làm suy yếu, phá hoại ngầm' },
+  { w: 'reinforce', pos: 'v', vi: 'củng cố, tăng cường' },
+  { w: 'enhance', pos: 'v', vi: 'nâng cao, cải thiện' },
+  { w: 'capitalize', pos: 'v', vi: 'tận dụng cơ hội' },
+  { w: 'differentiate', pos: 'v', vi: 'tạo sự khác biệt' },
+  { w: 'incentivize', pos: 'v', vi: 'tạo động lực bằng ưu đãi' },
+  { w: 'standardize', pos: 'v', vi: 'chuẩn hóa' },
+  { w: 'synchronize', pos: 'v', vi: 'đồng bộ hóa' },
+  { w: 'troubleshoot', pos: 'v', vi: 'khắc phục sự cố' },
+  { w: 'brainstorm', pos: 'v', vi: 'động não, lên ý tưởng' },
+  { w: 'onboard', pos: 'v', vi: 'hướng dẫn nhân viên mới hòa nhập' },
+  { w: 'bottleneck', pos: 'n', vi: 'điểm nghẽn' },
+  { w: 'workflow', pos: 'n', vi: 'quy trình làm việc' },
+  { w: 'milestone', pos: 'n', vi: 'cột mốc quan trọng' },
+  { w: 'stakeholder', pos: 'n', vi: 'bên liên quan' },
+  { w: 'deliverable', pos: 'n', vi: 'sản phẩm bàn giao' },
+  { w: 'turnaround', pos: 'n', vi: 'thời gian xử lý/xoay chuyển' },
+  { w: 'overhead', pos: 'n', vi: 'chi phí vận hành chung' },
+  { w: 'contingency', pos: 'n', vi: 'phương án dự phòng' },
+  { w: 'redundant', pos: 'adj', vi: 'dư thừa; dôi dư nhân sự' },
+  { w: 'feasible', pos: 'adj', vi: 'khả thi' },
+  { w: 'viable', pos: 'adj', vi: 'khả thi, có thể tồn tại được' },
+  { w: 'robust', pos: 'adj', vi: 'vững chắc, mạnh mẽ' },
+  { w: 'scalable', pos: 'adj', vi: 'có thể mở rộng quy mô' },
+  { w: 'sustainable', pos: 'adj', vi: 'bền vững' },
+  { w: 'transparent', pos: 'adj', vi: 'minh bạch' },
+  { w: 'accountable', pos: 'adj', vi: 'có trách nhiệm giải trình' },
+  { w: 'proactive', pos: 'adj', vi: 'chủ động' },
+  { w: 'trade-off', pos: 'n', vi: 'sự đánh đổi' },
+];
+
+// C1 — abstract, formal register: the vocabulary of careful written English.
+export const C1: SourceEntry[] = [
+  { w: 'ambiguous', pos: 'adj', vi: 'mơ hồ, có thể hiểu nhiều cách' },
+  { w: 'arbitrary', pos: 'adj', vi: 'tùy tiện, độc đoán' },
+  { w: 'coherent', pos: 'adj', vi: 'mạch lạc, nhất quán' },
+  { w: 'comprehensive', pos: 'adj', vi: 'toàn diện' },
+  { w: 'discrepancy', pos: 'n', vi: 'sự chênh lệch, sai khác' },
+  { w: 'empirical', pos: 'adj', vi: 'dựa trên thực nghiệm' },
+  { w: 'explicit', pos: 'adj', vi: 'rõ ràng, tường minh' },
+  { w: 'implicit', pos: 'adj', vi: 'ngầm hiểu, không nói rõ' },
+  { w: 'inherent', pos: 'adj', vi: 'vốn có, cố hữu' },
+  { w: 'meticulous', pos: 'adj', vi: 'tỉ mỉ, cẩn thận' },
+  { w: 'nuanced', pos: 'adj', vi: 'tinh tế, có sắc thái' },
+  { w: 'paradigm', pos: 'n', vi: 'hệ hình, mô hình tư duy' },
+  { w: 'pragmatic', pos: 'adj', vi: 'thực dụng, thực tế' },
+  { w: 'precedent', pos: 'n', vi: 'tiền lệ' },
+  { w: 'prevalent', pos: 'adj', vi: 'phổ biến' },
+  { w: 'rigorous', pos: 'adj', vi: 'nghiêm ngặt, chặt chẽ' },
+  { w: 'subsequent', pos: 'adj', vi: 'tiếp theo sau đó' },
+  { w: 'substantive', pos: 'adj', vi: 'thực chất, đáng kể' },
+  { w: 'tangible', pos: 'adj', vi: 'hữu hình, cụ thể' },
+  { w: 'unprecedented', pos: 'adj', vi: 'chưa từng có tiền lệ' },
+  { w: 'unanimous', pos: 'adj', vi: 'nhất trí tuyệt đối' },
+  { w: 'versatile', pos: 'adj', vi: 'đa năng, linh hoạt' },
+  { w: 'viability', pos: 'n', vi: 'tính khả thi' },
+  { w: 'cognizant', pos: 'adj', vi: 'nhận thức rõ, biết rõ' },
+  { w: 'discretion', pos: 'n', vi: 'quyền tự quyết, sự thận trọng' },
+  { w: 'expedite', pos: 'v', vi: 'đẩy nhanh tiến độ' },
+  { w: 'exacerbate', pos: 'v', vi: 'làm trầm trọng thêm' },
+  { w: 'deprecate', pos: 'v', vi: 'ngừng hỗ trợ (tính năng cũ)' },
+  { w: 'inadvertent', pos: 'adj', vi: 'vô ý, không cố ý' },
+  { w: 'deferential', pos: 'adj', vi: 'tôn trọng, nhún nhường' },
+  { w: 'circumvent', pos: 'v', vi: 'lách qua, tránh né (quy định)' },
+  { w: 'corroborate', pos: 'v', vi: 'xác thực, củng cố (bằng chứng)' },
+  { w: 'delineate', pos: 'v', vi: 'phác thảo rõ ràng, định rõ' },
+  { w: 'disseminate', pos: 'v', vi: 'phổ biến, truyền bá' },
+  { w: 'expound', pos: 'v', vi: 'giải thích chi tiết' },
+  { w: 'galvanize', pos: 'v', vi: 'thúc đẩy hành động' },
+  { w: 'indispensable', pos: 'adj', vi: 'không thể thiếu' },
+  { w: 'intrinsic', pos: 'adj', vi: 'nội tại, vốn có' },
+  { w: 'juxtapose', pos: 'v', vi: 'đặt cạnh nhau để so sánh' },
+  { w: 'notwithstanding', pos: 'adv', vi: 'mặc dù vậy' },
+  { w: 'perpetuate', pos: 'v', vi: 'duy trì kéo dài' },
+];
+
+// C2 — proficient/near-native register: formal, legal, and business-contract prose.
+export const C2: SourceEntry[] = [
+  { w: 'preclude', pos: 'v', vi: 'ngăn cản, loại trừ khả năng' },
+  { w: 'ratify', pos: 'v', vi: 'phê chuẩn' },
+  { w: 'indemnify', pos: 'v', vi: 'bồi thường, bảo đảm không chịu thiệt hại' },
+  { w: 'fiduciary', pos: 'adj', vi: 'liên quan đến trách nhiệm ủy thác' },
+  { w: 'proprietary', pos: 'adj', vi: 'thuộc sở hữu độc quyền' },
+  { w: 'statutory', pos: 'adj', vi: 'theo luật định' },
+  { w: 'tantamount', pos: 'adj', vi: 'tương đương với' },
+  { w: 'disparate', pos: 'adj', vi: 'khác biệt hoàn toàn, không cùng loại' },
+  { w: 'exorbitant', pos: 'adj', vi: 'quá cao, cắt cổ (giá)' },
+  { w: 'protracted', pos: 'adj', vi: 'kéo dài dai dẳng' },
+  { w: 'circumscribe', pos: 'v', vi: 'giới hạn, khoanh vùng phạm vi' },
+  { w: 'onerous', pos: 'adj', vi: 'nặng nề, khó khăn (nghĩa vụ)' },
+  { w: 'punitive', pos: 'adj', vi: 'mang tính trừng phạt' },
+  { w: 'discretionary', pos: 'adj', vi: 'tùy quyền quyết định' },
+  { w: 'ancillary', pos: 'adj', vi: 'phụ trợ, kèm theo' },
+  { w: 'contingent', pos: 'adj', vi: 'phụ thuộc vào điều kiện khác' },
+  { w: 'adjudicate', pos: 'v', vi: 'phân xử, phán quyết' },
+  { w: 'culpable', pos: 'adj', vi: 'có lỗi, đáng trách' },
+  { w: 'exonerate', pos: 'v', vi: 'minh oan, miễn trách' },
+  { w: 'moot', pos: 'adj', vi: 'không còn thực tiễn để bàn' },
+  { w: 'waiver', pos: 'n', vi: 'sự từ bỏ quyền, miễn trừ' },
+  { w: 'breach', pos: 'n', vi: 'sự vi phạm (hợp đồng)' },
+  { w: 'covenant', pos: 'n', vi: 'điều khoản cam kết' },
+  { w: 'warranty', pos: 'n', vi: 'sự bảo hành, cam kết bảo đảm' },
+  { w: 'ubiquitous', pos: 'adj', vi: 'có mặt khắp nơi' },
+  { w: 'esoteric', pos: 'adj', vi: 'thâm sâu, chỉ ít người hiểu' },
+  { w: 'cogent', pos: 'adj', vi: 'thuyết phục, chặt chẽ' },
+  { w: 'immutable', pos: 'adj', vi: 'bất biến, không thể thay đổi' },
+  { w: 'ostensible', pos: 'adj', vi: 'bề ngoài, danh nghĩa' },
+  { w: 'incontrovertible', pos: 'adj', vi: 'không thể chối cãi' },
+];

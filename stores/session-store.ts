@@ -3,12 +3,14 @@ import { getRepos } from '@/lib/repositories';
 import { buildSession } from '@/lib/srs/session';
 import { dayKey } from '@/lib/srs/date';
 import { newId } from '@/lib/db/ids';
+import { useLevelStore } from './level-store';
 import type { StudySession } from '@/lib/srs/types';
 
 // Exported so Home (app/(tabs)/today/page.tsx) can render a due/fresh count that
 // matches what /practice will actually serve — never a number the session can't
-// deliver.
-export const SESSION_SIZE = 5;
+// deliver. The REAL session size is now settings.sessionSize (docs/decision.md
+// ADR-018); this is only the fallback baked into DEFAULT_SETTINGS.
+export const DEFAULT_SESSION_SIZE = 5;
 
 interface SessionStoreState {
   session: StudySession | null;
@@ -45,17 +47,24 @@ export const useSessionStore = create<SessionStoreState>()((set, get) => ({
         return;
       }
 
-      const due = await repos.words.dueBefore(now, SESSION_SIZE * 2);
+      const { settings } = await repos.user.getProfile();
+      const size = settings.sessionSize;
+
+      const due = await repos.words.dueBefore(now, size * 2);
       const leech = await repos.words.leeches(1);
       const fresh = await repos.words.newNeverReviewed(
-        SESSION_SIZE,
+        size,
         due.map((w) => w.id),
       );
-      // Phase 6 wires real capability probing (TTS provider configured? AI provider
-      // reachable?) via a small /api/ai/capabilities GET — see docs/api_document.md.
-      // Until then, both are assumed available so the session shape matches the
-      // exercises that already exist (fillBlank/listen/write/recall).
-      const caps = { audioAvailable: true, aiAvailable: true };
+      // docs/decision.md ADR-018 — a real (if coarse) capability probe: `write` needs
+      // gradeSentence and `listen` can fetch TTS, both AI calls that fail outright
+      // when the browser is offline. navigator.onLine can't detect "online but the
+      // AI provider itself is down" (Phase 6+ would wire a real /api/ai/capabilities
+      // GET for that), but it's what makes the isEligible('recall') degraded-word
+      // exception actually reachable offline instead of serving a dead write/listen
+      // card that immediately errors.
+      const online = typeof navigator === 'undefined' || navigator.onLine;
+      const caps = { audioAvailable: online, aiAvailable: online };
 
       const session = buildSession({
         sessionId: newId('s_'),
@@ -63,7 +72,7 @@ export const useSessionStore = create<SessionStoreState>()((set, get) => ({
         leech,
         fresh,
         now,
-        size: SESSION_SIZE,
+        size,
         caps,
       });
 
@@ -100,6 +109,14 @@ export const useSessionStore = create<SessionStoreState>()((set, get) => ({
     };
     await getRepos().study.saveSession(nextSession);
     set({ session: nextSession, status: nextSession.status });
+
+    // docs/decision.md ADR-017 — session end, not per-card: costs nothing on the hot
+    // answer path, and any "level changed" note lands on the completion screen the
+    // user is already looking at, never mid-session (ADR-004 — items are frozen).
+    // Fire-and-forget: a failed level refresh must not block the completion screen.
+    if (nextSession.status === 'done') {
+      void useLevelStore.getState().refreshSrsSignal(now);
+    }
   },
 
   reset() {

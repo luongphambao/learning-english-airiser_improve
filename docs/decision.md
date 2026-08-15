@@ -131,3 +131,79 @@ Xem `spec-gaps.md` §B — nội dung kỹ thuật đầy đủ nằm ở đó �
 **Lựa chọn:** Theo yêu cầu trực tiếp của chủ dự án — áp dụng bảng màu ở `docs/design.md` §4 vào `app/globals.css` (`:root` và `[data-theme="dark"]`), xoá token `--violet`/`--color-violet` (hệ mới cấm gradient hoàn toàn), và quét thay toàn bộ class Tailwind hardcode (`indigo-*`, `emerald-*`, `rose-*`, `bg-gradient-to-*`) sang token ngữ nghĩa (`bg-green`/`text-wrong`/...) ở các file liệt kê trong `progress/board.md` Phase 1/7 kế tiếp.
 
 **Hệ quả:** Đúng như ADR-006 dự đoán — không cần viết lại `Button`/`Sheet`/`EmptyState`/... vì các component này vốn đã tiêu thụ token, chỉ các nơi dùng trực tiếp `indigo-*`/`emerald-*`/`rose-*` (không qua token) mới cần sửa tay. Không dựng 26 primitive `components/ui/` liệt kê ở `docs/design.md` §2 — `board.md` Phase 1 đã hoãn việc đó lại vì trừu tượng hoá sớm khi chưa có đủ consumer thật, và lý do đó vẫn đúng ở phạm vi lần này.
+
+---
+
+### ADR-014 — "Học từ công việc thật": không bảng `phrases`/`workAnalyses` riêng, dùng `entryType` (viết bù)
+
+**Bối cảnh:** Commit đưa tính năng "Học từ công việc thật" vào production đã trích dẫn "ADR-014" ở 5 nơi trong code (`lib/domain/word.ts`, `lib/db/dexie.ts`, `lib/repositories/types.ts`, `lib/db/rows.ts`, `stores/work-store.ts`) nhưng chưa từng ghi ADR thật — file này dừng ở ADR-013 trong khi code đã giả định ADR-014 tồn tại. Đánh số tiếp (ADR-015 trở đi) trên một lỗ hổng là sai; ADR này viết bù lại đúng quyết định code đã thực thi.
+
+**Lựa chọn:** `analyzeWork` trả 4 mảng không đồng nhất (words/phrases/grammarInsights/professionalRewrites); mỗi mục được lưu như một dòng trong bảng `words` sẵn có, gắn thêm discriminator `entryType: 'word'|'phrase'|'grammar'` (mặc định `'word'` khi vắng, cho dữ liệu trước v3) — **không** dựng bảng `phrases` mới. Bản thân một work-analysis cũng không có bảng `workAnalyses` riêng — nó là một dòng trong bảng `imports` sẵn có với `kind:'work'` và payload `analysis`, cùng index `'id, createdAt, status'` mà các dòng `kind:'text'|'pdf'|'image'` đã dùng. Dexie v3 (`lib/db/dexie.ts`) chỉ thêm `entryType` + `[entryType+dueAt]` vào bảng `words`, với `upgrade()` backfill bắt buộc (IndexedDB bỏ một dòng khỏi index nếu key path là `undefined` tại thời điểm tạo index).
+
+**Hệ quả:** `StudyRepository.recordReview`/`buildSession`/`nextSchedule`/`isEligible` không cần sửa gì để lên lịch và luyện một cụm từ hay một điểm ngữ pháp đã lưu — chúng chỉ từng thấy kiểu `Word`. Một cụm từ được lưu tay (dán đoạn văn) và cùng cụm đó được lưu lại từ "Học từ công việc" là **một dòng, không phải hai** (chung namespace `&wordLower`). Đánh đổi: `Word` mang một số field chỉ có ý nghĩa với `entryType!=='word'` (`noteVi`, `originalText`) — chấp nhận được, cùng tinh thần các field mở rộng optional từ ADR-007.
+
+---
+
+### ADR-015 — Nguồn corpus từ vựng: tự biên soạn thay vì NGSL/NAWL/BSL đã dự tính
+
+**Bối cảnh:** Trước khi có tính năng này, app không hề có kho từ vựng — 5 từ demo hardcode (`lib/db/migrate-local-storage.ts`) là toàn bộ nội dung tĩnh. Kế hoạch ban đầu là suy CEFR band từ 3 danh sách tần suất mở (New General Service List, New Academic Word List, Business Service List — Browne/Culligan/Phillips, CC BY-SA 4.0, newgeneralservicelist.com), cộng một lô ~400 mục C2 do Gemini sinh (NGSL họ hết ở khoảng C1). Trong phiên làm việc đưa tính năng này vào code, không có cách nào tải, phân tích cú pháp và xác minh chính xác các file nguồn đó.
+
+**Lựa chọn:** Ship một danh sách khởi đầu **tự biên soạn** (`scripts/corpus-source-data.ts` → `scripts/build-corpus.ts` → `public/corpus/v1/*.json`): ~190 từ tiếng Anh thật, tự chọn và tự gán band (A2/B1/B2/C1/C2), tự viết nghĩa tiếng Việt, thiên về từ vựng công sở/chuyên nghiệp — đúng đối tượng người dùng Lexio. **Không** gắn nhãn CC BY-SA 4.0 / NGSL cho nội dung này vì nó không thật sự bắt nguồn từ đó — gắn nhãn sai sẽ là khai man xuất xứ. `rank` trong mỗi file band là vị trí trong danh sách tự biên soạn (1-indexed), không phải tần suất đo được từ corpus thật. `public/corpus/v1/ATTRIBUTION.md` ghi rõ điều này và để lại đường dẫn cho người làm tiếp: trỏ `scripts/build-corpus.ts` vào `corpus-src/{ngsl,nawl,bsl}.csv` (gitignore, không commit file nguồn bên thứ ba), chạy qua `cefrFromRank(rank, list)` (`lib/level/cefr.ts`), giữ nguyên phần còn lại (`lib/corpus/**`, `lib/level/**`).
+
+**Hệ quả:** Không có rủi ro pháp lý về giấy phép (nội dung tự viết, không phải derivative). Đổi lại: band không có độ chính xác ngôn ngữ học đã được đo lường — `lib/level/cefr.ts` gọi thẳng đây là "band độ khó nội bộ, không phải CEFR được chứng nhận". `lib/corpus/__tests__/corpus-data.test.ts` xác thực cấu trúc file thật đang ship (không trùng từ, rank tăng dần, manifest khớp số lượng) — bắt được một lần `corpus:build` hỏng trước khi lên production, bất kể nguồn dữ liệu là gì.
+
+---
+
+### ADR-016 — `Word.cefr` + Dexie v4: `'unknown'` nằm trong enum domain, không chỉ trong row
+
+**Bối cảnh:** Cần một chỗ lưu CEFR band cho từng từ để phục vụ bộ máy phân trình độ (ADR-017) và corpus top-up (ADR-018), nhưng phần lớn dữ liệu hiện có (5 từ seed, mọi từ gõ tay/dán trước bản này) không có band nào cả.
+
+**Lựa chọn:** `CefrOrUnknownSchema` (`A1..C2` cộng `'unknown'`) áp cho **cả** `Word.cefr` (domain) lẫn `WordRow.cefr` (Dexie row) — không phải chỉ row. `WordRow.cefr` cụ thể, không bao giờ `undefined` (như `entryType` ở ADR-014, để không rơi khỏi index `[cefr+status]`). Dexie v4 thêm index này, `upgrade()` backfill `cefr ??= 'unknown'` cho mọi dòng cũ, cùng lúc merge `sessionSize`/`levelProfile` mặc định vào `user.settings` qua một literal `V4_SETTINGS_DEFAULTS` đóng băng ngay trong `lib/db/dexie.ts` — không import từ `lib/repositories/dexie/user-repository.ts` (sẽ tạo vòng lặp module, và một migration phải đứng yên theo thời gian, không được đi theo hằng số mà phase sau có thể sửa).
+
+**Vì sao `'unknown'` phải nằm trong enum domain, không chỉ enum row:** `fromRow()` (`lib/db/rows.ts`) là một phép spread thuần cộng đúng 1 chỗ sửa `isLeech`. Nếu domain chỉ nhận 6 band thật, `fromRow` phải ánh xạ thêm `'unknown' → undefined`, và quên làm việc đó nghĩa là **mọi từ trong sổ tay** fail `safeParseRow`, bị quarantine vào `meta`, sổ tay hiện trắng trong im lặng — không phải lỗi ồn ào, dễ phát hiện.
+
+**Hệ quả:** Nơi duy nhất phải biết về `'unknown'` là helper `knownCefr()` (`lib/level/cefr.ts`), mọi nơi khác coi `cefr` là một trong 7 giá trị hợp lệ. Trường hợp xấu nhất khi quên xử lý `'unknown'` ở đâu đó chỉ là một badge hiện chữ "unknown" — không phải sổ tay biến mất.
+
+---
+
+### ADR-017 — Mô hình 4 tín hiệu phân trình độ: ghim / gieo hạt / trung vị có trọng số / một bậc / cooldown
+
+**Bối cảnh:** `UserSettings.level` trước đây chỉ là dropdown tự khai (B1/B2/C1), không liên hệ gì với hiệu suất thật. AI đã trả về `cefr` cho từng từ trong `analyzeWork` và `summary.estimatedLevel` (ước lượng trình độ người viết) từ lâu — cả hai đều bị parse xong rồi vứt lúc lưu, chưa từng ảnh hưởng tới `level`.
+
+**Lựa chọn:** `UserSettings.levelProfile` lưu tối đa 4 bằng chứng độc lập — `declared` (tự khai), `placement` (bài test), `work` (từ `analyzeWork`), `srs` (độ chính xác luyện tập theo band) — mỗi bằng chứng có `weight`/`at` riêng. `lib/level/resolve.ts` (`resolveLevel`, hàm thuần) áp 8 luật: `declared` khác null thì ghim `level`, mọi tín hiệu tự động vẫn tích luỹ nhưng không bao giờ đẩy (chỉ trả về một `suggestion` bỏ-qua-được, cooldown 14 ngày riêng); nếu chưa từng tự khai, lần giải quyết đầu tiên (thường là placement) gieo hạt trực tiếp, không bị kẹp một-bậc; sau đó mỗi lần thay đổi chỉ nhích một bậc CEFR, cách nhau tối thiểu 14 ngày, cần tổng trọng số ≥2 để lên và ≥3 để xuống (hạ sai hại hơn nâng chậm); các tín hiệu kết hợp bằng **trung vị có trọng số** (mở rộng mỗi tín hiệu thành `round(weight)` bản sao rồi lấy phần tử giữa), không phải trung bình — CEFR là thang thứ tự, trung bình có thể ra một band không tín hiệu nào thật sự nói tới và bị một outlier kéo lệch.
+
+**Hệ quả:** Đổi `level` **luôn được thông báo** (dòng "vì sao" ở Settings, banner gợi ý khi tự khai và bằng chứng lệch nhau) — cố ý khác hẳn nguyên tắc "streak freeze never announced" (spec §8.1): đổi level thay đổi nội dung người dùng nhận, im lặng ở đây là sai, còn streak freeze chỉ là một sự khoan dung không ảnh hưởng nội dung. Đánh đổi: 8 luật này chỉ được cân bằng qua trực giác + test đơn vị (`lib/level/__tests__/resolve.test.ts`, 15 case), chưa có dữ liệu người dùng thật để hiệu chỉnh ngưỡng.
+
+---
+
+### ADR-018 — Corpus top-up: ghi `words` row thật, đường degraded, và mở hẹp `isEligible('recall')`
+
+**Bối cảnh:** Trước tính năng này, sổ tay của người dùng mới chỉ có 5 từ demo rồi hết — không có cơ chế nào tự bổ sung từ khi buổi luyện tập cạn.
+
+**Lựa chọn:** `stores/topup-store.ts` (`ensureSupply`) chạy trước `session-store.start()`: tính `deficit = targetSize - (due+fresh)`, nếu dương thì chọn từ corpus qua `pickCorpusWords` (loại trừ sổ tay + `skipped`), gọi `enrichWordBatch` (ADR-019), rồi **ghi thẳng `words` row thật** qua `WordRepository.addFromCorpus` — không phải một buffer gợi ý riêng. Khi AI không khả dụng (offline/429/timeout), vẫn ghi — chỉ với `meaningVi` = gloss tiếng Việt có sẵn trong corpus, `exampleSentence`/`distractors` rỗng ("đường degraded"). Để một từ degraded thật sự luyện được, `isEligible('recall')` (`lib/srs/session.ts`) được mở thêm đúng một mệnh đề: `reviewCount===0 && exampleSentence==='' && meaningVi!==''` — "một từ chỉ biết nghĩa và không biết gì khác thì chỉ có thể recall". `session-store.ts`'s `caps` cũng đổi từ hằng số cứng `{audioAvailable:true, aiAvailable:true}` sang đọc `navigator.onLine`, để mệnh đề trên thật sự với tới được lúc offline thay vì phục vụ thẻ `write`/`listen` chết.
+
+**Vì sao ghi row thật chứ không phải buffer riêng:** `hooks/use-daily-plan.ts` và `stores/session-store.ts` đọc cùng một bộ method `WordRepository`. Ghi row thật khiến `useLiveQuery` tự bắn lại và cả hai nơi tự động thấy đúng số từ mới — không có nguồn sự thật thứ hai cần giữ đồng bộ tay.
+
+**Hệ quả:** Buổi luyện tập không bao giờ trống, kể cả offline (đã xác minh bằng trình duyệt thật: notebook rỗng + không có `GEMINI_API_KEY` cấu hình → 5 từ vẫn được ghi, một bài `recall` render đúng). Đánh đổi: van chống phình sổ tay (`meta['topup:lastRunAt']` 60s, `meta['topup:addedOn:<dayKey>']` tối đa 20 từ/ngày) là số tuỳ chọn, chưa có dữ liệu thật để hiệu chỉnh. Phát hiện phụ trong lúc build: `app/providers.tsx` từng gọi `seedIfEmpty()` (5 từ demo cũ) ngay khi sổ tay rỗng — đua với và luôn thắng CTA "Kiểm tra trình độ" mới (ADR-017's placement flow), khiến CTA biến mất trong ~1 giây thực tế. Đã bỏ lời gọi tự động đó (giữ hàm + test, chỉ không còn gọi từ `Providers`) — bằng chứng cho thấy manual browser testing bắt được lỗi mà lint/typecheck/test đơn vị không thấy.
+
+---
+
+### ADR-019 — `enrichWordBatch` thay vì N lần `enrichWord`; re-key nằm ở store, không phải `repair()`
+
+**Bối cảnh:** Top-up (ADR-018) cần làm giàu vài từ corpus (thường 3-8 từ) cùng lúc lúc build session. Dùng lại `enrichWord` nghĩa là N request — ở giới hạn 20/phút mỗi IP, một NAT văn phòng chung với vài người dùng đồng thời sẽ chạm 429; N round-trip cũng tốn N lần chi phí system prompt cho cùng một nội dung.
+
+**Lựa chọn:** Một task mới `enrichWordBatch` (1-8 từ/request, `rateLimit: 8/phút, 120/ngày`, `maxOutputTokens: 4096`), tái dùng nguyên văn system prompt của `enrichWord` cộng yêu cầu echo lại `word` verbatim trong mỗi item (mỏ neo để khớp ngược). `repair()` chỉ làm được việc trong phạm vi MỘT item nó thấy (cắt distractor, dedupe...) — nó **không** biết những từ nào thực sự được yêu cầu, vì chữ ký của nó chỉ nhận output, không nhận input. Việc re-key theo `word.toLowerCase()`, âm thầm bỏ mục thừa mô hình trả về ngoài yêu cầu, và cho mục thiếu rơi về đường degraded (ADR-018) — nằm ở `stores/topup-store.ts`, không phải `repair()`.
+
+**Hệ quả:** 1 request thay vì N, ~1 đơn vị rate-limit thay vì N. Đã xác minh bằng test msw (`stores/__tests__/topup-store.test.ts`) rằng mô hình trả thừa/thiếu/đảo thứ tự đều được xử lý đúng, không throw. Đánh đổi: một request lớn hơn có rủi ro timeout/truncate cao hơn N request nhỏ — giảm nhẹ bằng `maxOutputTokens` rộng rãi và `retries: 0` (không retry phía client, cùng lý do đã ghi ở `stores/work-store.ts`: một request 15s bị retry sẽ khiến người dùng chờ thêm gần gấp đôi trong một rate-limit bucket vốn đã hẹp).
+
+---
+
+### ADR-020 — Giữ nguyên `analyzeDocument` mồ côi; xoá hẳn `gradeSentence` mode `rewriteProfessionally`
+
+**Bối cảnh:** Hai mảnh code không có caller nào tồn tại từ trước phiên làm việc này: task `analyzeDocument` (đào tối đa 40 từ có gắn CEFR từ một tài liệu, cùng `ImportRepository.setCandidates`/`setTriage`) và `gradeSentence`'s `mode: 'rewriteProfessionally'`. Cả hai được xây xong ở server nhưng route `/upload` đã bị xoá từ trước (thay bằng `/learn`), nên không UI nào gọi tới.
+
+**Lựa chọn — không đối xứng, vì rủi ro khác nhau:**
+- `gradeSentence.rewriteProfessionally`: **xoá hẳn.** Đây là một nhánh cô lập trong một hàm (`mode` field + ternary trong `system()`/`prompt()`), không phần nào khác của app phụ thuộc vào nó. Xoá sạch, không còn `mode`/`original` trong `GradeSentenceInput`.
+- `analyzeDocument` + `ImportRepository.setCandidates`/`setTriage` + `CandidateWordSchema`: **giữ nguyên, không đụng.** Khác `rewriteProfessionally`, đây là một trục hạ tầng chia sẻ: `Import.candidates` là field bắt buộc trên schema `Import` dùng chung cho **mọi** `kind` (`'pdf'|'image'|'text'|'work'`), không riêng gì `analyzeDocument`. Xoá nửa vời (chỉ xoá task+route, để lại `setCandidates`/`setTriage`/`CandidateWordSchema` không người gọi lẫn không người tạo) còn tệ hơn giữ nguyên cả cụm — biến một hạ tầng "đã xây, chưa nối" thành hạ tầng "chết hẳn, không ai sờ tới". Xây một màn hình tải tài liệu + duyệt 40 ứng viên thật sự (dùng lại `TriageList`, ADR-017) là phạm vi một tính năng riêng, vượt quá phiên làm việc tập trung vào corpus/phân trình độ/top-up lần này.
+
+**Hệ quả:** `docs/spec-gaps.md`/`docs/progress/board.md` cần ghi rõ `analyzeDocument` vẫn là nợ kỹ thuật treo, không phải đã đóng — người làm tiếp có 2 lựa chọn thật (nối UI dùng `TriageList` sẵn có, hoặc xoá cả cụm bao gồm cả field `Import.candidates`), không lấp lửng. `gradeSentence`'s API surface nhỏ lại đúng bằng những gì có người dùng thật.

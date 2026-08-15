@@ -1,0 +1,223 @@
+{
+  "band": "B1",
+  "count": 35,
+  "source": "authored",
+  "cols": [
+    "w",
+    "pos",
+    "rank",
+    "vi"
+  ],
+  "rows": [
+    [
+      "negotiate",
+      "v",
+      1,
+      "đàm phán, thương lượng"
+    ],
+    [
+      "promote",
+      "v",
+      2,
+      "thăng chức; quảng bá"
+    ],
+    [
+      "resign",
+      "v",
+      3,
+      "từ chức, xin nghỉ việc"
+    ],
+    [
+      "complain",
+      "v",
+      4,
+      "phàn nàn, khiếu nại"
+    ],
+    [
+      "apologize",
+      "v",
+      5,
+      "xin lỗi"
+    ],
+    [
+      "recommend",
+      "v",
+      6,
+      "đề xuất, giới thiệu"
+    ],
+    [
+      "organize",
+      "v",
+      7,
+      "tổ chức, sắp xếp"
+    ],
+    [
+      "participate",
+      "v",
+      8,
+      "tham gia"
+    ],
+    [
+      "achieve",
+      "v",
+      9,
+      "đạt được"
+    ],
+    [
+      "improve",
+      "v",
+      10,
+      "cải thiện"
+    ],
+    [
+      "announce",
+      "v",
+      11,
+      "thông báo"
+    ],
+    [
+      "confirm",
+      "v",
+      12,
+      "xác nhận"
+    ],
+    [
+      "cancel",
+      "v",
+      13,
+      "hủy bỏ"
+    ],
+    [
+      "postpone",
+      "v",
+      14,
+      "hoãn lại"
+    ],
+    [
+      "arrange",
+      "v",
+      15,
+      "sắp xếp, thu xếp"
+    ],
+    [
+      "employ",
+      "v",
+      16,
+      "tuyển dụng, thuê"
+    ],
+    [
+      "supervise",
+      "v",
+      17,
+      "giám sát"
+    ],
+    [
+      "evaluate",
+      "v",
+      18,
+      "đánh giá"
+    ],
+    [
+      "communicate",
+      "v",
+      19,
+      "giao tiếp, trao đổi"
+    ],
+    [
+      "consult",
+      "v",
+      20,
+      "tham vấn, hỏi ý kiến"
+    ],
+    [
+      "attend",
+      "v",
+      21,
+      "tham dự"
+    ],
+    [
+      "present",
+      "v",
+      22,
+      "trình bày"
+    ],
+    [
+      "discuss",
+      "v",
+      23,
+      "thảo luận"
+    ],
+    [
+      "resolve",
+      "v",
+      24,
+      "giải quyết"
+    ],
+    [
+      "handle",
+      "v",
+      25,
+      "xử lý"
+    ],
+    [
+      "manage",
+      "v",
+      26,
+      "quản lý, xoay xở"
+    ],
+    [
+      "assist",
+      "v",
+      27,
+      "hỗ trợ, giúp đỡ"
+    ],
+    [
+      "request",
+      "v",
+      28,
+      "yêu cầu, đề nghị"
+    ],
+    [
+      "respond",
+      "v",
+      29,
+      "phản hồi"
+    ],
+    [
+      "review",
+      "v",
+      30,
+      "xem xét lại, rà soát"
+    ],
+    [
+      "update",
+      "v",
+      31,
+      "cập nhật"
+    ],
+    [
+      "submit",
+      "v",
+      32,
+      "nộp, gửi (hồ sơ)"
+    ],
+    [
+      "clarify",
+      "v",
+      33,
+      "làm rõ"
+    ],
+    [
+      "verify",
+      "v",
+      34,
+      "xác minh"
+    ],
+    [
+      "estimate",
+      "v",
+      35,
+      "ước tính"
+    ]
+  ]
+}

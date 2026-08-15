@@ -32,5 +32,9 @@ export function createDexieReviewRepository(): ReviewRepository {
       await db.reviews.bulkDelete(stale);
       return stale.length;
     },
+
+    async listRecent(limit) {
+      return db.reviews.orderBy('answeredAt').reverse().limit(limit).toArray();
+    },
   };
 }

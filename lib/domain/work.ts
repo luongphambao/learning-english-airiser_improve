@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CefrSchema } from './word';
 
 // "Học từ công việc thật" (Learn From Work) result, normalized for the UI/save
 // flow. The AI task (lib/ai/tasks/contracts.ts AnalyzeWorkOutput) returns 4
@@ -26,7 +27,7 @@ export const WorkInsightSchema = z.object({
   distractors: z.array(z.string()),
   originalText: z.string().nullable(), // grammar only: what the user actually wrote
   ruleLabel: z.string().nullable(), // grammar only: e.g. "Subject-verb agreement"
-  cefr: z.enum(['B1', 'B2', 'C1', 'C2']).nullable(), // vocab only
+  cefr: CefrSchema.nullable(), // vocab only
   saved: z.boolean(),
 });
 export type WorkInsight = z.infer<typeof WorkInsightSchema>;

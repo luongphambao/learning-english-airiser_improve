@@ -2,6 +2,24 @@
 
 > Mỗi dòng = một phase chốt xong. Không phải commit log — xem `git log` cho mức chi tiết dòng code. Định dạng: `YYYY-MM-DD — Phase N — tóm tắt 1 dòng — file/khu vực chính`.
 
+## 2026-08-15 — Phase 9 — Kho từ vựng CEFR, phân trình độ, tự nạp từ mới (ADR-014..020)
+
+**Vấn đề ban đầu:** app không có kho từ vựng nào — 5 từ demo hardcode (`lib/db/migrate-local-storage.ts`) là toàn bộ nội dung tĩnh, và `level` chỉ là dropdown tự khai không liên hệ gì tới hiệu suất thật. AI đã trả `cefr`/`summary.estimatedLevel` từ lâu (tính năng "Học từ công việc thật") nhưng bị vứt lúc lưu.
+
+**9.1 — Nền tảng schema:** `Word.cefr` (`CefrOrUnknownSchema`, 'unknown' nằm trong enum *domain* không chỉ row — xem ADR-016 lý do), Dexie v4 (`[cefr+status]` + backfill), `UserSettings.levelProfile`/`sessionSize`, `getProfile()` safe-parse (bẫy thứ hai ngoài `upgrade()`), `SkippedRepository` (bảng `skipped` có từ v1, lần đầu có repository — `applyTriage('known')` cuối cùng có nơi để ghi vào).
+
+**9.2 — Kho từ vựng:** `scripts/{corpus-source-data,build-corpus}.ts` sinh `public/corpus/v1/{A2,B1,B2,C1,C2,manifest}.json` — **tự biên soạn ~190 từ**, không phải NGSL/NAWL/BSL như dự tính ban đầu (ADR-015 giải thích vì sao, và đường dẫn để thay bằng dữ liệu thật sau). `lib/corpus/{load,pick,exclude}.ts`: `load.ts` fetch từ `public/` (0 byte bundle, không `import`), cache trong `meta`; `pick.ts` chọn 70% đúng level / 30% level+1, loại trừ sổ tay + `skipped`.
+
+**9.3 — Bộ máy phân trình độ:** `lib/level/{cefr,placement,srs-signal,resolve}.ts` (thuần, cùng rule eslint với `lib/srs/**`). `resolveLevel()` kết hợp 4 tín hiệu (tự khai/placement/work/srs) bằng **trung vị có trọng số** (không phải trung bình), ghim khi tự khai, một bậc mỗi lần, cooldown 14 ngày, sàn bằng chứng khắt khe hơn cho hạ bậc — chi tiết 8 luật ở ADR-017. `stores/level-store.ts` nối `analyzeWork.summary.estimatedLevel` (cuối cùng không còn bị vứt) và tín hiệu SRS (cuối buổi học).
+
+**9.4 — Placement:** `components/TriageList.tsx` (spec §8.3's triage 3 mức, preselect theo CEFR — dùng chung cho placement, top-up preview, và `analyzeDocument` nếu hồi sinh sau này), `app/(stack)/placement/page.tsx` (20 từ yes/no, không gọi AI — chạy được offline). **Bug phát hiện lúc test bằng trình duyệt thật:** `app/providers.tsx` gọi `seedIfEmpty()` (5 từ demo cũ) ngay khi sổ tay rỗng, đua với và luôn thắng CTA placement mới trong ~1 giây — CTA "Kiểm tra trình độ" không bao giờ thực sự bấm được. Đã bỏ lời gọi tự động (giữ hàm + test).
+
+**9.5 — Tự nạp từ mới:** `enrichWordBatch` (task mới, 1 request cho tối đa 8 từ — ADR-019) + `stores/topup-store.ts` (ghi `words` row thật, không phải buffer riêng — Home/practice không thể lệch số). Đường degraded khi AI không khả dụng: ghi từ chỉ với gloss tiếng Việt từ corpus, mở hẹp `isEligible('recall')` một mệnh đề để từ đó luyện được. **Đã xác minh bằng trình duyệt thật** (dev env không có `GEMINI_API_KEY`, nên đây tự nhiên là bằng chứng sống cho đường degraded): sổ tay rỗng → vào `/practice` → 5 từ được ghi (4 B2 + 1 C1, đúng tỉ lệ 70/30) → bài `recall` render đúng, 0 lỗi console.
+
+**9.6 — Nợ mồ côi:** xoá hẳn `gradeSentence`'s `mode: 'rewriteProfessionally'` (cô lập, không caller). **Giữ nguyên** `analyzeDocument` + `ImportRepository.setCandidates`/`setTriage` mồ côi — không xoá nửa vời, không xây UI mới ngoài phạm vi phiên này (ADR-020).
+
+**Xác minh:** `npm run typecheck` ✅, `npx eslint .` ✅ (0 lỗi), `npx vitest run` — chỉ 14/332 test lỗi, toàn bộ cùng nguyên nhân môi trường có sẵn từ trước (`localStorage` không tương thích Node 26 + jsdom trong `lib/db/__tests__/migrations.test.ts`, xác nhận bằng `git stash` — không phải regression). Playwright thủ công xác nhận 2 luồng chính hoạt động đúng bằng trình duyệt thật (screenshot + kiểm tra dữ liệu Dexie thực tế).
+
 ## 2026-08-10 — Phase 7 — Ngữ pháp: lịch sử riêng thay vì nối vào SRS (đóng spec-gaps.md C8)
 
 **ADR-011:** `GrammarQuestion` không có `Word` nào để gắn `wordId`, và `isEligible('grammar', ...)` (Phase 4) đã coi ngữ pháp là màn hình độc lập với session SRS — ép nó qua `StudyRepository.recordReview()` sẽ là một liên kết giả, không phải nối dây còn thiếu. Chọn phương án (a) trong 3 phương án nêu ở C8: bảng Dexie mới `grammarAttempts` — **thêm qua `version(2).stores()`**, giữ nguyên `version(1)` đã phát hành đúng quy tắc đã đặt ra từ Phase 3 (`lib/db/dexie.ts`). Chỉ bảng mới cần khai — Dexie tự giữ nguyên các bảng không đổi.

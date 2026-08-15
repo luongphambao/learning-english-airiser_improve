@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useProfile } from '@/hooks/use-profile';
 import { useDailyPlan } from '@/hooks/use-daily-plan';
-import { SESSION_SIZE } from '@/stores/session-store';
+import { useTopupStore } from '@/stores/topup-store';
 import { Button } from '@/components/Button';
 import { FileText, Upload, ChevronRight } from 'lucide-react';
 
@@ -13,8 +13,9 @@ import { FileText, Upload, ChevronRight } from 'lucide-react';
 // docs/decision.md ADR-013). No useSessionStore import: navigating to /today
 // starts no session and writes nothing to Dexie.
 export default function TodayPage() {
-  const { stats } = useProfile();
+  const { stats, settings } = useProfile();
   const plan = useDailyPlan();
+  const ensureSupply = useTopupStore((s) => s.ensureSupply);
   const [greeting, setGreeting] = useState('Chào bạn.');
 
   // new Date().getHours() would mismatch between SSR prerender and hydration if
@@ -26,7 +27,21 @@ export default function TodayPage() {
     setGreeting(h < 11 ? 'Chào buổi sáng.' : h < 18 ? 'Chào buổi chiều.' : 'Chào buổi tối.');
   }, []);
 
-  const practiceCount = Math.min(plan.dueCount + plan.freshCount, SESSION_SIZE);
+  // docs/decision.md ADR-018 — fire-and-forget so words are already sitting in the
+  // notebook by the time the user taps "Bắt đầu"; ensureSupply's own throttle (60s +
+  // daily cap) makes repeated calls across re-renders cheap. Gated on `hasNotebook`
+  // (computed below) deliberately: a brand-new, still-empty notebook must reach the
+  // placement CTA in the `!hasNotebook` branch first, not get silently auto-filled
+  // before the user ever sees it — the exact race that used to defeat seedIfEmpty().
+  useEffect(() => {
+    if (plan.totalWords === 0) return;
+    if (plan.dueCount + plan.freshCount >= settings.sessionSize) return;
+    void ensureSupply({ now: Date.now(), targetSize: settings.sessionSize });
+  }, [plan.totalWords, plan.dueCount, plan.freshCount, settings.sessionSize, ensureSupply]);
+
+  // docs/decision.md ADR-018 — settings.sessionSize, not a hardcoded constant, so
+  // this count can't drift from what /practice actually serves.
+  const practiceCount = Math.min(plan.dueCount + plan.freshCount, settings.sessionSize);
   const estimatedMinutes = Math.max(1, Math.round(practiceCount * 0.5)); // ~30s/thẻ
   const hasNotebook = plan.totalWords > 0;
   const hasWorkToday = practiceCount > 0;
@@ -53,11 +68,16 @@ export default function TodayPage() {
       {!hasNotebook ? (
         <div className="space-y-3">
           <p className="text-sm text-ink-soft leading-relaxed">
-            Sổ tay của bạn còn trống. Dán một email hoặc tài liệu tiếng Anh bạn đang dùng ở công ty — Gemini sẽ tìm
-            ra những gì đáng học.
+            Sổ tay của bạn còn trống. Làm bài kiểm tra trình độ 2 phút để có ngay vài từ đúng sức học, hoặc dán một
+            tài liệu công việc để Gemini tìm từ đáng học riêng cho bạn.
           </p>
-          <Link href="/learn">
+          <Link href="/placement">
             <Button variant="primary" className="w-full">
+              Kiểm tra trình độ (2 phút)
+            </Button>
+          </Link>
+          <Link href="/learn">
+            <Button variant="quiet" className="w-full">
               Học từ tài liệu của bạn
             </Button>
           </Link>

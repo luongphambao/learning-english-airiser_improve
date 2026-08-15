@@ -1,0 +1,223 @@
+{
+  "band": "A2",
+  "count": 35,
+  "source": "authored",
+  "cols": [
+    "w",
+    "pos",
+    "rank",
+    "vi"
+  ],
+  "rows": [
+    [
+      "job",
+      "n",
+      1,
+      "công việc"
+    ],
+    [
+      "meeting",
+      "n",
+      2,
+      "cuộc họp"
+    ],
+    [
+      "email",
+      "n",
+      3,
+      "thư điện tử"
+    ],
+    [
+      "manager",
+      "n",
+      4,
+      "quản lý"
+    ],
+    [
+      "customer",
+      "n",
+      5,
+      "khách hàng"
+    ],
+    [
+      "order",
+      "n",
+      6,
+      "đơn đặt hàng"
+    ],
+    [
+      "price",
+      "n",
+      7,
+      "giá cả"
+    ],
+    [
+      "plan",
+      "n",
+      8,
+      "kế hoạch"
+    ],
+    [
+      "message",
+      "n",
+      9,
+      "tin nhắn"
+    ],
+    [
+      "office",
+      "n",
+      10,
+      "văn phòng"
+    ],
+    [
+      "team",
+      "n",
+      11,
+      "đội, nhóm làm việc"
+    ],
+    [
+      "report",
+      "n",
+      12,
+      "báo cáo"
+    ],
+    [
+      "schedule",
+      "n",
+      13,
+      "lịch trình"
+    ],
+    [
+      "contract",
+      "n",
+      14,
+      "hợp đồng"
+    ],
+    [
+      "salary",
+      "n",
+      15,
+      "lương"
+    ],
+    [
+      "interview",
+      "n",
+      16,
+      "buổi phỏng vấn"
+    ],
+    [
+      "colleague",
+      "n",
+      17,
+      "đồng nghiệp"
+    ],
+    [
+      "deadline",
+      "n",
+      18,
+      "hạn chót"
+    ],
+    [
+      "invoice",
+      "n",
+      19,
+      "hóa đơn"
+    ],
+    [
+      "address",
+      "n",
+      20,
+      "địa chỉ"
+    ],
+    [
+      "document",
+      "n",
+      21,
+      "tài liệu"
+    ],
+    [
+      "project",
+      "n",
+      22,
+      "dự án"
+    ],
+    [
+      "company",
+      "n",
+      23,
+      "công ty"
+    ],
+    [
+      "department",
+      "n",
+      24,
+      "phòng ban"
+    ],
+    [
+      "client",
+      "n",
+      25,
+      "khách hàng, thân chủ"
+    ],
+    [
+      "product",
+      "n",
+      26,
+      "sản phẩm"
+    ],
+    [
+      "service",
+      "n",
+      27,
+      "dịch vụ"
+    ],
+    [
+      "holiday",
+      "n",
+      28,
+      "ngày nghỉ lễ"
+    ],
+    [
+      "lunch",
+      "n",
+      29,
+      "bữa trưa"
+    ],
+    [
+      "travel",
+      "v",
+      30,
+      "đi công tác, du lịch"
+    ],
+    [
+      "training",
+      "n",
+      31,
+      "đào tạo"
+    ],
+    [
+      "staff",
+      "n",
+      32,
+      "nhân viên (nói chung)"
+    ],
+    [
+      "budget",
+      "n",
+      33,
+      "ngân sách"
+    ],
+    [
+      "reply",
+      "v",
+      34,
+      "trả lời, phúc đáp"
+    ],
+    [
+      "invite",
+      "v",
+      35,
+      "mời"
+    ]
+  ]
+}

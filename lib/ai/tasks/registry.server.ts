@@ -3,6 +3,7 @@ import { defineSchema } from '../schema';
 import {
   TASK_ROUTES,
   EnrichWordInput, EnrichWordOutput,
+  EnrichWordBatchInput, EnrichWordBatchOutput,
   ExtractWordsInput, ExtractWordsOutput,
   GradeSentenceInput, GradeSentenceOutput,
   AnalyzeDocumentInput, AnalyzeDocumentOutput,
@@ -68,6 +69,41 @@ export const enrichWordTask: ServerTask<TaskParsedInput<'enrichWord'>, TaskOutpu
   }),
 };
 
+// docs/decision.md ADR-019 — backs the auto top-up (stores/topup-store.ts): one
+// request enriches up to 8 corpus words instead of N enrichWord round trips.
+export const enrichWordBatchTask: ServerTask<TaskParsedInput<'enrichWordBatch'>, TaskOutput<'enrichWordBatch'>> = {
+  id: 'enrichWordBatch',
+  route: TASK_ROUTES.enrichWordBatch,
+  input: EnrichWordBatchInput,
+  output: defineSchema('enrich_word_batch', EnrichWordBatchOutput),
+  timeoutMs: 40_000,
+  maxDuration: 60,
+  rateLimit: { perMinute: 8, perDay: 120 },
+  temperature: 0.5,
+  maxOutputTokens: 4096, // 8 items x ~8 fields — a lower budget risks truncating mid-JSON
+  system: ({ contextTopic }) =>
+    `You enrich English vocabulary entries for a Vietnamese professional learning English for work. ` +
+    `Example sentences must be natural, under 16 words, and set in a ${contextTopic} workplace context. ` +
+    `The Vietnamese meaning must be one short line, no more than 12 words. Distractors must be real English ` +
+    `words of the same part of speech, plausible in the same sentence slot, but clearly wrong on reflection. ` +
+    `Collocations must be phrases a native speaker actually says — verb + noun, adjective + noun, or noun + ` +
+    `preposition — not dictionary definitions. Prefer collocations common in professional writing.\n\n` +
+    `Return exactly one item per requested word, echoing the word verbatim in the "word" field so it can be ` +
+    `matched back to the request. Each exampleSentence must contain that word verbatim, in exactly the same ` +
+    `form, so the app can blank it out for a fill-in-the-blank exercise.`,
+  prompt: ({ words }) => [{ kind: 'text', text: `Enrich these English vocabulary words: ${JSON.stringify(words)}` }],
+  repair: (raw) => ({
+    items: raw.items.slice(0, 8).map((item) => ({
+      ...item,
+      distractors: [
+        ...new Set(item.distractors.filter((d) => d.trim().toLowerCase() !== item.word.trim().toLowerCase())),
+      ].slice(0, 3),
+      collocations: item.collocations.slice(0, 3),
+      wordFamily: item.wordFamily.slice(0, 3),
+    })),
+  }),
+};
+
 export const extractWordsTask: ServerTask<TaskParsedInput<'extractWords'>, TaskOutput<'extractWords'>> = {
   id: 'extractWords',
   route: TASK_ROUTES.extractWords,
@@ -97,28 +133,14 @@ export const gradeSentenceTask: ServerTask<TaskParsedInput<'gradeSentence'>, Tas
   timeoutMs: 20_000,
   maxDuration: 25,
   rateLimit: { perMinute: 20, perDay: 300 },
-  system: ({ word, contextTopic, mode }) =>
-    mode === 'rewriteProfessionally'
-      ? `You grade a professional rewrite written by a Vietnamese professional. They were shown one blunt or ` +
-        `awkward workplace sentence and asked to rewrite it so it lands better with a ${contextTopic} colleague, ` +
-        `ideally using the phrase "${word}". Rubric: correct if the rewrite keeps the original's intent and every ` +
-        `concrete fact (names, dates, numbers) unchanged, is grammatical enough for a native reader, and is ` +
-        `clearly more polite, clearer, or more natural than the original — it does NOT have to contain "${word}" ` +
-        `verbatim and does NOT have to match any single model answer. Do not mark it wrong for being shorter or ` +
-        `plainer than you would have written. feedbackVi must be one or two short, encouraging Vietnamese ` +
-        `sentences naming the specific thing that worked or the specific thing to change. improvedSentence must ` +
-        `be one natural native version of the same request.`
-      : `You grade an English sentence written by a Vietnamese professional practicing the target word "${word}". ` +
-        `Rubric: Correct if the target word is used with the right meaning and part of speech, and the sentence ` +
-        `is grammatical enough to be understood by a native speaker in a ${contextTopic} context. Minor article ` +
-        `or preposition slips do not make it incorrect — mention them in feedback instead. feedbackVi must be ` +
-        `one or two short, encouraging Vietnamese sentences, naming the specific point to fix or praise. ` +
-        `improvedSentence must provide a natural native version of the sentence.`,
-  prompt: ({ word, sentence, mode, original }) => [
-    mode === 'rewriteProfessionally'
-      ? { kind: 'text', text: `Original sentence: "${original}"\nTarget phrase: "${word}"\nUser rewrite: "${sentence}"` }
-      : { kind: 'text', text: `Target Word: "${word}"\nUser Sentence: "${sentence}"` },
-  ],
+  system: ({ word, contextTopic }) =>
+    `You grade an English sentence written by a Vietnamese professional practicing the target word "${word}". ` +
+    `Rubric: Correct if the target word is used with the right meaning and part of speech, and the sentence ` +
+    `is grammatical enough to be understood by a native speaker in a ${contextTopic} context. Minor article ` +
+    `or preposition slips do not make it incorrect — mention them in feedback instead. feedbackVi must be ` +
+    `one or two short, encouraging Vietnamese sentences, naming the specific point to fix or praise. ` +
+    `improvedSentence must provide a natural native version of the sentence.`,
+  prompt: ({ word, sentence }) => [{ kind: 'text', text: `Target Word: "${word}"\nUser Sentence: "${sentence}"` }],
 };
 
 export const analyzeWorkTask: ServerTask<TaskParsedInput<'analyzeWork'>, TaskOutput<'analyzeWork'>> = {
@@ -251,6 +273,7 @@ export const analyzeDocumentTask: ServerTask<TaskParsedInput<'analyzeDocument'>,
 // for a heterogeneous map of generics, same as the design in docs/architecture.md.
 export const TASKS = {
   enrichWord: enrichWordTask,
+  enrichWordBatch: enrichWordBatchTask,
   extractWords: extractWordsTask,
   gradeSentence: gradeSentenceTask,
   analyzeDocument: analyzeDocumentTask,

@@ -1,0 +1,259 @@
+{
+  "band": "C1",
+  "count": 41,
+  "source": "authored",
+  "cols": [
+    "w",
+    "pos",
+    "rank",
+    "vi"
+  ],
+  "rows": [
+    [
+      "ambiguous",
+      "adj",
+      1,
+      "mơ hồ, có thể hiểu nhiều cách"
+    ],
+    [
+      "arbitrary",
+      "adj",
+      2,
+      "tùy tiện, độc đoán"
+    ],
+    [
+      "coherent",
+      "adj",
+      3,
+      "mạch lạc, nhất quán"
+    ],
+    [
+      "comprehensive",
+      "adj",
+      4,
+      "toàn diện"
+    ],
+    [
+      "discrepancy",
+      "n",
+      5,
+      "sự chênh lệch, sai khác"
+    ],
+    [
+      "empirical",
+      "adj",
+      6,
+      "dựa trên thực nghiệm"
+    ],
+    [
+      "explicit",
+      "adj",
+      7,
+      "rõ ràng, tường minh"
+    ],
+    [
+      "implicit",
+      "adj",
+      8,
+      "ngầm hiểu, không nói rõ"
+    ],
+    [
+      "inherent",
+      "adj",
+      9,
+      "vốn có, cố hữu"
+    ],
+    [
+      "meticulous",
+      "adj",
+      10,
+      "tỉ mỉ, cẩn thận"
+    ],
+    [
+      "nuanced",
+      "adj",
+      11,
+      "tinh tế, có sắc thái"
+    ],
+    [
+      "paradigm",
+      "n",
+      12,
+      "hệ hình, mô hình tư duy"
+    ],
+    [
+      "pragmatic",
+      "adj",
+      13,
+      "thực dụng, thực tế"
+    ],
+    [
+      "precedent",
+      "n",
+      14,
+      "tiền lệ"
+    ],
+    [
+      "prevalent",
+      "adj",
+      15,
+      "phổ biến"
+    ],
+    [
+      "rigorous",
+      "adj",
+      16,
+      "nghiêm ngặt, chặt chẽ"
+    ],
+    [
+      "subsequent",
+      "adj",
+      17,
+      "tiếp theo sau đó"
+    ],
+    [
+      "substantive",
+      "adj",
+      18,
+      "thực chất, đáng kể"
+    ],
+    [
+      "tangible",
+      "adj",
+      19,
+      "hữu hình, cụ thể"
+    ],
+    [
+      "unprecedented",
+      "adj",
+      20,
+      "chưa từng có tiền lệ"
+    ],
+    [
+      "unanimous",
+      "adj",
+      21,
+      "nhất trí tuyệt đối"
+    ],
+    [
+      "versatile",
+      "adj",
+      22,
+      "đa năng, linh hoạt"
+    ],
+    [
+      "viability",
+      "n",
+      23,
+      "tính khả thi"
+    ],
+    [
+      "cognizant",
+      "adj",
+      24,
+      "nhận thức rõ, biết rõ"
+    ],
+    [
+      "discretion",
+      "n",
+      25,
+      "quyền tự quyết, sự thận trọng"
+    ],
+    [
+      "expedite",
+      "v",
+      26,
+      "đẩy nhanh tiến độ"
+    ],
+    [
+      "exacerbate",
+      "v",
+      27,
+      "làm trầm trọng thêm"
+    ],
+    [
+      "deprecate",
+      "v",
+      28,
+      "ngừng hỗ trợ (tính năng cũ)"
+    ],
+    [
+      "inadvertent",
+      "adj",
+      29,
+      "vô ý, không cố ý"
+    ],
+    [
+      "deferential",
+      "adj",
+      30,
+      "tôn trọng, nhún nhường"
+    ],
+    [
+      "circumvent",
+      "v",
+      31,
+      "lách qua, tránh né (quy định)"
+    ],
+    [
+      "corroborate",
+      "v",
+      32,
+      "xác thực, củng cố (bằng chứng)"
+    ],
+    [
+      "delineate",
+      "v",
+      33,
+      "phác thảo rõ ràng, định rõ"
+    ],
+    [
+      "disseminate",
+      "v",
+      34,
+      "phổ biến, truyền bá"
+    ],
+    [
+      "expound",
+      "v",
+      35,
+      "giải thích chi tiết"
+    ],
+    [
+      "galvanize",
+      "v",
+      36,
+      "thúc đẩy hành động"
+    ],
+    [
+      "indispensable",
+      "adj",
+      37,
+      "không thể thiếu"
+    ],
+    [
+      "intrinsic",
+      "adj",
+      38,
+      "nội tại, vốn có"
+    ],
+    [
+      "juxtapose",
+      "v",
+      39,
+      "đặt cạnh nhau để so sánh"
+    ],
+    [
+      "notwithstanding",
+      "adv",
+      40,
+      "mặc dù vậy"
+    ],
+    [
+      "perpetuate",
+      "v",
+      41,
+      "duy trì kéo dài"
+    ]
+  ]
+}

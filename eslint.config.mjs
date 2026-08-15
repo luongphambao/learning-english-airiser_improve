@@ -16,21 +16,22 @@ export default defineConfig([
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
-    // lib/srs/** must stay pure: no wall-clock reads. `now` is always an
-    // injected parameter — see docs/decision.md ADR-004/007 and the timezone
-    // bug this used to hide (lib/srs.ts mixing Asia/Ho_Chi_Minh and local tz).
-    files: ["lib/srs/**/*.ts"],
+    // lib/srs/** and lib/level/** must stay pure: no wall-clock reads. `now` is
+    // always an injected parameter — see docs/decision.md ADR-004/007/017 and the
+    // timezone bug this used to hide (lib/srs.ts mixing Asia/Ho_Chi_Minh and local
+    // tz).
+    files: ["lib/srs/**/*.ts", "lib/level/**/*.ts"],
     rules: {
       "no-restricted-syntax": [
         "error",
         {
           selector:
             "CallExpression[callee.object.name='Date'][callee.property.name='now']",
-          message: "lib/srs/** must be pure — take `now` as a parameter instead of Date.now().",
+          message: "lib/srs/** and lib/level/** must be pure — take `now` as a parameter instead of Date.now().",
         },
         {
           selector: "NewExpression[callee.name='Date'][arguments.length=0]",
-          message: "lib/srs/** must be pure — take `now` as a parameter instead of new Date().",
+          message: "lib/srs/** and lib/level/** must be pure — take `now` as a parameter instead of new Date().",
         },
       ],
     },

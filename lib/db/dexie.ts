@@ -107,8 +107,53 @@ export class LexioDb extends Dexie {
             w.originalText ??= null;
           }),
       );
+
+    // v4 — docs/decision.md ADR-016/017: a vocabulary corpus (lib/corpus/**) and a
+    // leveling engine (lib/level/**) needed somewhere to record a word's CEFR band
+    // and a user's evidence-backed level.
+    //
+    // `words` gains `cefr` and `[cefr+status]` — same reasoning the v3 block already
+    // gave for `[entryType+dueAt]`: backs "how many known words per band" (the SRS
+    // level signal) and a future "sổ tay theo trình độ" filter as an index range
+    // instead of a full-table scan. Free to add now, expensive to retrofit later.
+    //
+    // `V4_SETTINGS_DEFAULTS` is a literal frozen right here, NOT an import of
+    // DEFAULT_SETTINGS from lib/repositories/dexie/user-repository.ts: importing it
+    // would create a cycle (that file imports getDb from this one), and a migration
+    // must stay frozen in time — it must not follow a constant a later phase edits.
+    this.version(4)
+      .stores({
+        words:
+          'id, &wordLower, dueAt, createdAt, status, [status+createdAt], [isLeech+dueAt], updatedAt, entryType, [entryType+dueAt], cefr, [cefr+status]',
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table('words')
+          .toCollection()
+          .modify((w) => {
+            w.cefr ??= 'unknown';
+          });
+        await tx
+          .table('user')
+          .toCollection()
+          .modify((u) => {
+            u.settings = { ...V4_SETTINGS_DEFAULTS, ...u.settings };
+          });
+      });
   }
 }
+
+const V4_SETTINGS_DEFAULTS = {
+  sessionSize: 5,
+  levelProfile: {
+    declared: null,
+    placement: null,
+    work: null,
+    srs: null,
+    updatedAt: null,
+    lastPromptedAt: null,
+  },
+};
 
 let instance: LexioDb | null = null;
 

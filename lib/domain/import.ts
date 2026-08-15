@@ -1,12 +1,13 @@
 import { z } from 'zod';
 import { WorkAnalysisSchema } from './work';
+import { CefrSchema } from './word';
 
 export const KnownStateSchema = z.enum(['known', 'partial', 'unknown']);
 export type KnownState = z.infer<typeof KnownStateSchema>;
 
 export const CandidateWordSchema = z.object({
   word: z.string(), // lemma form
-  cefr: z.enum(['B1', 'B2', 'C1', 'C2']),
+  cefr: CefrSchema,
   category: z.enum(['academic', 'technical', 'ielts', 'phrasal', 'idiom']),
   meaningVi: z.string(),
   sentenceFromDoc: z.string(),

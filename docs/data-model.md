@@ -13,7 +13,7 @@ interface Word {
   partOfSpeech: string;
   meaningVi: string;
   exampleSentence: string;
-  distractors: string[];        // đúng 3 sau enrich
+  distractors: string[];        // đúng 3 sau enrich; [] hợp lệ trên đường degraded — xem ADR-018
   collocations: Collocation[];  // đúng 3 sau enrich
   wordFamily: string[];         // 0..3
   source: WordSource;
@@ -28,6 +28,15 @@ interface Word {
   status: 'new' | 'learning' | 'known';
   updatedAt: number;            // MỞ RỘNG — chuẩn bị sync/last-write-wins
   deletedAt: number | null;     // MỞ RỘNG — tombstone, chuẩn bị sync
+
+  // v3 — MỞ RỘNG, xem ADR-014. Optional (absent nghĩa là giá trị mặc định), backfill
+  // qua Dexie v3 upgrade().
+  entryType?: 'word' | 'phrase' | 'grammar';  // absent = 'word'
+  noteVi?: string;                             // vì sao đáng học / cách dùng / quy tắc ngữ pháp
+  originalText?: string | null;                // chỉ grammar/rewrite: câu người dùng viết gốc
+
+  // v4 — MỞ RỘNG, xem ADR-016. Optional, backfill 'unknown' qua Dexie v4 upgrade().
+  cefr?: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | 'unknown';  // absent = 'unknown' (chưa đánh giá)
 }
 
 interface Collocation { phrase: string; meaningVi: string; }
@@ -70,7 +79,21 @@ interface UserSettings {
   studyTime: string | null;       // "HH:mm"
   theme: 'light' | 'dark' | 'system';
   contextTopic: string;
-  level: 'B1' | 'B2' | 'C1';
+  level: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';  // MỞ RỘNG từ 'B1'|'B2'|'C1' — xem ADR-017
+  sessionSize: number;            // MỞ RỘNG, 3..20, mặc định 5 — xem ADR-018
+  levelProfile: LevelProfile;     // MỞ RỘNG — bằng chứng đằng sau `level`, xem ADR-017
+}
+
+// MỞ RỘNG (ADR-017) — kho bằng chứng level, tính lại bởi lib/level/resolve.ts mỗi
+// khi có tín hiệu mới. `declared` khác null thì ghim `level`.
+interface LevelSignal { level: Cefr; weight: number; at: number; }
+interface LevelProfile {
+  declared: Cefr | null;
+  placement: LevelSignal | null;   // từ bài kiểm tra trình độ
+  work: LevelSignal | null;        // từ analyzeWork summary.estimatedLevel
+  srs: LevelSignal | null;         // từ độ chính xác luyện tập theo band
+  updatedAt: number | null;        // lần cuối `level` thật sự đổi (chặn cooldown)
+  lastPromptedAt: number | null;   // lần cuối hiện gợi ý đổi level (chặn cooldown gợi ý)
 }
 ```
 
@@ -131,7 +154,22 @@ version(1).stores({
 version(2).stores({
   grammarAttempts: 'id, topicId, at',   // chỉ bảng mới — v1 giữ nguyên, không sửa
 });
+
+version(3).stores({
+  // ADR-014 — chỉ words đổi: thêm entryType + [entryType+dueAt]. upgrade() backfill
+  // entryType/noteVi/originalText cho mọi dòng cũ.
+  words: 'id, &wordLower, dueAt, createdAt, status, [status+createdAt], [isLeech+dueAt], updatedAt, entryType, [entryType+dueAt]',
+});
+
+version(4).stores({
+  // ADR-016 — words thêm cefr + [cefr+status]. upgrade() backfill cefr='unknown' cho
+  // mọi dòng cũ, đồng thời merge sessionSize/levelProfile mặc định vào user.settings
+  // (literal đóng băng ngay trong dexie.ts, không import từ user-repository.ts).
+  words: 'id, &wordLower, dueAt, createdAt, status, [status+createdAt], [isLeech+dueAt], updatedAt, entryType, [entryType+dueAt], cefr, [cefr+status]',
+});
 ```
+
+**Kho từ vựng (corpus) không phải một bảng.** `public/corpus/v1/{A2,B1,B2,C1,C2}.json` được fetch từ `public/` (không `import`, để không vào JS bundle — xem ADR-015) rồi cache trong bảng `meta` sẵn có, dưới key `corpus:v1:<band>`. Không thêm bảng Dexie nào cho việc này — `meta` đã là KV store generic. `lib/repositories/dexie/meta-repository.ts` (`MetaRepository`) là lớp bọc mỏng, generic (`get<T>`/`put<T>`) cho mọi nhu cầu KV tương lai — không chỉ corpus, còn phục vụ van chống-spam của corpus top-up (`topup:lastRunAt`, `topup:addedOn:<dayKey>` — xem ADR-018).
 
 **Quy tắc versioning:** một `version(n).stores()` đã phát hành thì không bao giờ sửa — thêm bảng/đổi index luôn qua `version(n+1)`. Dexie chỉ cần khai lại bảng có thay đổi; bảng không đổi tự động giữ nguyên sang version mới, không cần liệt kê lại.
 
@@ -177,7 +215,7 @@ users/{uid}/imports/{importId}     -> Import
 users/{uid}/skipped/{wordLower}    -> { word, at }
 tutors/{tutorId}                   -> Tutor (đọc-only cho user)
 ```
-Repository interface (`WordRepository`, `ReviewRepository`, `UserRepository`, `StudyRepository`) đã được thiết kế để một implementation Firestore slot vào cùng chữ ký — `RecordReviewResult` trả giá trị tính cục bộ thay vì đọc lại, đúng thứ Firestore transaction cũng yêu cầu.
+Repository interface (`WordRepository`, `ReviewRepository`, `UserRepository`, `StudyRepository`, `SkippedRepository`, `MetaRepository` — 2 cái sau thêm cùng đợt corpus/leveling, ADR-016/017/018) đã được thiết kế để một implementation Firestore slot vào cùng chữ ký — `RecordReviewResult` trả giá trị tính cục bộ thay vì đọc lại, đúng thứ Firestore transaction cũng yêu cầu.
 
 Security Rules mục tiêu (từ spec §3.3, giữ nguyên khi implement):
 ```

@@ -1,0 +1,25 @@
+{
+  "version": "v1",
+  "bands": {
+    "A2": {
+      "count": 35,
+      "source": "authored"
+    },
+    "B1": {
+      "count": 35,
+      "source": "authored"
+    },
+    "B2": {
+      "count": 49,
+      "source": "authored"
+    },
+    "C1": {
+      "count": 41,
+      "source": "authored"
+    },
+    "C2": {
+      "count": 30,
+      "source": "authored"
+    }
+  }
+}

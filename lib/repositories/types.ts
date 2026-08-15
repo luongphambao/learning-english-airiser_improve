@@ -1,4 +1,4 @@
-import type { CandidateWord, EntryType, ExerciseKind, GrammarAttempt, Import, Review, UserSettings, UserStats, Word, WordSource, WordStatus, WorkAnalysis } from '@/lib/domain';
+import type { CandidateWord, Cefr, EntryType, ExerciseKind, GrammarAttempt, Import, Review, UserSettings, UserStats, Word, WordSource, WordStatus, WorkAnalysis } from '@/lib/domain';
 import type { StudySession } from '@/lib/srs/types';
 
 export interface NewWordInput {
@@ -24,7 +24,30 @@ export interface NewInsightWordInput {
   exampleSentence: string;
   distractors: string[];
   originalText: string | null;
+  // docs/decision.md ADR-016/017 — analyzeWork already returns a per-item cefr
+  // (lib/ai/tasks/contracts.ts WorkVocabItem) that used to be parsed and discarded
+  // at save time. null for phrases/grammar/rewrites, which have no meaningful band.
+  cefr: Cefr | null;
   now: number; // caller owns the clock — see docs/decision.md ADR-004
+}
+
+/** A word seeded from the corpus (lib/corpus/**) — placement triage
+ * (app/(stack)/placement/page.tsx) and the auto top-up (stores/topup-store.ts) are
+ * the two callers. `exampleSentence`/`distractors` may be empty — the "degraded"
+ * path (docs/decision.md ADR-018) writes a corpus word with only its Vietnamese
+ * gloss when AI enrichment isn't available, so a session is never empty even
+ * offline; enrichment fills them in later without changing SRS state. */
+export interface NewCorpusWordInput {
+  word: string;
+  meaningVi: string;
+  exampleSentence: string;
+  distractors: string[];
+  cefr: Cefr;
+  source: WordSource;
+  /** 'known' never reaches this — the caller writes to SkippedRepository instead
+   * (spec §8.3). */
+  triage: 'partial' | 'unknown';
+  now: number;
 }
 
 export interface ListWordsQuery {
@@ -48,6 +71,10 @@ export interface WordRepository {
    * PRESERVES the existing SRS state (dueAt/easeLevel/reviewCount/...) — re-saving
    * an already-practiced phrase must not reset its schedule. */
   addFromInsight(input: NewInsightWordInput): Promise<Word>;
+  /** Same check-then-write-in-one-transaction shape as addFromInsight — a corpus
+   * word and a hand-typed/pasted word share the &wordLower namespace, so re-seeding
+   * an already-known word is a no-op on its SRS state, not a duplicate row. */
+  addFromCorpus(input: NewCorpusWordInput): Promise<Word>;
   patch(id: string, patch: Partial<Word>): Promise<Word>;
   remove(id: string): Promise<void>;
   dueBefore(now: number, limit: number): Promise<Word[]>;
@@ -59,6 +86,10 @@ export interface ReviewRepository {
   listByWord(wordId: string, limit: number): Promise<Review[]>;
   countByDayRange(fromDayKey: string, toDayKey: string): Promise<Record<string, number>>;
   purgeOlderThan(dayKey: string): Promise<number>;
+  /** Most recent reviews across every word, newest first — backs the SRS level
+   * signal (lib/level/srs-signal.ts), which needs a cross-word accuracy sample, not
+   * one word's history. */
+  listRecent(limit: number): Promise<Review[]>;
 }
 
 export interface UserProfile {
@@ -131,6 +162,27 @@ export interface GrammarRepository {
   lastAttemptByTopic(): Promise<Record<string, GrammarAttempt>>;
 }
 
+/** "Đã biết rõ" — words the user has explicitly said they already know, so the
+ * corpus top-up (lib/corpus/exclude.ts) never suggests them again. Backs the
+ * `skipped` table (lib/db/dexie.ts v1), which existed since the original schema but
+ * had no repository until docs/decision.md ADR-017. */
+export interface SkippedRepository {
+  add(word: string, now: number): Promise<void>;
+  has(word: string): Promise<boolean>;
+  listLowercase(): Promise<string[]>;
+  remove(word: string): Promise<void>;
+}
+
+/** Thin typed wrapper over the `meta` KV table (lib/db/dexie.ts) — the auto top-up's
+ * throttle bookkeeping (stores/topup-store.ts: last-run timestamp, per-day word
+ * cap) needs simple key/value persistence, not a domain repository of its own. Kept
+ * generic rather than adding single-purpose methods so it doesn't grow one method
+ * per future throttle. */
+export interface MetaRepository {
+  get<T>(key: string): Promise<T | undefined>;
+  put<T>(key: string, value: T): Promise<void>;
+}
+
 export interface Repositories {
   words: WordRepository;
   reviews: ReviewRepository;
@@ -138,4 +190,6 @@ export interface Repositories {
   study: StudyRepository;
   imports: ImportRepository;
   grammar: GrammarRepository;
+  skipped: SkippedRepository;
+  meta: MetaRepository;
 }

@@ -151,6 +151,82 @@ describe('v2 -> v3 upgrade (docs/decision.md ADR-014)', () => {
   });
 });
 
+describe('v3 -> v4 upgrade (docs/decision.md ADR-016/017)', () => {
+  const DB_NAME = 'lexio-test-v3-to-v4-upgrade';
+
+  it('backfills cefr on a pre-v4 word row and levelProfile/sessionSize on the user row', async () => {
+    // Declare v1+v2+v3 verbatim (copied from lib/db/dexie.ts) — exactly what a real
+    // pre-v4 browser's IndexedDB already contains. The point of this test is
+    // exercising the real upgrade() a live v3 database goes through, not a schema
+    // this test invents.
+    const legacyDb = new Dexie(DB_NAME);
+    legacyDb.version(1).stores({
+      words: 'id, &wordLower, dueAt, createdAt, status, [status+createdAt], [isLeech+dueAt], updatedAt',
+      reviews: 'id, wordId, answeredAt, dayKey, [wordId+answeredAt]',
+      user: 'id',
+      studySessions: 'id, dayKey, status',
+      tutorSessions: 'id, startsAt, status',
+      imports: 'id, createdAt, status',
+      skipped: '&wordLower, at',
+      meta: 'key',
+    });
+    legacyDb.version(2).stores({ grammarAttempts: 'id, topicId, at' });
+    legacyDb.version(3).stores({
+      words:
+        'id, &wordLower, dueAt, createdAt, status, [status+createdAt], [isLeech+dueAt], updatedAt, entryType, [entryType+dueAt]',
+    });
+    await legacyDb.open();
+
+    const now = Date.UTC(2026, 5, 1);
+    await legacyDb.table('words').add({
+      id: 'legacy_w2', word: 'legacy2', ipa: '', partOfSpeech: '', meaningVi: '', exampleSentence: '',
+      distractors: [], collocations: [], wordFamily: [], source: { kind: 'manual', label: '', at: now },
+      audioUrl: null, createdAt: now, dueAt: now, easeLevel: 0, reviewCount: 0, lapseCount: 0,
+      consecutiveCorrect: 0, isLeech: 0, status: 'new', updatedAt: now, deletedAt: null,
+      wordLower: 'legacy2', entryType: 'word', noteVi: '', originalText: null,
+      // deliberately no cefr — the pre-v4 shape
+    });
+    await legacyDb.table('user').add({
+      id: USER_ID,
+      settings: {
+        reminderHour: null, studyTime: null, theme: 'system', contextTopic: 'finance', level: 'B2',
+        // deliberately no sessionSize/levelProfile — the pre-v4 shape
+      },
+      stats: {
+        streak: 0, longestStreak: 0, lastStudiedOn: null, freezeUsedOn: null,
+        totalReviews: 0, totalCorrect: 0, daysStudied: 0, history: {},
+      },
+      updatedAt: now,
+    });
+    legacyDb.close();
+
+    // Reopen the SAME database name through the real LexioDb — runs the actual
+    // version(4).upgrade() defined in lib/db/dexie.ts, not a copy of it.
+    const upgraded = new LexioDb(DB_NAME);
+    await upgraded.open();
+
+    const row = await upgraded.words.get('legacy_w2');
+    expect(row?.cefr).toBe('unknown');
+
+    // The failure mode this backfill exists to prevent: IndexedDB omits a record
+    // from an index entirely when its key path is undefined at index-creation
+    // time. If upgrade() had been skipped, this word would be invisible here.
+    const foundByIndex = await upgraded.words.where('cefr').equals('unknown').toArray();
+    expect(foundByIndex.map((w) => w.id)).toContain('legacy_w2');
+
+    const user = await upgraded.user.get(USER_ID);
+    expect(user?.settings.sessionSize).toBe(5);
+    expect(user?.settings.levelProfile).toEqual({
+      declared: null, placement: null, work: null, srs: null, updatedAt: null, lastPromptedAt: null,
+    });
+    // Pre-v4 fields survive the merge untouched.
+    expect(user?.settings.contextTopic).toBe('finance');
+
+    upgraded.close();
+    await Dexie.delete(DB_NAME);
+  });
+});
+
 describe('seedIfEmpty', () => {
   beforeEach(() => {
     resetDbForTests();
@@ -187,7 +263,7 @@ describe('seedIfEmpty', () => {
       distractors: [], collocations: [], wordFamily: [], source: { kind: 'manual', label: '', at: now },
       audioUrl: null, createdAt: now, dueAt: now, easeLevel: 0, reviewCount: 0, lapseCount: 0,
       consecutiveCorrect: 0, isLeech: 0, status: 'new', updatedAt: now, deletedAt: null,
-      wordLower: 'x', entryType: 'word', noteVi: '', originalText: null,
+      wordLower: 'x', entryType: 'word', noteVi: '', originalText: null, cefr: 'unknown',
     });
 
     const seeded = await seedIfEmpty(now);
