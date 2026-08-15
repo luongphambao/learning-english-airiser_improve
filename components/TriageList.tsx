@@ -15,6 +15,12 @@ export interface TriageListItem {
   word: string;
   vi: string;
   cefr?: Cefr;
+  /** Pre-selects this choice over defaultTriageForCefr — used to reopen an import
+   * whose triage was already saved (docs/decision.md ADR-021). */
+  initialTriage?: KnownState;
+  /** Muted line under `vi` — the document-upload flow (stores/doc-store.ts) shows
+   * the source sentence here. */
+  note?: string;
 }
 
 /** Spec §8.3, verbatim: cefr C1/C2 -> 'unknown'; B2 -> 'partial'; B1 (or anything
@@ -40,7 +46,7 @@ interface TriageListProps {
 
 export function TriageList({ items, onConfirm, confirmLabel = 'Xác nhận', confirming = false }: TriageListProps) {
   const [choices, setChoices] = useState<Record<string, KnownState>>(() =>
-    Object.fromEntries(items.map((item) => [item.id, defaultTriageForCefr(item.cefr)])),
+    Object.fromEntries(items.map((item) => [item.id, item.initialTriage ?? defaultTriageForCefr(item.cefr)])),
   );
 
   if (items.length === 0) return null;
@@ -61,6 +67,7 @@ export function TriageList({ items, onConfirm, confirmLabel = 'Xác nhận', con
               )}
             </div>
             <p className="text-sm text-ink-soft">{item.vi}</p>
+            {item.note && <p lang="en" className="text-xs text-ink-soft/70 italic leading-relaxed">{item.note}</p>}
             <div className="flex gap-1.5">
               {OPTIONS.map((opt) => (
                 <button

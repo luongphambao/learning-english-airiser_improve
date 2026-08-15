@@ -69,6 +69,11 @@ export function createOpenAiProvider(cfg: OpenAiConfig): AiProvider {
               { role: 'system', content: `${req.system}\n\n${buildSchemaInstruction(req.schema)}` },
               { role: 'user', content: userText },
             ],
+            // OPENAI_DISABLE_THINKING opt-in (lib/ai/config.ts) — skips chain-of-
+            // thought generation on deployments that support it. Omitted entirely
+            // when off, not sent as `false`, so a backend that validates unknown
+            // fields strictly never sees it.
+            ...(cfg.disableThinking ? { thinking: { type: 'disabled' } } : {}),
           }),
         });
       } catch (cause) {

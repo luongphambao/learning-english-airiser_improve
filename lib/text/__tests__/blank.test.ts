@@ -40,4 +40,15 @@ describe('lib/text/blank splitForBlank', () => {
     expect(result?.before).toBe('');
     expect(result?.after).toBe(' risk, then mitigate impact.');
   });
+
+  it('has no word boundary — a lemma matches inside its own inflected form, producing a malformed blank', () => {
+    // docs/decision.md ADR-021: this is exactly why analyzeDocument's prompt
+    // requires sentenceFromDoc to contain the candidate's `word` verbatim, in the
+    // same form — "leverage" inside "We leveraged the API" is NOT a failure this
+    // function catches; it silently matches the "lever" prefix of "leveraged".
+    const result = splitForBlank('We leveraged the API.', 'leverage');
+    expect(result).not.toBeNull();
+    expect(result?.match).toBe('leverage');
+    expect(result?.after).toBe('d the API.'); // the blank would read "We ____d the API." — malformed
+  });
 });

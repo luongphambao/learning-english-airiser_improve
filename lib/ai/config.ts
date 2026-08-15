@@ -10,6 +10,19 @@ const EnvSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_API_URL: z.string().optional(),
   OPENAI_MODEL_NAME: z.string().optional(),
+  // Opt-in, not auto-detected: some OpenAI-compatible reasoning-model deployments
+  // (observed: Xiaomi MiMo) accept a `thinking: {type:'disabled'}` request field
+  // that skips chain-of-thought generation entirely — 15s vs 117s for the same
+  // request in testing (docs/decision.md ADR-021), since a structured-extraction
+  // task gains little from reasoning but was paying for it in both latency and
+  // completion-token budget. Left off by default because sending an unrecognized
+  // field to a DIFFERENT OpenAI-compatible backend (the real OpenAI API, or a
+  // stricter gateway) risks a 400 there instead — this must be turned on knowing
+  // the configured OPENAI_API_URL supports it.
+  OPENAI_DISABLE_THINKING: z
+    .string()
+    .optional()
+    .transform((v) => v === 'true' || v === '1'),
   GEMINI_API_KEY: z.string().optional(),
   APP_URL: z.string().optional(),
 });
@@ -33,6 +46,7 @@ export interface OpenAiConfig {
   apiKey: string;
   baseUrl: string;
   model: string;
+  disableThinking: boolean;
 }
 
 export interface GeminiConfig {
@@ -57,6 +71,7 @@ export function getOpenAiConfig(): OpenAiConfig | null {
     apiKey: env.OPENAI_API_KEY,
     baseUrl: env.OPENAI_API_URL.replace(/\/+$/, ''),
     model: env.OPENAI_MODEL_NAME ?? 'gpt-4o-mini',
+    disableThinking: env.OPENAI_DISABLE_THINKING,
   };
 }
 

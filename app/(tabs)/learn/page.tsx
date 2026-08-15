@@ -7,9 +7,15 @@ import { useWordsList } from '@/hooks/use-words';
 import { useProfile } from '@/hooks/use-profile';
 import { useImportsList } from '@/hooks/use-imports';
 import { useWorkStore } from '@/stores/work-store';
+import { useDocStore } from '@/stores/doc-store';
 import { Button } from '@/components/Button';
+import { UploadDropzone } from '@/components/learn/upload-dropzone';
+import { DocResult } from '@/components/learn/doc-result';
+import { parseDocumentFile } from '@/lib/api/parse-doc-client';
+import { ApiError } from '@/lib/api/client';
+import { splitIntoUnits } from '@/lib/documents/extract';
 import {
-  FileText, Loader2, AlertTriangle, CheckCircle2, Upload, RotateCcw, Sparkles, ChevronDown,
+  FileText, Loader2, AlertTriangle, CheckCircle2, Sparkles, ChevronDown,
 } from 'lucide-react';
 
 const INPUT_TYPE_VI: Record<string, string> = {
@@ -22,58 +28,149 @@ const INPUT_TYPE_VI: Record<string, string> = {
   other: 'Văn bản',
 };
 
-// The signature feature (docs/decision.md ADR-014, strategy doc §7): paste a real
-// piece of workplace English -> Gemini returns vocabulary, professional phrases,
-// grammar insights and professional rewrites in one pass -> user selects what to
+type LearnMode = 'work' | 'doc';
+
+// Remembers whichever tab the user picked last, so returning to /learn doesn't
+// always reset to "Từ công việc" — the ?mode= query param (below) still wins when
+// present, e.g. a link that specifically wants the doc-upload tab.
+const LEARN_MODE_STORAGE_KEY = 'lexio:learnMode';
+
+// The signature feature (docs/decision.md ADR-014, strategy doc §7) plus its
+// document-upload sibling (docs/decision.md ADR-021): paste a real piece of
+// workplace English, or upload a document/PDF/DOCX -> AI returns vocabulary
+// (+ phrases/grammar/rewrites for the work mode) -> user selects/triages what to
 // save -> saved items enter the notebook already scheduled for practice (SRS).
-// State lives in stores/work-store.ts; this page is presentational only
-// (docs/architecture.md §1 — no component here calls Dexie or /api/ai/* directly).
+// State lives in stores/work-store.ts and stores/doc-store.ts; this page stays
+// presentational (docs/architecture.md §1 — no component here calls Dexie or
+// /api/ai/* directly).
 export default function LearnPage() {
   const words = useWordsList();
   const { settings } = useProfile();
-  const pastImports = useImportsList(10).filter((imp) => imp.kind === 'work');
+  const pastImports = useImportsList(10);
   const searchParams = useSearchParams();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { status, analysis, error, analyze, toggleInsight, toggleRewrite, saveSelected, open, reset } =
-    useWorkStore();
+  const [learnMode, setLearnMode] = useState<LearnMode>('work');
+  const [autoOpenFileDialog, setAutoOpenFileDialog] = useState(false);
 
-  const [text, setText] = useState('');
-  const [pastedFileName, setPastedFileName] = useState<string | null>(null);
-  const [fileError, setFileError] = useState<string | null>(null);
+  const workFileInputRef = useRef<HTMLInputElement>(null);
+  const docFileInputRef = useRef<HTMLInputElement>(null);
+
+  const workStore = useWorkStore();
+  const docStore = useDocStore();
+
+  const [workText, setWorkText] = useState('');
+  const [workFileName, setWorkFileName] = useState<string | null>(null);
+  const [workFileError, setWorkFileError] = useState<string | null>(null);
   const [saveResult, setSaveResult] = useState<{ count: number } | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const [docText, setDocText] = useState('');
+  const [docFileName, setDocFileName] = useState<string | null>(null);
+  const [docFileError, setDocFileError] = useState<string | null>(null);
+  const [docFileBusy, setDocFileBusy] = useState(false);
+  // Real page/paragraph boundaries from the upload — kept apart from `docText`
+  // (which stays the editable preview) so analysis can chunk on real pages instead
+  // of re-splitting a flat string. Any manual edit to the textarea invalidates this
+  // (handleDocTextChange below) and falls back to re-deriving units from whatever
+  // the user typed, losing exact page numbers but staying correct.
+  const [docUnits, setDocUnits] = useState<string[] | null>(null);
+  const [docUnitLabel, setDocUnitLabel] = useState<'page' | 'part'>('part');
+
+  function switchMode(mode: LearnMode) {
+    setLearnMode(mode);
+    window.localStorage.setItem(LEARN_MODE_STORAGE_KEY, mode);
+  }
+
   useEffect(() => {
-    if (searchParams.get('mode') === 'file') fileInputRef.current?.click();
+    const mode = searchParams.get('mode');
+    // 'file' is the pre-ADR-021 param name — kept working for old links/bookmarks
+    // (app/upload/page.tsx among them) as an alias for 'doc'.
+    if (mode === 'doc' || mode === 'file') {
+      setLearnMode('doc');
+      setAutoOpenFileDialog(true);
+      return;
+    }
+    const saved = window.localStorage.getItem(LEARN_MODE_STORAGE_KEY);
+    if (saved === 'work' || saved === 'doc') setLearnMode(saved);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+  useEffect(() => {
+    if (autoOpenFileDialog && learnMode === 'doc') {
+      docFileInputRef.current?.click();
+      setAutoOpenFileDialog(false);
+    }
+  }, [autoOpenFileDialog, learnMode]);
+
+  function handleWorkFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
-    setFileError(null);
+    setWorkFileError(null);
     const reader = new FileReader();
     reader.onload = (ev) => {
       const content = ev.target?.result;
       if (typeof content !== 'string' || content.trim().length === 0) {
-        setFileError('Không đọc được nội dung văn bản từ tệp này. Thử dán trực tiếp đoạn văn bên dưới.');
+        setWorkFileError('Không đọc được nội dung văn bản từ tệp này. Thử dán trực tiếp đoạn văn bên dưới.');
         return;
       }
-      setText(content);
-      setPastedFileName(file.name);
+      setWorkText(content);
+      setWorkFileName(file.name);
     };
-    reader.onerror = () => setFileError('Không đọc được tệp. Tệp có thể bị hỏng — thử tệp khác hoặc dán văn bản.');
+    reader.onerror = () => setWorkFileError('Không đọc được tệp. Tệp có thể bị hỏng — thử tệp khác hoặc dán văn bản.');
     reader.readAsText(file);
   }
 
-  async function runAnalyze() {
-    const trimmed = text.trim();
+  function handleDocTextChange(value: string) {
+    setDocText(value);
+    setDocUnits(null); // manual edit invalidates the cached page/paragraph boundaries
+  }
+
+  async function handleDocFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setDocFileError(null);
+    const lower = file.name.toLowerCase();
+
+    if (lower.endsWith('.txt') || lower.endsWith('.md')) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const content = ev.target?.result;
+        if (typeof content !== 'string' || content.trim().length === 0) {
+          setDocFileError('Không đọc được nội dung văn bản từ tệp này. Thử dán trực tiếp đoạn văn bên dưới.');
+          return;
+        }
+        setDocText(content);
+        setDocFileName(file.name);
+        setDocUnits(splitIntoUnits(content));
+        setDocUnitLabel('part');
+      };
+      reader.onerror = () => setDocFileError('Không đọc được tệp. Tệp có thể bị hỏng — thử tệp khác hoặc dán văn bản.');
+      reader.readAsText(file);
+      return;
+    }
+
+    setDocFileBusy(true);
+    try {
+      const parsed = await parseDocumentFile(file);
+      setDocText(parsed.units.join('\n\n'));
+      setDocFileName(parsed.fileName);
+      setDocUnits(parsed.units);
+      setDocUnitLabel(parsed.unitLabel);
+    } catch (err) {
+      setDocFileError(err instanceof ApiError ? err.messageVi : 'Không đọc được tệp. Thử tệp khác hoặc dán văn bản.');
+    } finally {
+      setDocFileBusy(false);
+    }
+  }
+
+  async function runWorkAnalyze() {
+    const trimmed = workText.trim();
     if (!trimmed) return;
-    await analyze({
+    await workStore.analyze({
       text: trimmed.slice(0, 10_000),
-      fileName: pastedFileName ?? 'Đoạn văn đã dán',
+      fileName: workFileName ?? 'Đoạn văn đã dán',
       sourceType: 'other',
       level: settings.level,
       contextTopic: settings.contextTopic,
@@ -81,85 +178,142 @@ export default function LearnPage() {
     });
   }
 
+  async function runDocAnalyze() {
+    const trimmed = docText.trim();
+    if (!trimmed) return;
+    // Prefer the real page/paragraph boundaries from the upload; only re-derive
+    // from the flat textarea if the user hand-edited it (docUnits was cleared) or
+    // they never uploaded a file at all (plain paste).
+    const units = docUnits ?? splitIntoUnits(trimmed);
+    const unitLabel = docUnits ? docUnitLabel : 'part';
+    await docStore.analyze({
+      units,
+      unitLabel,
+      fileName: docFileName ?? 'Đoạn văn đã dán',
+      kind: docFileName?.toLowerCase().endsWith('.pdf') ? 'pdf' : 'text',
+      level: settings.level,
+      contextTopic: settings.contextTopic,
+    });
+  }
+
   async function confirmSave() {
     if (submitting) return;
     setSubmitting(true);
-    const result = await saveSelected(Date.now());
+    const result = await workStore.saveSelected(Date.now());
     setSaveResult({ count: result.count });
     setSubmitting(false);
   }
 
   function startOver() {
-    reset();
-    setText('');
-    setPastedFileName(null);
-    setFileError(null);
+    workStore.reset();
+    docStore.reset();
+    setWorkText('');
+    setWorkFileName(null);
+    setWorkFileError(null);
     setSaveResult(null);
+    setDocText('');
+    setDocFileName(null);
+    setDocFileError(null);
+    setDocUnits(null);
+  }
+
+  function openPastImport(imp: { id: string; kind: string }) {
+    if (imp.kind === 'work') {
+      switchMode('work');
+      workStore.open(imp.id);
+    } else {
+      switchMode('doc');
+      docStore.open(imp.id);
+    }
   }
 
   const selectedCount =
-    (analysis?.insights.filter((i) => i.saved).length ?? 0) + (analysis?.rewrites.filter((r) => r.saved).length ?? 0);
+    (workStore.analysis?.insights.filter((i) => i.saved).length ?? 0) +
+    (workStore.analysis?.rewrites.filter((r) => r.saved).length ?? 0);
+
+  const showWorkIdle = learnMode === 'work' && workStore.status === 'idle';
+  const showDocIdle = learnMode === 'doc' && docStore.status === 'idle';
 
   return (
     <div className="pb-nav max-w-2xl mx-auto">
-      {status === 'idle' && (
+      {(showWorkIdle || showDocIdle) && (
         <div className="space-y-5">
-          <div>
-            <h1 className="font-serif-display text-3xl text-ink mb-1">Học từ công việc thật</h1>
-            <p className="text-sm text-ink-soft">
-              Dán một email, báo cáo, ghi chú họp hay tài liệu tiếng Anh bạn đang dùng ở công ty. AI sẽ tìm từ
-              vựng, cụm từ chuyên nghiệp, lỗi ngữ pháp và cách viết chuyên nghiệp hơn trong đó.
-            </p>
+          <div className="flex gap-1 p-1 bg-surface border border-rule rounded-xl">
+            <button
+              type="button"
+              onClick={() => switchMode('work')}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                learnMode === 'work' ? 'bg-green-wash text-green' : 'text-ink-soft'
+              }`}
+            >
+              Từ công việc
+            </button>
+            <button
+              type="button"
+              onClick={() => switchMode('doc')}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                learnMode === 'doc' ? 'bg-green-wash text-green' : 'text-ink-soft'
+              }`}
+            >
+              Từ tài liệu
+            </button>
           </div>
 
-          <div className="border-2 border-dashed border-rule rounded-card p-5 text-center hover:border-green transition-all">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".txt,.md"
-              onChange={handleFile}
-              className="hidden"
-              id="doc-file-input"
-            />
-            <label htmlFor="doc-file-input" className="cursor-pointer block">
-              <Upload size={28} className="mx-auto text-green mb-2" />
-              <span className="text-sm font-medium text-ink block mb-1">Bấm để tải tệp văn bản (.txt, .md)</span>
-              <span className="text-xs text-ink-soft">Hoặc dán trực tiếp đoạn văn bên dưới</span>
-            </label>
-          </div>
-
-          {fileError && (
-            <p className="text-xs text-wrong flex items-center gap-1.5">
-              <AlertTriangle size={14} />
-              {fileError}
-            </p>
+          {learnMode === 'work' ? (
+            <>
+              <div>
+                <h1 className="font-serif-display text-3xl text-ink mb-1">Học từ công việc thật</h1>
+                <p className="text-sm text-ink-soft">
+                  Dán một email, báo cáo, ghi chú họp hay tài liệu tiếng Anh bạn đang dùng ở công ty. AI sẽ tìm từ
+                  vựng, cụm từ chuyên nghiệp, lỗi ngữ pháp và cách viết chuyên nghiệp hơn trong đó.
+                </p>
+              </div>
+              <UploadDropzone
+                accept=".txt,.md"
+                hint="Bấm để tải tệp văn bản (.txt, .md)"
+                fileInputRef={workFileInputRef}
+                onFile={handleWorkFile}
+                fileError={workFileError}
+                pastedFileName={workFileName}
+                text={workText}
+                onTextChange={setWorkText}
+                placeholder="Dán đoạn văn tiếng Anh vào đây..."
+              />
+              <Button variant="primary" onClick={runWorkAnalyze} disabled={!workText.trim()} className="w-full">
+                Phân tích với Gemini
+              </Button>
+            </>
+          ) : (
+            <>
+              <div>
+                <h1 className="font-serif-display text-3xl text-ink mb-1">Đào từ vựng từ tài liệu</h1>
+                <p className="text-sm text-ink-soft">
+                  Tải một tài liệu, bài báo hay bài viết tiếng Anh bạn đang đọc (.txt, .md, .pdf, .docx). AI sẽ tìm
+                  những từ vựng đáng học mà có thể bạn chưa biết, kèm câu ví dụ ngay trong tài liệu.
+                </p>
+              </div>
+              <UploadDropzone
+                accept=".txt,.md,.pdf,.docx"
+                hint="Bấm để tải tệp (.txt, .md, .pdf, .docx)"
+                fileInputRef={docFileInputRef}
+                onFile={handleDocFile}
+                fileBusy={docFileBusy}
+                fileError={docFileError}
+                pastedFileName={docFileName}
+                text={docText}
+                onTextChange={handleDocTextChange}
+                placeholder="Dán đoạn văn tiếng Anh vào đây..."
+                maxLength={200_000}
+              />
+              <Button variant="primary" onClick={runDocAnalyze} disabled={!docText.trim() || docFileBusy} className="w-full">
+                Tìm từ vựng đáng học
+              </Button>
+            </>
           )}
-
-          {pastedFileName && (
-            <p className="text-xs text-ink-soft flex items-center gap-1.5">
-              <FileText size={14} />
-              Đã nạp: {pastedFileName}
-            </p>
-          )}
-
-          <textarea
-            lang="en"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Dán đoạn văn tiếng Anh vào đây..."
-            rows={10}
-            maxLength={10_000}
-            className="w-full p-3.5 rounded-card bg-surface border border-rule text-sm text-ink focus:outline-none focus:border-green resize-none"
-          />
-          <p className="text-xs text-ink-soft text-right">{text.length}/10000</p>
-
-          <Button variant="primary" onClick={runAnalyze} disabled={!text.trim()} className="w-full">
-            Phân tích với Gemini
-          </Button>
 
           {pastImports.length > 0 && (
             <div className="pt-4 border-t border-rule">
-              <span className="text-xs font-mono-utility text-ink-soft uppercase tracking-wider block mb-2">
+              <span className="font-mono-utility text-xs text-ink-soft uppercase tracking-wider block mb-2">
                 Đã phân tích trước đó
               </span>
               <div className="space-y-1.5">
@@ -167,10 +321,13 @@ export default function LearnPage() {
                   <button
                     key={imp.id}
                     type="button"
-                    onClick={() => open(imp.id)}
+                    onClick={() => openPastImport(imp)}
                     className="w-full text-left p-3 rounded-xl bg-surface border border-rule hover:border-green transition-all flex items-center justify-between cursor-pointer"
                   >
-                    <span className="text-sm text-ink truncate">{imp.fileName}</span>
+                    <span className="flex items-center gap-2 min-w-0">
+                      <FileText size={14} className="text-ink-soft shrink-0" />
+                      <span className="text-sm text-ink truncate">{imp.fileName}</span>
+                    </span>
                     <span className="text-[11px] font-mono-utility text-ink-soft shrink-0 ml-2">
                       {imp.status === 'ready' && 'Xem kết quả'}
                       {imp.status === 'done' && `Đã thêm ${imp.addedCount} mục`}
@@ -185,7 +342,9 @@ export default function LearnPage() {
         </div>
       )}
 
-      {status === 'analyzing' && (
+      {learnMode === 'doc' && docStore.status !== 'idle' && <DocResult onStartOver={startOver} />}
+
+      {learnMode === 'work' && workStore.status === 'analyzing' && (
         <div className="py-20 text-center space-y-4">
           <Loader2 size={40} className="mx-auto text-green animate-spin" />
           <p className="font-serif-display text-2xl text-ink">Đang đọc tài liệu của bạn...</p>
@@ -195,53 +354,53 @@ export default function LearnPage() {
         </div>
       )}
 
-      {(status === 'ready' || status === 'saving') && analysis && !saveResult && (
+      {learnMode === 'work' && (workStore.status === 'ready' || workStore.status === 'saving') && workStore.analysis && !saveResult && (
         <div className="space-y-6 pb-24">
           <div>
             <span className="font-mono-utility text-xs uppercase tracking-wider text-ink-soft block mb-1.5">
               Phân tích bởi Gemini
             </span>
             <h1 className="font-serif-display text-3xl text-ink mb-2">
-              {analysis.summary.headlineVi || 'Kết quả phân tích'}
+              {workStore.analysis.summary.headlineVi || 'Kết quả phân tích'}
             </h1>
             <p className="text-sm text-ink-soft">
-              {INPUT_TYPE_VI[analysis.summary.inputTypeVi] ?? analysis.summary.inputTypeVi}
+              {INPUT_TYPE_VI[workStore.analysis.summary.inputTypeVi] ?? workStore.analysis.summary.inputTypeVi}
               {' · '}
               {[
-                analysis.summary.wordCount > 0 && `${analysis.summary.wordCount} từ vựng`,
-                analysis.summary.phraseCount > 0 && `${analysis.summary.phraseCount} cụm từ`,
-                analysis.summary.grammarCount > 0 && `${analysis.summary.grammarCount} điểm ngữ pháp`,
-                analysis.summary.rewriteCount > 0 && `${analysis.summary.rewriteCount} cách viết hay hơn`,
+                workStore.analysis.summary.wordCount > 0 && `${workStore.analysis.summary.wordCount} từ vựng`,
+                workStore.analysis.summary.phraseCount > 0 && `${workStore.analysis.summary.phraseCount} cụm từ`,
+                workStore.analysis.summary.grammarCount > 0 && `${workStore.analysis.summary.grammarCount} điểm ngữ pháp`,
+                workStore.analysis.summary.rewriteCount > 0 && `${workStore.analysis.summary.rewriteCount} cách viết hay hơn`,
               ]
                 .filter(Boolean)
                 .join(' · ')}
             </p>
           </div>
 
-          {analysis.rewrites.map((rewrite) => (
-            <RewriteCard key={rewrite.id} rewrite={rewrite} onToggleSave={() => toggleRewrite(rewrite.id)} />
+          {workStore.analysis.rewrites.map((rewrite) => (
+            <RewriteCard key={rewrite.id} rewrite={rewrite} onToggleSave={() => workStore.toggleRewrite(rewrite.id)} />
           ))}
 
           <InsightSection
             title="Từ vựng"
             kind="vocab"
-            items={analysis.insights.filter((i) => i.kind === 'vocab')}
-            onToggle={toggleInsight}
+            items={workStore.analysis.insights.filter((i) => i.kind === 'vocab')}
+            onToggle={workStore.toggleInsight}
           />
           <InsightSection
             title="Cụm từ chuyên nghiệp"
             kind="phrase"
-            items={analysis.insights.filter((i) => i.kind === 'phrase')}
-            onToggle={toggleInsight}
+            items={workStore.analysis.insights.filter((i) => i.kind === 'phrase')}
+            onToggle={workStore.toggleInsight}
           />
           <InsightSection
             title="Điểm ngữ pháp"
             kind="grammar"
-            items={analysis.insights.filter((i) => i.kind === 'grammar')}
-            onToggle={toggleInsight}
+            items={workStore.analysis.insights.filter((i) => i.kind === 'grammar')}
+            onToggle={workStore.toggleInsight}
           />
 
-          {analysis.insights.length === 0 && analysis.rewrites.length === 0 && (
+          {workStore.analysis.insights.length === 0 && workStore.analysis.rewrites.length === 0 && (
             <p className="text-sm text-ink-soft text-center py-8">
               Văn bản của bạn không có cơ hội học tập rõ ràng nào — thử một đoạn dài hơn hoặc mang tính công việc
               hơn.
@@ -270,7 +429,7 @@ export default function LearnPage() {
         </div>
       )}
 
-      {saveResult && (
+      {learnMode === 'work' && saveResult && (
         <div className="py-20 text-center space-y-4">
           <CheckCircle2 size={48} className="mx-auto text-green" />
           <p className="font-serif-display text-2xl text-ink">Đã thêm {saveResult.count} mục vào sổ tay</p>
@@ -279,7 +438,7 @@ export default function LearnPage() {
           </p>
           <div className="flex flex-wrap gap-2 justify-center pt-2">
             <Button variant="quiet" onClick={startOver}>
-              <RotateCcw size={16} />
+              <FileText size={16} />
               Học tài liệu khác
             </Button>
             <Link href="/vocabulary">
@@ -292,11 +451,11 @@ export default function LearnPage() {
         </div>
       )}
 
-      {status === 'error' && (
+      {learnMode === 'work' && workStore.status === 'error' && (
         <div className="py-20 text-center space-y-4">
           <AlertTriangle size={48} className="mx-auto text-wrong" />
           <p className="font-serif-display text-2xl text-ink">Không phân tích được tài liệu</p>
-          <p className="text-sm text-ink-soft max-w-sm mx-auto">{error ?? 'Đã có lỗi xảy ra.'}</p>
+          <p className="text-sm text-ink-soft max-w-sm mx-auto">{workStore.error ?? 'Đã có lỗi xảy ra.'}</p>
           <Button variant="primary" onClick={startOver}>
             Thử lại
           </Button>

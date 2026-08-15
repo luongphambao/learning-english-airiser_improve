@@ -31,12 +31,16 @@ export interface NewInsightWordInput {
   now: number; // caller owns the clock — see docs/decision.md ADR-004
 }
 
-/** A word seeded from the corpus (lib/corpus/**) — placement triage
- * (app/(stack)/placement/page.tsx) and the auto top-up (stores/topup-store.ts) are
- * the two callers. `exampleSentence`/`distractors` may be empty — the "degraded"
- * path (docs/decision.md ADR-018) writes a corpus word with only its Vietnamese
- * gloss when AI enrichment isn't available, so a session is never empty even
- * offline; enrichment fills them in later without changing SRS state. */
+/** A word seeded from the corpus (lib/corpus/**) or an AI-mined document candidate
+ * — placement triage (app/(stack)/placement/page.tsx), the auto top-up
+ * (stores/topup-store.ts), and the document-upload flow (stores/doc-store.ts,
+ * docs/decision.md ADR-021) are the three callers. `exampleSentence`/`distractors`
+ * may be empty — the "degraded" path (docs/decision.md ADR-018) writes a corpus
+ * word with only its Vietnamese gloss when AI enrichment isn't available, so a
+ * session is never empty even offline; enrichment fills them in later without
+ * changing SRS state. The doc-store caller instead always has a real
+ * exampleSentence/distractors (analyzeDocument returns them), so its words are
+ * fillBlank-eligible immediately. */
 export interface NewCorpusWordInput {
   word: string;
   meaningVi: string;

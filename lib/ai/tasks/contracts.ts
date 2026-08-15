@@ -114,6 +114,10 @@ const CandidateWordOutput = z.object({
   meaningVi: z.string().max(200),
   sentenceFromDoc: z.string().max(300),
   sentenceSource: z.enum(['document', 'generated']).catch('document'),
+  // Declared LAST so the model finalizes sentenceFromDoc/sentenceSource before
+  // choosing same-slot alternatives to it (docs/decision.md ADR-021) — same
+  // propertyOrdering reasoning as EnrichWordOutput's trailing `cefr`.
+  distractors: z.array(z.string().max(64)),
 });
 export const AnalyzeDocumentOutput = z.object({
   candidates: z.array(CandidateWordOutput),

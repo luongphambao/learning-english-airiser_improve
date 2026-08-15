@@ -13,6 +13,9 @@ export const CandidateWordSchema = z.object({
   sentenceFromDoc: z.string(),
   sentenceSource: z.enum(['document', 'generated']),
   triage: KnownStateSchema.nullable(),
+  // docs/decision.md ADR-021 — needed to make a saved candidate immediately
+  // eligible for fillBlank (isEligible() in lib/srs/session.ts requires >=3).
+  distractors: z.array(z.string()),
 });
 export type CandidateWord = z.infer<typeof CandidateWordSchema>;
 

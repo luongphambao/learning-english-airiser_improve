@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false,
   },
   output: 'standalone',
+  // docs/decision.md ADR-021 — pdfjs-dist/mammoth (app/api/parse-doc) are only ever
+  // required at request time inside a dynamic import(); this keeps webpack from
+  // parsing/bundling either (~3MB+) during `next build`, and nft still traces them
+  // into .next/standalone as plain node_modules for the `require()` to resolve.
+  serverExternalPackages: ['pdfjs-dist', 'mammoth'],
   experimental: {
     // Trades a bit of build time for a much lower peak heap during `next build` —
     // the Docker build step was hitting "JavaScript heap out of memory" (Cloud Build's

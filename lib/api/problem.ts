@@ -14,6 +14,9 @@ export type ProblemCode =
   | 'content_filtered'
   | 'invalid_output'
   | 'unsupported_capability'
+  | 'document_encrypted'
+  | 'document_no_text'
+  | 'unsupported_file_type'
   | 'unknown';
 
 const STATUS: Record<ProblemCode, number> = {
@@ -30,6 +33,9 @@ const STATUS: Record<ProblemCode, number> = {
   content_filtered: 422,
   invalid_output: 502,
   unsupported_capability: 501,
+  document_encrypted: 422,
+  document_no_text: 422,
+  unsupported_file_type: 415,
   unknown: 500,
 };
 
@@ -50,6 +56,9 @@ const MESSAGE_VI: Record<ProblemCode, string> = {
   content_filtered: 'Nội dung bị từ chối bởi bộ lọc an toàn.',
   invalid_output: 'AI trả về kết quả không hợp lệ. Thử lại nhé.',
   unsupported_capability: 'Tính năng này chưa khả dụng với cấu hình hiện tại.',
+  document_encrypted: 'Tệp này được đặt mật khẩu. Gỡ mật khẩu rồi thử lại, hoặc dán trực tiếp văn bản.',
+  document_no_text: 'Tệp này là ảnh scan, không có lớp văn bản để đọc. Thử tệp khác hoặc dán trực tiếp văn bản.',
+  unsupported_file_type: 'Định dạng tệp này chưa được hỗ trợ. Dùng .txt, .md, .pdf hoặc .docx.',
   unknown: 'Đã có lỗi xảy ra. Thử lại sau.',
 };
 

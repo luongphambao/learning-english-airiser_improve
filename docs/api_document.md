@@ -117,6 +117,7 @@ AI_PROVIDER=gemini              # openai | gemini — mặc định 'gemini' t�
 OPENAI_API_KEY=...
 OPENAI_API_URL=https://router.bnksolution.com/v1
 OPENAI_MODEL_NAME=cx/gpt-5.6-luna
+OPENAI_DISABLE_THINKING=        # true|1 — tắt hẳn reasoning trên deployment openai-compatible hỗ trợ field `thinking:{type:'disabled'}` (xác nhận: Xiaomi MiMo, docs/decision.md ADR-022). Mặc định TẮT — bật nhầm trên backend không hỗ trợ có thể bị 400 do field lạ.
 GEMINI_API_KEY=                 # bắt buộc nếu AI_PROVIDER=gemini — thiếu thì mọi route AI trả lỗi (topup-store/work-store tự degrade, không crash UI)
 APP_URL=http://localhost:3000   # dùng cho origin allowlist
 RATE_LIMIT_REDIS_URL=           # tuỳ chọn — có thì dùng durable rate limiter thay MemoryRateLimiter
