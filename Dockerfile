@@ -31,6 +31,13 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+# Cloud Build's default machine (E2_MEDIUM, ~4GB shared with the Docker daemon) was
+# OOM-killing `next build` — V8's auto-detected heap limit left too little headroom.
+# Capping it explicitly makes failures deterministic instead of a mark-compact crash,
+# and pairs with next.config.ts's webpackMemoryOptimizations/cpus:1 to lower peak usage.
+# If builds still OOM, the real fix is more memory for the build step, e.g.:
+#   gcloud builds submit --machine-type=e2-highcpu-8 --tag <image> .
+ENV NODE_OPTIONS="--max-old-space-size=3072"
 RUN npm run build
 
 # ---- runner: minimal runtime image — only the standalone server + static assets
