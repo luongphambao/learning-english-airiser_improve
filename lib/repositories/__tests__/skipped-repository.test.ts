@@ -36,8 +36,20 @@ describe('SkippedRepository', () => {
     const now = Date.UTC(2026, 0, 1);
 
     await skipped.add('trade-off', now);
-    await skipped.remove('Trade-Off');
+    await skipped.remove('Trade-Off', now + 1);
 
     expect(await skipped.has('trade-off')).toBe(false);
+  });
+
+  it('resurrects a previously-removed word instead of erroring on re-add', async () => {
+    const skipped = createDexieSkippedRepository();
+    const now = Date.UTC(2026, 0, 1);
+
+    await skipped.add('deadline', now);
+    await skipped.remove('deadline', now + 1);
+    expect(await skipped.has('deadline')).toBe(false);
+
+    await skipped.add('deadline', now + 2);
+    expect(await skipped.has('deadline')).toBe(true);
   });
 });

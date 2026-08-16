@@ -8,6 +8,7 @@ import { establishServerSession, subscribeAuthState } from '@/lib/auth/firebase-
 import { useThemeSync } from '@/hooks/use-theme';
 import { AppBootSkeleton } from '@/components/layout/app-boot-skeleton';
 import { LegacyClaimBanner } from '@/components/layout/legacy-claim-banner';
+import { SyncScheduler } from '@/components/layout/sync-scheduler';
 
 /**
  * Runs once per app load, before rendering any screen: subscribes to Firebase
@@ -96,6 +97,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     // database instead of holding stale results from the previous account.
     <Fragment key={uid ?? 'anon'}>
       {uid && <LegacyClaimBanner />}
+      {uid && <SyncScheduler />}
       {children}
     </Fragment>
   );

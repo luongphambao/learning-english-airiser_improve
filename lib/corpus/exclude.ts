@@ -9,9 +9,12 @@ import { getDb } from '@/lib/db/dexie';
  */
 export async function buildExclusionSet(): Promise<Set<string>> {
   const db = getDb();
-  const [wordKeys, skippedKeys] = await Promise.all([
+  const [wordKeys, skippedRows] = await Promise.all([
     db.words.orderBy('wordLower').keys(),
-    db.skipped.toCollection().primaryKeys(),
+    // Full rows, not primaryKeys() — a tombstoned row (v5, "un-skip") must stop
+    // excluding its word, and a key-only read can't see `deletedAt` to filter it.
+    db.skipped.toArray(),
   ]);
+  const skippedKeys = skippedRows.filter((r) => !r.deletedAt).map((r) => r.wordLower);
   return new Set([...wordKeys, ...skippedKeys].map((k) => String(k)));
 }

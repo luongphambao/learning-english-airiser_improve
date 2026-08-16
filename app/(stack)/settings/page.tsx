@@ -5,20 +5,30 @@ import Link from 'next/link';
 import { useProfile } from '@/hooks/use-profile';
 import { useSettingsStore } from '@/stores/settings-store';
 import { useLevelStore } from '@/stores/level-store';
+import { useSyncStore } from '@/stores/sync-store';
 import { BackHeader } from '@/components/layout/back-header';
 import { getRepos } from '@/lib/repositories';
 import type { UserSettings } from '@/types';
-import { Mail, CheckCircle2, AlertCircle, Send, Loader2, LogOut, Calendar, ChevronRight } from 'lucide-react';
+import { Mail, CheckCircle2, AlertCircle, Send, Loader2, LogOut, Calendar, ChevronRight, RefreshCw, CloudOff } from 'lucide-react';
 
 export default function SettingsPage() {
   const { settings } = useProfile();
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const setDeclaredLevel = useLevelStore((s) => s.setDeclared);
+  const syncStatus = useSyncStore((s) => s.status);
+  const lastSyncedAt = useSyncStore((s) => s.lastSyncedAt);
+  const syncError = useSyncStore((s) => s.error);
+  const runSync = useSyncStore((s) => s.sync);
+  const hydrateSync = useSyncStore((s) => s.hydrate);
 
   const [gmailStatus, setGmailStatus] = useState<{ connected: boolean; email?: string } | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailNotice, setEmailNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  // Real Firebase sign-in status — deliberately NOT gmailStatus (that's the
+  // separate Gmail-reminder connection, see app/api/auth/google/callback's
+  // comment). The sync card only makes sense once actually signed in.
+  const [signedIn, setSignedIn] = useState(false);
 
   const fetchGmailStatus = async () => {
     try {
@@ -37,6 +47,11 @@ export default function SettingsPage() {
 
   useEffect(() => {
     fetchGmailStatus();
+    void hydrateSync();
+    fetch('/api/auth/me')
+      .then((res) => res.json())
+      .then((data) => setSignedIn(!!data.authenticated))
+      .catch(() => setSignedIn(false));
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('gmail') === 'connected') {
@@ -46,6 +61,7 @@ export default function SettingsPage() {
     } else if (urlParams.get('gmail_error')) {
       setEmailNotice({ type: 'error', message: 'Kết nối Gmail thất bại. Vui lòng thử lại.' });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleConnectGmail = () => {
@@ -128,6 +144,46 @@ export default function SettingsPage() {
             </a>
           </div>
         </div>
+
+        {/* Sync status — lib/sync/**. Only meaningful once actually signed in
+            via Firebase (not just Gmail-connected, see the signedIn comment
+            above); the app works fully offline/signed-out otherwise. */}
+        {signedIn && (
+          <div className="p-4 rounded-2xl bg-surface border border-rule space-y-2.5">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                {syncStatus === 'syncing' ? (
+                  <RefreshCw className="w-4 h-4 text-green animate-spin shrink-0" />
+                ) : syncStatus === 'error' || syncStatus === 'offline' ? (
+                  <CloudOff className="w-4 h-4 text-ink-soft shrink-0" />
+                ) : (
+                  <CheckCircle2 className="w-4 h-4 text-green shrink-0" />
+                )}
+                <div className="min-w-0">
+                  <h2 className="text-sm font-semibold text-ink">Đồng bộ đa thiết bị</h2>
+                  <p className="text-xs text-ink-soft truncate">
+                    {syncStatus === 'syncing'
+                      ? 'Đang đồng bộ...'
+                      : syncStatus === 'offline'
+                        ? 'Không có mạng — sẽ tự thử lại.'
+                        : syncStatus === 'error'
+                          ? (syncError ?? 'Đồng bộ thất bại — sẽ tự thử lại.')
+                          : lastSyncedAt
+                            ? `Đồng bộ lúc ${new Date(lastSyncedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`
+                            : 'Chưa đồng bộ lần nào'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => void runSync(Date.now())}
+                disabled={syncStatus === 'syncing'}
+                className="px-3 py-1.5 rounded-xl border border-rule text-xs font-medium text-ink hover:border-green hover:text-green transition cursor-pointer disabled:opacity-50 shrink-0"
+              >
+                Đồng bộ ngay
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Gmail Reminder Section */}
         <div className="p-4 rounded-2xl bg-surface border border-rule space-y-3">

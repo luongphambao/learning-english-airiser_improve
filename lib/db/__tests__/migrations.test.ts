@@ -227,6 +227,91 @@ describe('v3 -> v4 upgrade (docs/decision.md ADR-016/017)', () => {
   });
 });
 
+describe('v4 -> v5 upgrade (lib/sync/** delta-sync cursor fields)', () => {
+  const DB_NAME = 'lexio-test-v4-to-v5-upgrade';
+
+  it('indexes reviews.updatedAt and backfills updatedAt on imports/grammarAttempts and deletedAt+updatedAt on skipped', async () => {
+    // Declare v1-v4 verbatim (copied from lib/db/dexie.ts) — exactly what a real
+    // pre-v5 browser's IndexedDB already contains. The point of this test is
+    // exercising the real version(5).upgrade() a live v4 database goes through,
+    // not a schema this test invents.
+    const legacyDb = new Dexie(DB_NAME);
+    legacyDb.version(1).stores({
+      words: 'id, &wordLower, dueAt, createdAt, status, [status+createdAt], [isLeech+dueAt], updatedAt',
+      reviews: 'id, wordId, answeredAt, dayKey, [wordId+answeredAt]',
+      user: 'id',
+      studySessions: 'id, dayKey, status',
+      tutorSessions: 'id, startsAt, status',
+      imports: 'id, createdAt, status',
+      skipped: '&wordLower, at',
+      meta: 'key',
+    });
+    legacyDb.version(2).stores({ grammarAttempts: 'id, topicId, at' });
+    legacyDb.version(3).stores({
+      words:
+        'id, &wordLower, dueAt, createdAt, status, [status+createdAt], [isLeech+dueAt], updatedAt, entryType, [entryType+dueAt]',
+    });
+    legacyDb.version(4).stores({
+      words:
+        'id, &wordLower, dueAt, createdAt, status, [status+createdAt], [isLeech+dueAt], updatedAt, entryType, [entryType+dueAt], cefr, [cefr+status]',
+    });
+    await legacyDb.open();
+
+    const now = Date.UTC(2026, 5, 1);
+    await legacyDb.table('reviews').add({
+      id: 'r_legacy', wordId: 'legacy_w2', kind: 'recall', correct: true, answeredAt: now,
+      sessionId: 's_legacy', dayKey: '2026-06-01', updatedAt: now,
+      // reviews always set updatedAt (study-repository.ts) — this row exercises
+      // that the NEW index actually finds it, not a backfill (there is none).
+    });
+    await legacyDb.table('imports').add({
+      id: 'imp_legacy', fileName: 'doc.pdf', kind: 'pdf', createdAt: now, status: 'ready',
+      candidates: [], addedCount: 0, error: null,
+      // deliberately no updatedAt — the pre-v5 shape
+    });
+    await legacyDb.table('skipped').add({
+      wordLower: 'legacy-skip', word: 'legacy-skip', at: now,
+      // deliberately no deletedAt/updatedAt — the pre-v5 shape
+    });
+    await legacyDb.table('grammarAttempts').add({
+      id: 'ga_legacy', topicId: 'present-simple', score: 3, total: 5, at: now,
+      // deliberately no updatedAt — the pre-v5 shape
+    });
+    legacyDb.close();
+
+    // Reopen the SAME database name through the real LexioDb — runs the actual
+    // version(5).upgrade() defined in lib/db/dexie.ts, not a copy of it.
+    const upgraded = new LexioDb(DB_NAME);
+    await upgraded.open();
+
+    const importRow = await upgraded.imports.get('imp_legacy');
+    expect(importRow?.updatedAt).toBe(now);
+
+    const skippedRow = await upgraded.skipped.get('legacy-skip');
+    expect(skippedRow?.deletedAt).toBeNull();
+    expect(skippedRow?.updatedAt).toBe(now);
+
+    const attemptRow = await upgraded.grammarAttempts.get('ga_legacy');
+    expect(attemptRow?.updatedAt).toBe(now);
+
+    // The failure mode this backfill exists to prevent: a sync delta query
+    // (`where('updatedAt').above(cursor)`) would silently skip any row whose
+    // `updatedAt` key path is undefined, without erroring — matching the same
+    // "invisible until backfilled" risk v3/v4's tests guard against.
+    const foundByIndex = await upgraded.imports.where('updatedAt').equals(now).toArray();
+    expect(foundByIndex.map((r) => r.id)).toContain('imp_legacy');
+
+    // reviews' `updatedAt` index is new in v5 too (the field existed since
+    // v1, but nothing indexed it) — confirm the index itself resolves, not
+    // just that the field is present on the row.
+    const reviewsByIndex = await upgraded.reviews.where('updatedAt').equals(now).toArray();
+    expect(reviewsByIndex.map((r) => r.id)).toContain('r_legacy');
+
+    upgraded.close();
+    await Dexie.delete(DB_NAME);
+  });
+});
+
 describe('seedIfEmpty', () => {
   beforeEach(() => {
     resetDbForTests();

@@ -4,6 +4,7 @@ import { buildSession } from '@/lib/srs/session';
 import { dayKey } from '@/lib/srs/date';
 import { newId } from '@/lib/db/ids';
 import { useLevelStore } from './level-store';
+import { useSyncStore } from './sync-store';
 import type { StudySession } from '@/lib/srs/types';
 
 // Exported so Home (app/(tabs)/today/page.tsx) can render a due/fresh count that
@@ -116,6 +117,11 @@ export const useSessionStore = create<SessionStoreState>()((set, get) => ({
     // Fire-and-forget: a failed level refresh must not block the completion screen.
     if (nextSession.status === 'done') {
       void useLevelStore.getState().refreshSrsSignal(now);
+      // lib/sync/** — one of the moments docs/data-model.md calls out for an
+      // automatic sync (the words just reviewed/rescheduled are exactly what
+      // another device most wants to see next). No-ops silently if signed
+      // out (stores/sync-store.ts).
+      void useSyncStore.getState().sync(now);
     }
   },
 

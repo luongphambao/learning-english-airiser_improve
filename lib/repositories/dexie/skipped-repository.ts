@@ -12,20 +12,32 @@ export function createDexieSkippedRepository(): SkippedRepository {
 
   return {
     async add(word, now) {
-      await db.skipped.put({ wordLower: word.toLowerCase(), word, at: now });
+      // put(), not add() — re-skipping a word that was previously un-skipped
+      // (deletedAt set) must resurrect the same row rather than error on the
+      // &wordLower unique constraint.
+      await db.skipped.put({ wordLower: word.toLowerCase(), word, at: now, deletedAt: null, updatedAt: now });
     },
 
     async has(word) {
       const row = await db.skipped.get(word.toLowerCase());
-      return row !== undefined;
+      return row !== undefined && !row.deletedAt;
     },
 
     async listLowercase() {
-      return db.skipped.toCollection().primaryKeys();
+      const rows = await db.skipped.toArray();
+      return rows.filter((r) => !r.deletedAt).map((r) => r.wordLower);
     },
 
-    async remove(word) {
-      await db.skipped.delete(word.toLowerCase());
+    // Tombstone, not hard-delete (v5 — lib/db/dexie.ts) — "un-skip" needs a row
+    // to sync as an undo to another device, same reasoning as Word.remove()'s
+    // soft delete. `at`/`word` are left untouched; only `deletedAt`/`updatedAt`
+    // change, so re-skipping later (add() above) still resurrects real history
+    // instead of a blank row.
+    async remove(word, now) {
+      const wordLower = word.toLowerCase();
+      const existing = await db.skipped.get(wordLower);
+      if (!existing) return;
+      await db.skipped.put({ ...existing, deletedAt: now, updatedAt: now });
     },
   };
 }

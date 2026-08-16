@@ -36,6 +36,16 @@ describe('buildExclusionSet', () => {
     expect(exclude.has('leverage')).toBe(true);
   });
 
+  it('stops excluding a word once it has been un-skipped', async () => {
+    const skipped = createDexieSkippedRepository();
+    const now = Date.UTC(2026, 0, 1);
+    await skipped.add('leverage', now);
+    await skipped.remove('leverage', now + 1);
+
+    const exclude = await buildExclusionSet();
+    expect(exclude.has('leverage')).toBe(false);
+  });
+
   it('is empty when the notebook and skipped list are both empty', async () => {
     const exclude = await buildExclusionSet();
     expect(exclude.size).toBe(0);

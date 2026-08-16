@@ -1,12 +1,11 @@
-import { getDb } from '@/lib/db/dexie';
+import { getDb, type ImportRow } from '@/lib/db/dexie';
 import { newId } from '@/lib/db/ids';
-import type { Import } from '@/lib/domain';
 import type { ImportRepository, NewImportInput } from '../types';
 
 export function createDexieImportRepository(): ImportRepository {
   const db = getDb();
 
-  async function getOrThrow(id: string): Promise<Import> {
+  async function getOrThrow(id: string): Promise<ImportRow> {
     const row = await db.imports.get(id);
     if (!row) throw new Error(`import_not_found:${id}`);
     return row;
@@ -14,17 +13,19 @@ export function createDexieImportRepository(): ImportRepository {
 
   return {
     async create(input: NewImportInput) {
-      const row: Import = {
+      const now = Date.now();
+      const row: ImportRow = {
         id: newId('imp_'),
         fileName: input.fileName,
         kind: input.kind,
-        createdAt: Date.now(),
+        createdAt: now,
         status: 'analyzing',
         candidates: [],
         addedCount: 0,
         error: null,
         rawText: input.rawText,
         analysis: null,
+        updatedAt: now,
       };
       await db.imports.put(row);
       return row;
@@ -42,7 +43,7 @@ export function createDexieImportRepository(): ImportRepository {
     async setCandidates(id, candidates) {
       return db.transaction('rw', db.imports, async () => {
         const row = await getOrThrow(id);
-        const updated: Import = { ...row, status: 'ready', candidates, error: null };
+        const updated: ImportRow = { ...row, status: 'ready', candidates, error: null, updatedAt: Date.now() };
         await db.imports.put(updated);
         return updated;
       });
@@ -51,7 +52,7 @@ export function createDexieImportRepository(): ImportRepository {
     async setAnalysis(id, analysis) {
       return db.transaction('rw', db.imports, async () => {
         const row = await getOrThrow(id);
-        const updated: Import = { ...row, status: 'ready', analysis, error: null };
+        const updated: ImportRow = { ...row, status: 'ready', analysis, error: null, updatedAt: Date.now() };
         await db.imports.put(updated);
         return updated;
       });
@@ -61,7 +62,7 @@ export function createDexieImportRepository(): ImportRepository {
       return db.transaction('rw', db.imports, async () => {
         const row = await getOrThrow(id);
         const candidates = row.candidates.map((c) => (c.word === word ? { ...c, triage } : c));
-        const updated: Import = { ...row, candidates };
+        const updated: ImportRow = { ...row, candidates, updatedAt: Date.now() };
         await db.imports.put(updated);
         return updated;
       });
@@ -70,7 +71,7 @@ export function createDexieImportRepository(): ImportRepository {
     async fail(id, error) {
       return db.transaction('rw', db.imports, async () => {
         const row = await getOrThrow(id);
-        const updated: Import = { ...row, status: 'failed', error };
+        const updated: ImportRow = { ...row, status: 'failed', error, updatedAt: Date.now() };
         await db.imports.put(updated);
         return updated;
       });
@@ -79,7 +80,7 @@ export function createDexieImportRepository(): ImportRepository {
     async complete(id, addedCount) {
       return db.transaction('rw', db.imports, async () => {
         const row = await getOrThrow(id);
-        const updated: Import = { ...row, status: 'done', addedCount };
+        const updated: ImportRow = { ...row, status: 'done', addedCount, updatedAt: Date.now() };
         await db.imports.put(updated);
         return updated;
       });

@@ -174,7 +174,10 @@ export interface SkippedRepository {
   add(word: string, now: number): Promise<void>;
   has(word: string): Promise<boolean>;
   listLowercase(): Promise<string[]>;
-  remove(word: string): Promise<void>;
+  /** Tombstones rather than hard-deletes (docs/decision.md, v5 — lib/db/dexie.ts)
+   * — `now` is a parameter like every other write here (ADR-004: caller owns the
+   * clock), not read internally, so this stays deterministic in tests. */
+  remove(word: string, now: number): Promise<void>;
 }
 
 /** Thin typed wrapper over the `meta` KV table (lib/db/dexie.ts) — the auto top-up's

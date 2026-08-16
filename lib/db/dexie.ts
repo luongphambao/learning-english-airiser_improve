@@ -20,6 +20,26 @@ export interface SkippedRow {
   wordLower: string;
   word: string;
   at: number;
+  // v5 — see version(5) below. `deletedAt` mirrors words' tombstone (ADR-005-era
+  // pattern): "un-skip" now marks-and-keeps instead of hard-deleting, so a sync
+  // pull can propagate the undo to another device instead of the row simply
+  // never having existed there. `updatedAt` is the delta-sync cursor field, same
+  // role it plays on every other synced table.
+  deletedAt: number | null;
+  updatedAt: number;
+}
+
+export interface ImportRow extends Import {
+  // v5 — delta-sync cursor field (lib/sync/**). Backfilled from `createdAt` for
+  // every pre-v5 row, since an import's `createdAt` is a reasonable "last
+  // touched" approximation for anything that predates this field existing.
+  updatedAt: number;
+}
+
+export interface GrammarAttemptRow extends GrammarAttempt {
+  // v5 — delta-sync cursor field, backfilled from `at` (an attempt row is
+  // write-once, so `at` already IS its last-touched time).
+  updatedAt: number;
 }
 
 export interface MetaRow {
@@ -35,10 +55,10 @@ export class LexioDb extends Dexie {
   user!: Table<UserRow, string>;
   studySessions!: Table<StudySession, string>;
   tutorSessions!: Table<Session, string>;
-  imports!: Table<Import, string>;
+  imports!: Table<ImportRow, string>;
   skipped!: Table<SkippedRow, string>;
   meta!: Table<MetaRow, string>;
-  grammarAttempts!: Table<GrammarAttempt, string>;
+  grammarAttempts!: Table<GrammarAttemptRow, string>;
 
   constructor(name = 'lexio') {
     super(name);
@@ -138,6 +158,46 @@ export class LexioDb extends Dexie {
           .toCollection()
           .modify((u) => {
             u.settings = { ...V4_SETTINGS_DEFAULTS, ...u.settings };
+          });
+      });
+
+    // v5 — lib/sync/** (Firestore delta sync). Four tables gain an INDEXED
+    // `updatedAt` — `words` already had one since v1; `reviews`' `ReviewRow`
+    // TS shape has always required `updatedAt` (every row study-repository.ts
+    // ever wrote sets it), but the field was never in the schema string, so
+    // `.where('updatedAt')` couldn't query it until now — no upgrade()
+    // backfill needed there, every existing value is already concrete.
+    // `imports`/`grammarAttempts` get the field added AND indexed together
+    // (`??=` backfill below). `skipped` additionally gains `deletedAt`, the
+    // same tombstone-not-hard-delete pattern `words` already uses — an
+    // "un-skip" must be able to propagate to another device as an undo, not
+    // vanish locally with nothing to sync.
+    this.version(5)
+      .stores({
+        reviews: 'id, wordId, answeredAt, dayKey, [wordId+answeredAt], updatedAt',
+        imports: 'id, createdAt, status, updatedAt',
+        skipped: '&wordLower, at, updatedAt',
+        grammarAttempts: 'id, topicId, at, updatedAt',
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table('imports')
+          .toCollection()
+          .modify((row) => {
+            row.updatedAt ??= row.createdAt;
+          });
+        await tx
+          .table('skipped')
+          .toCollection()
+          .modify((row) => {
+            row.deletedAt ??= null;
+            row.updatedAt ??= row.at;
+          });
+        await tx
+          .table('grammarAttempts')
+          .toCollection()
+          .modify((row) => {
+            row.updatedAt ??= row.at;
           });
       });
   }
