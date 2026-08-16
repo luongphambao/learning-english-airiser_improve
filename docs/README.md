@@ -11,6 +11,7 @@ Lexio là app học từ vựng tiếng Anh (UI tiếng Việt), khởi tạo b�
 5. **`design.md`** — token đang dùng thật (giữ nguyên diện mạo AI Studio) + catalog 26 component primitive + bảng token mockup (chỉ tham chiếu, không áp dụng).
 6. **`spec-gaps.md`** — 34 mâu thuẫn/lỗ hổng tìm thấy trong 2 file spec gốc (`01-PROJECT-SPEC (2).md`, `02-BUILD-STEPS (2).md`) và cách xử lý từng cái.
 7. **`progress/`** — theo dõi tiến độ triển khai theo phase. Xem `progress/README.md`.
+8. **`status.md`** — cái gì đã chạy được và cái gì còn thiếu, viết thẳng. Tách khỏi README vì README là bản giới thiệu sản phẩm.
 
 ## 2 file spec gốc
 
