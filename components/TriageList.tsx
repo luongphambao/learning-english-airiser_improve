@@ -37,6 +37,17 @@ const OPTIONS: { value: KnownState; label: string }[] = [
   { value: 'unknown', label: 'Chưa biết' },
 ];
 
+// Shown PAGE_SIZE at a time instead of the full list at once — a document that
+// mines 30-50 candidate words used to dump every card into one long scroll
+// with a single confirm button at the very bottom, which read as "học 1 lần
+// cả đống từ" instead of a manageable batch. "Xem thêm" reveals the next
+// PAGE_SIZE; already-reviewed cards stay visible (append, not replace), and
+// the one confirm button at the end still saves everything in a single
+// atomic write — see stores/doc-store.ts's saveTriage(), which processes the
+// full candidate list in one pass and marks the import complete, so it isn't
+// designed for a partial/resumable per-page save.
+const PAGE_SIZE = 10;
+
 interface TriageListProps {
   items: TriageListItem[];
   onConfirm: (choices: Record<string, KnownState>) => void;
@@ -48,13 +59,17 @@ export function TriageList({ items, onConfirm, confirmLabel = 'Xác nhận', con
   const [choices, setChoices] = useState<Record<string, KnownState>>(() =>
     Object.fromEntries(items.map((item) => [item.id, item.initialTriage ?? defaultTriageForCefr(item.cefr)])),
   );
+  const [visibleCount, setVisibleCount] = useState(() => Math.min(PAGE_SIZE, items.length));
 
   if (items.length === 0) return null;
+
+  const visibleItems = items.slice(0, visibleCount);
+  const remaining = items.length - visibleCount;
 
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        {items.map((item) => (
+        {visibleItems.map((item) => (
           <div key={item.id} className="p-4 rounded-card border border-rule bg-surface space-y-2.5">
             <div className="flex items-center justify-between gap-2">
               <span lang="en" className="font-serif-display text-lg text-ink">
@@ -87,8 +102,17 @@ export function TriageList({ items, onConfirm, confirmLabel = 'Xác nhận', con
           </div>
         ))}
       </div>
+      {remaining > 0 && (
+        <Button
+          variant="quiet"
+          onClick={() => setVisibleCount((c) => Math.min(c + PAGE_SIZE, items.length))}
+          className="w-full"
+        >
+          Xem thêm {Math.min(PAGE_SIZE, remaining)} từ ({remaining} từ còn lại)
+        </Button>
+      )}
       <Button variant="primary" onClick={() => onConfirm(choices)} disabled={confirming} className="w-full">
-        {confirmLabel}
+        {items.length > PAGE_SIZE ? `${confirmLabel} (${items.length} từ)` : confirmLabel}
       </Button>
     </div>
   );
