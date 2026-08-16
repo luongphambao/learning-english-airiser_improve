@@ -4,6 +4,7 @@ import { Button } from './Button';
 import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { callTask } from '@/lib/api/ai-client';
 import { ApiError } from '@/lib/api/client';
+import { useT } from '@/hooks/use-i18n';
 
 interface ExerciseWriteProps {
   word: Word;
@@ -12,6 +13,7 @@ interface ExerciseWriteProps {
 }
 
 export function ExerciseWrite({ word, onAnswer, contextTopic = 'software engineering' }: ExerciseWriteProps) {
+  const { t } = useT();
   const [userSentence, setUserSentence] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +33,7 @@ export function ExerciseWrite({ word, onAnswer, contextTopic = 'software enginee
     } catch (err) {
       // Previously this branch fabricated a passing grade and an "AI-written"
       // sentence nobody wrote (audit #43) — an honest error is shown instead.
-      setError(err instanceof ApiError ? err.messageVi : 'Không chấm được câu. Kiểm tra kết nối rồi thử lại.');
+      setError(err instanceof ApiError ? err.messageVi : t('exercise.write.gradeError'));
     } finally {
       setLoading(false);
     }
@@ -46,7 +48,7 @@ export function ExerciseWrite({ word, onAnswer, contextTopic = 'software enginee
     <div className="w-full max-w-lg mx-auto bg-surface border border-rule rounded-card p-6 sm:p-8">
       <div className="flex items-center justify-between mb-3">
         <span className="font-mono-utility text-xs text-green font-semibold uppercase tracking-wider">
-          Bài tập: Tự đặt câu
+          {t('exercise.write.title')}
         </span>
         <span className="text-xs italic text-ink-soft">{word.partOfSpeech}</span>
       </div>
@@ -61,20 +63,20 @@ export function ExerciseWrite({ word, onAnswer, contextTopic = 'software enginee
       {/* Input Textarea */}
       <div className="mb-4">
         <label className="block text-xs font-mono-utility text-ink-soft mb-2">
-          Đặt 1 câu tiếng Anh có chứa từ &ldquo;{word.word}&rdquo;:
+          {t('exercise.write.prompt', { word: word.word })}
         </label>
         <textarea
           lang="en"
           value={userSentence}
           onChange={(e) => setUserSentence(e.target.value)}
-          placeholder={`Ví dụ: We need to ${word.word} the process...`}
+          placeholder={t('exercise.write.placeholder', { word: word.word })}
           disabled={loading || result !== null}
           rows={3}
           className="w-full p-4 rounded-btn bg-paper border border-rule text-ink text-sm focus:outline-none focus:border-green resize-none transition-all"
         />
         {hintCollocation && (
           <p className="mt-1.5 text-xs text-ink-soft italic">
-            Gợi ý cụm từ: <span className="font-medium text-ink">{hintCollocation}</span>
+            {t('exercise.write.hintLabel')} <span className="font-medium text-ink">{hintCollocation}</span>
           </p>
         )}
       </div>
@@ -91,10 +93,10 @@ export function ExerciseWrite({ word, onAnswer, contextTopic = 'software enginee
             {loading ? (
               <>
                 <Loader2 className="animate-spin" size={18} />
-                Đang chấm câu...
+                {t('exercise.write.grading')}
               </>
             ) : (
-              'Kiểm tra câu'
+              t('exercise.write.checkButton')
             )}
           </Button>
           {error && (
@@ -119,7 +121,7 @@ export function ExerciseWrite({ word, onAnswer, contextTopic = 'software enginee
                 result.isCorrect ? 'text-green' : 'text-wrong'
               }`}
             >
-              {result.isCorrect ? 'Đặt câu đúng!' : 'Cần điều chỉnh thêm'}
+              {result.isCorrect ? t('exercise.write.correctFeedback') : t('exercise.write.needsAdjustment')}
             </span>
           </div>
 
@@ -127,13 +129,13 @@ export function ExerciseWrite({ word, onAnswer, contextTopic = 'software enginee
 
           <div className="p-3 rounded-[12px] bg-paper border border-rule mb-5">
             <span className="block text-xs text-ink-soft italic mb-1">
-              Cách nói tự nhiên hơn từ AI:
+              {t('exercise.write.aiSuggestionLabel')}
             </span>
             <p lang="en" className="text-sm text-ink font-medium">&ldquo;{result.improvedSentence}&rdquo;</p>
           </div>
 
           <Button variant="primary" onClick={() => onAnswer(result.isCorrect)} className="w-full">
-            Tiếp tục
+            {t('exercise.continueCta')}
           </Button>
         </div>
       )}

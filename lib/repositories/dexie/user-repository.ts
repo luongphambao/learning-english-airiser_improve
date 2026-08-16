@@ -7,6 +7,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   reminderHour: null,
   studyTime: null,
   theme: 'system',
+  locale: 'vi',
   contextTopic: 'software engineering',
   level: 'B2',
   sessionSize: 5,

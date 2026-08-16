@@ -8,6 +8,7 @@ import { useLevelStore } from '@/stores/level-store';
 import { useSyncStore } from '@/stores/sync-store';
 import { BackHeader } from '@/components/layout/back-header';
 import { getRepos } from '@/lib/repositories';
+import { useT } from '@/hooks/use-i18n';
 import type { UserSettings } from '@/types';
 import { Mail, CheckCircle2, AlertCircle, Send, Loader2, LogOut, Calendar, ChevronRight, RefreshCw, CloudOff } from 'lucide-react';
 
@@ -15,6 +16,7 @@ export default function SettingsPage() {
   const { settings } = useProfile();
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const setDeclaredLevel = useLevelStore((s) => s.setDeclared);
+  const { t } = useT();
   const syncStatus = useSyncStore((s) => s.status);
   const lastSyncedAt = useSyncStore((s) => s.lastSyncedAt);
   const syncError = useSyncStore((s) => s.error);
@@ -55,11 +57,11 @@ export default function SettingsPage() {
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('gmail') === 'connected') {
-      setEmailNotice({ type: 'success', message: 'Đã kết nối tài khoản Gmail thành công!' });
+      setEmailNotice({ type: 'success', message: t('settings.notices.connectedSuccess') });
     } else if (urlParams.get('gmail_error') === 'config_missing') {
-      setEmailNotice({ type: 'error', message: 'Google OAuth chưa được cấu hình Client ID trên hệ thống.' });
+      setEmailNotice({ type: 'error', message: t('settings.notices.oauthConfigMissing') });
     } else if (urlParams.get('gmail_error')) {
-      setEmailNotice({ type: 'error', message: 'Kết nối Gmail thất bại. Vui lòng thử lại.' });
+      setEmailNotice({ type: 'error', message: t('settings.notices.connectFailed') });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -72,9 +74,9 @@ export default function SettingsPage() {
     try {
       await fetch('/api/auth/google/logout', { method: 'POST' });
       setGmailStatus({ connected: false });
-      setEmailNotice({ type: 'success', message: 'Đã ngắt kết nối Gmail.' });
+      setEmailNotice({ type: 'success', message: t('settings.notices.disconnectedSuccess') });
     } catch {
-      setEmailNotice({ type: 'error', message: 'Lỗi khi ngắt kết nối.' });
+      setEmailNotice({ type: 'error', message: t('settings.notices.disconnectError') });
     }
   };
 
@@ -103,16 +105,16 @@ export default function SettingsPage() {
       if (res.ok && data.success) {
         setEmailNotice({
           type: 'success',
-          message: `Đã gửi thành công email 5 từ vựng tới ${data.recipient}!`,
+          message: t('settings.notices.sendSuccess', { recipient: data.recipient }),
         });
       } else {
         setEmailNotice({
           type: 'error',
-          message: data.message || 'Không thể gửi email. Vui lòng kiểm tra lại kết nối.',
+          message: data.message || t('settings.notices.sendFailedFallback'),
         });
       }
     } catch {
-      setEmailNotice({ type: 'error', message: 'Lỗi hệ thống khi gửi email.' });
+      setEmailNotice({ type: 'error', message: t('settings.notices.sendSystemError') });
     } finally {
       setSendingEmail(false);
     }
@@ -120,7 +122,7 @@ export default function SettingsPage() {
 
   return (
     <>
-      <BackHeader title="Cài đặt" />
+      <BackHeader title={t('settings.title')} />
       <div className="space-y-6 pt-6 max-w-md pb-12">
         {/* Account Login Section */}
         <div className="p-4 rounded-2xl bg-surface border border-rule space-y-3">
@@ -130,9 +132,9 @@ export default function SettingsPage() {
                 {gmailStatus?.email ? gmailStatus.email[0].toUpperCase() : 'L'}
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-ink">Tài khoản Lexio</h2>
+                <h2 className="text-sm font-semibold text-ink">{t('settings.account.title')}</h2>
                 <p className="text-xs text-ink-soft">
-                  {gmailStatus?.email ? gmailStatus.email : 'Chưa đăng nhập email'}
+                  {gmailStatus?.email ? gmailStatus.email : t('settings.account.notLoggedIn')}
                 </p>
               </div>
             </div>
@@ -140,7 +142,7 @@ export default function SettingsPage() {
               href="/login"
               className="px-3 py-1.5 rounded-xl border border-rule text-xs font-medium text-ink hover:border-green hover:text-green transition cursor-pointer"
             >
-              {gmailStatus?.email ? 'Quản lý' : 'Đăng nhập'}
+              {gmailStatus?.email ? t('settings.account.manage') : t('settings.account.login')}
             </a>
           </div>
         </div>
@@ -160,17 +162,17 @@ export default function SettingsPage() {
                   <CheckCircle2 className="w-4 h-4 text-green shrink-0" />
                 )}
                 <div className="min-w-0">
-                  <h2 className="text-sm font-semibold text-ink">Đồng bộ đa thiết bị</h2>
+                  <h2 className="text-sm font-semibold text-ink">{t('settings.sync.title')}</h2>
                   <p className="text-xs text-ink-soft truncate">
                     {syncStatus === 'syncing'
-                      ? 'Đang đồng bộ...'
+                      ? t('settings.sync.syncing')
                       : syncStatus === 'offline'
-                        ? 'Không có mạng — sẽ tự thử lại.'
+                        ? t('settings.sync.offline')
                         : syncStatus === 'error'
-                          ? (syncError ?? 'Đồng bộ thất bại — sẽ tự thử lại.')
+                          ? (syncError ?? t('settings.sync.errorFallback'))
                           : lastSyncedAt
-                            ? `Đồng bộ lúc ${new Date(lastSyncedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`
-                            : 'Chưa đồng bộ lần nào'}
+                            ? t('settings.sync.syncedAt', { time: new Date(lastSyncedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) })
+                            : t('settings.sync.never')}
                   </p>
                 </div>
               </div>
@@ -179,7 +181,7 @@ export default function SettingsPage() {
                 disabled={syncStatus === 'syncing'}
                 className="px-3 py-1.5 rounded-xl border border-rule text-xs font-medium text-ink hover:border-green hover:text-green transition cursor-pointer disabled:opacity-50 shrink-0"
               >
-                Đồng bộ ngay
+                {t('settings.sync.syncNow')}
               </button>
             </div>
           </div>
@@ -189,17 +191,14 @@ export default function SettingsPage() {
         <div className="p-4 rounded-2xl bg-surface border border-rule space-y-3">
           <div className="flex items-center gap-2">
             <Mail className="w-5 h-5 text-green" />
-            <h2 className="text-sm font-semibold text-ink">Nhắc nhở học tập qua Gmail</h2>
+            <h2 className="text-sm font-semibold text-ink">{t('settings.gmail.title')}</h2>
           </div>
-          <p className="text-xs text-ink-soft leading-relaxed">
-            Nhận email chứa các từ vựng cần ôn tập trực tiếp vào hộp thư Gmail của bạn. Hiện tại cần bấm nút bên
-            dưới để gửi — gửi tự động mỗi ngày sẽ có ở bản sau.
-          </p>
+          <p className="text-xs text-ink-soft leading-relaxed">{t('settings.gmail.description')}</p>
 
           {loadingStatus ? (
             <div className="flex items-center gap-2 text-xs text-ink-soft py-2">
               <Loader2 className="w-4 h-4 animate-spin text-green" />
-              Đang kiểm tra kết nối...
+              {t('settings.gmail.checkingConnection')}
             </div>
           ) : gmailStatus?.connected ? (
             <div className="space-y-3 pt-1">
@@ -215,7 +214,7 @@ export default function SettingsPage() {
                   className="text-xs text-wrong hover:underline flex items-center gap-1 shrink-0 ml-2"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  Ngắt
+                  {t('settings.gmail.disconnect')}
                 </button>
               </div>
 
@@ -227,12 +226,12 @@ export default function SettingsPage() {
                 {sendingEmail ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Đang gửi email...
+                    {t('settings.gmail.sendingEmail')}
                   </>
                 ) : (
                   <>
                     <Send className="w-3.5 h-3.5" />
-                    Gửi email nhắc học thử ngay
+                    {t('settings.gmail.sendTestEmail')}
                   </>
                 )}
               </button>
@@ -244,7 +243,7 @@ export default function SettingsPage() {
                 className="w-full py-2.5 px-3 rounded-xl bg-green text-paper text-xs font-medium flex items-center justify-center gap-2 cursor-pointer hover:bg-green/90 transition"
               >
                 <Mail className="w-4 h-4" />
-                Kết nối tài khoản Gmail
+                {t('settings.gmail.connect')}
               </button>
             </div>
           )}
@@ -269,7 +268,7 @@ export default function SettingsPage() {
 
         <div>
           <label className="block text-xs font-mono-utility text-ink-soft mb-2">
-            Chủ đề lĩnh vực làm việc (Định hướng câu ví dụ AI):
+            {t('settings.contextTopic.label')}
           </label>
           <input
             type="text"
@@ -282,7 +281,7 @@ export default function SettingsPage() {
 
         <div>
           <label className="block text-xs font-mono-utility text-ink-soft mb-2">
-            Trình độ tiếng Anh mục tiêu:
+            {t('settings.level.label')}
           </label>
           <select
             value={settings.level}
@@ -301,24 +300,24 @@ export default function SettingsPage() {
               legible. */}
           <p className="mt-2 text-xs text-ink-soft">
             {settings.levelProfile.declared
-              ? 'Bạn đã tự chọn trình độ này.'
+              ? t('settings.level.declared')
               : settings.levelProfile.placement
-                ? 'Dựa trên bài kiểm tra trình độ bạn đã làm.'
+                ? t('settings.level.placement')
                 : settings.levelProfile.work || settings.levelProfile.srs
-                  ? 'Được điều chỉnh tự động dựa trên kết quả học và luyện tập của bạn.'
-                  : 'Mức mặc định — hãy làm bài kiểm tra trình độ để có kết quả chính xác hơn.'}
+                  ? t('settings.level.autoAdjusted')
+                  : t('settings.level.defaultFallback')}
           </p>
         </div>
 
         <div>
-          <label className="block text-xs font-mono-utility text-ink-soft mb-2">Số thẻ mỗi buổi:</label>
+          <label className="block text-xs font-mono-utility text-ink-soft mb-2">{t('settings.sessionSize.label')}</label>
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => updateSettings({ sessionSize: Math.max(3, settings.sessionSize - 1) })}
               disabled={settings.sessionSize <= 3}
               className="w-10 h-10 rounded-xl border border-rule text-ink text-lg font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:border-green transition-colors"
-              aria-label="Giảm số thẻ mỗi buổi"
+              aria-label={t('settings.sessionSize.decreaseAria')}
             >
               −
             </button>
@@ -328,7 +327,7 @@ export default function SettingsPage() {
               onClick={() => updateSettings({ sessionSize: Math.min(20, settings.sessionSize + 1) })}
               disabled={settings.sessionSize >= 20}
               className="w-10 h-10 rounded-xl border border-rule text-ink text-lg font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:border-green transition-colors"
-              aria-label="Tăng số thẻ mỗi buổi"
+              aria-label={t('settings.sessionSize.increaseAria')}
             >
               +
             </button>
@@ -336,7 +335,7 @@ export default function SettingsPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-mono-utility text-ink-soft mb-2">Giao diện:</label>
+          <label className="block text-xs font-mono-utility text-ink-soft mb-2">{t('settings.theme.label')}</label>
           <div className="flex gap-2">
             <button
               onClick={() => updateSettings({ theme: 'light' })}
@@ -346,7 +345,7 @@ export default function SettingsPage() {
                   : 'border-rule bg-paper text-ink-soft'
               }`}
             >
-              Giao diện Sáng
+              {t('settings.theme.light')}
             </button>
             <button
               onClick={() => updateSettings({ theme: 'dark' })}
@@ -356,7 +355,7 @@ export default function SettingsPage() {
                   : 'border-rule bg-paper text-ink-soft'
               }`}
             >
-              Giao diện Tối
+              {t('settings.theme.dark')}
             </button>
           </div>
         </div>
@@ -367,7 +366,7 @@ export default function SettingsPage() {
         >
           <span className="flex items-center gap-2 text-sm font-semibold text-ink">
             <Calendar size={18} className="text-green" />
-            Kế hoạch học
+            {t('settings.studyPlan.title')}
           </span>
           <ChevronRight size={18} className="text-ink-soft" />
         </Link>

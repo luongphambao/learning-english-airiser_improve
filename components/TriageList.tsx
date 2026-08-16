@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { Cefr, KnownState } from '@/lib/domain';
+import { useT } from '@/hooks/use-i18n';
 import { Button } from './Button';
 
 // Spec §8.3's 3-level triage screen, reusable across three callers (docs/decision.md
@@ -31,12 +32,6 @@ export function defaultTriageForCefr(cefr: Cefr | undefined): KnownState {
   return 'known';
 }
 
-const OPTIONS: { value: KnownState; label: string }[] = [
-  { value: 'known', label: 'Đã biết rõ' },
-  { value: 'partial', label: 'Biết sơ sơ' },
-  { value: 'unknown', label: 'Chưa biết' },
-];
-
 // Shown PAGE_SIZE at a time instead of the full list at once — a document that
 // mines 30-50 candidate words used to dump every card into one long scroll
 // with a single confirm button at the very bottom, which read as "học 1 lần
@@ -55,7 +50,8 @@ interface TriageListProps {
   confirming?: boolean;
 }
 
-export function TriageList({ items, onConfirm, confirmLabel = 'Xác nhận', confirming = false }: TriageListProps) {
+export function TriageList({ items, onConfirm, confirmLabel, confirming = false }: TriageListProps) {
+  const { t } = useT();
   const [choices, setChoices] = useState<Record<string, KnownState>>(() =>
     Object.fromEntries(items.map((item) => [item.id, item.initialTriage ?? defaultTriageForCefr(item.cefr)])),
   );
@@ -63,6 +59,12 @@ export function TriageList({ items, onConfirm, confirmLabel = 'Xác nhận', con
 
   if (items.length === 0) return null;
 
+  const resolvedConfirmLabel = confirmLabel ?? t('components.triageList.confirmDefault');
+  const OPTIONS: { value: KnownState; label: string }[] = [
+    { value: 'known', label: t('components.triageList.optionKnown') },
+    { value: 'partial', label: t('components.triageList.optionPartial') },
+    { value: 'unknown', label: t('components.triageList.optionUnknown') },
+  ];
   const visibleItems = items.slice(0, visibleCount);
   const remaining = items.length - visibleCount;
 
@@ -108,11 +110,13 @@ export function TriageList({ items, onConfirm, confirmLabel = 'Xác nhận', con
           onClick={() => setVisibleCount((c) => Math.min(c + PAGE_SIZE, items.length))}
           className="w-full"
         >
-          Xem thêm {Math.min(PAGE_SIZE, remaining)} từ ({remaining} từ còn lại)
+          {t('components.triageList.showMore', { shown: Math.min(PAGE_SIZE, remaining), remaining })}
         </Button>
       )}
       <Button variant="primary" onClick={() => onConfirm(choices)} disabled={confirming} className="w-full">
-        {items.length > PAGE_SIZE ? `${confirmLabel} (${items.length} từ)` : confirmLabel}
+        {items.length > PAGE_SIZE
+          ? t('components.triageList.confirmWithCount', { label: resolvedConfirmLabel, count: items.length })
+          : resolvedConfirmLabel}
       </Button>
     </div>
   );

@@ -8,6 +8,7 @@ import { Button } from '@/components/Button';
 import { BackHeader } from '@/components/layout/back-header';
 import { getRepos } from '@/lib/repositories';
 import { useLastGrammarAttempts } from '@/hooks/use-grammar';
+import { useT } from '@/hooks/use-i18n';
 import { Trophy, ArrowLeft } from 'lucide-react';
 
 // Moved off the tab bar into (stack) (docs/decision.md ADR-013 — de-emphasized per
@@ -15,6 +16,7 @@ import { Trophy, ArrowLeft } from 'lucide-react';
 // grammarAttempts/ADR-011, so it stays a working feature reached from Practice).
 // Ported from screens/GrammarScreen.tsx (Phase 2 — routing only, logic unchanged).
 export default function GrammarPage() {
+  const { t } = useT();
   const [selectedTopic, setSelectedTopic] = useState<GrammarTopic | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -53,16 +55,16 @@ export default function GrammarPage() {
 
   return (
     <>
-      <BackHeader title="Ngữ pháp" />
+      <BackHeader title={t('grammar.title')} />
       <div className="pt-6">
         {!selectedTopic && (
           <div className="space-y-6">
             <div className="pb-3 border-b border-rule">
               <h2 className="font-serif-display text-3xl text-ink mb-1">
-                Chủ đề Ngữ pháp công sở
+                {t('grammar.list.heading')}
               </h2>
               <p className="text-xs text-ink-soft">
-                Luyện tập các điểm ngữ pháp then chốt để viết email và giao tiếp tự tin.
+                {t('grammar.list.subtitle')}
               </p>
             </div>
 
@@ -81,7 +83,8 @@ export default function GrammarPage() {
                       Level {topic.level}
                     </span>
                     <span className="text-xs text-ink-soft font-mono-utility font-medium">
-                      {topic.questions.length} câu hỏi{last && ` · Lần trước: ${last.score}/${last.total}`}
+                      {t('grammar.list.questionCount', { count: topic.questions.length })}
+                      {last && t('grammar.list.lastAttempt', { score: last.score, total: last.total })}
                     </span>
                   </div>
                   <h3 className="font-serif-display text-2xl text-ink group-hover:text-green transition-colors mb-1">
@@ -108,10 +111,10 @@ export default function GrammarPage() {
 
               <div>
                 <h3 className="font-serif-display text-3xl text-ink mb-1">
-                  Hoàn thành bài tập!
+                  {t('grammar.result.title')}
                 </h3>
                 <p className="text-sm text-ink-soft">
-                  Chủ đề: {selectedTopic.titleVi}
+                  {t('grammar.result.topicLabel', { topic: selectedTopic.titleVi })}
                 </p>
               </div>
 
@@ -120,16 +123,16 @@ export default function GrammarPage() {
                   {score} / {total}
                 </span>
                 <span className="text-xs text-ink-soft font-mono-utility">
-                  Tỉ lệ chính xác: {percentage}%
+                  {t('grammar.result.accuracyLabel', { percentage })}
                 </span>
               </div>
 
               <div className="pt-4 flex flex-col gap-3">
                 <Button variant="primary" onClick={() => handleStartTopic(selectedTopic)}>
-                  Làm lại chủ đề này
+                  {t('grammar.result.retryCta')}
                 </Button>
                 <Button variant="quiet" onClick={handleReset}>
-                  Quay lại danh sách chủ đề
+                  {t('grammar.result.backToListCta')}
                 </Button>
               </div>
             </div>
@@ -147,10 +150,13 @@ export default function GrammarPage() {
                   className="text-xs text-ink-soft hover:text-ink flex items-center gap-1 cursor-pointer"
                 >
                   <ArrowLeft size={16} />
-                  Danh sách chủ đề
+                  {t('grammar.quiz.backToList')}
                 </button>
                 <span className="font-mono-utility text-xs text-ink-soft">
-                  Câu {currentQuestionIndex + 1} / {selectedTopic.questions.length}
+                  {t('grammar.quiz.progressLabel', {
+                    current: currentQuestionIndex + 1,
+                    total: selectedTopic.questions.length,
+                  })}
                 </span>
               </div>
 

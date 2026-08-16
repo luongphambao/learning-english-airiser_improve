@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { CefrSchema } from './word';
 
+// UI display language — separate from `Cefr` (the English *content* level being
+// learned). 'vi' is the app's original, complete language; 'en' is the toggle
+// added alongside it (lib/i18n/**) — see docs/decision.md ADR-024.
+export const LocaleSchema = z.enum(['vi', 'en']);
+export type Locale = z.infer<typeof LocaleSchema>;
+
 export const UserStatsSchema = z.object({
   streak: z.number(),
   longestStreak: z.number(),
@@ -44,6 +50,9 @@ export const UserSettingsSchema = z.object({
   reminderHour: z.number().nullable(),
   studyTime: z.string().nullable(),
   theme: z.enum(['light', 'dark', 'system']),
+  // Default 'vi' matches every pre-existing settings row (additive field, same
+  // pattern as `sessionSize`/`levelProfile` below — no Dexie migration needed).
+  locale: LocaleSchema.default('vi'),
   contextTopic: z.string(),
   // Widened from 'B1'|'B2'|'C1' to the full CEFR range (docs/decision.md ADR-017) —
   // existing stored values stay valid, this is additive. See lib/ai/tasks/contracts.ts

@@ -1,0 +1,524 @@
+{
+  "common": {
+    "settings": "Settings",
+    "login": "Log in",
+    "back": "Back",
+    "loading": "Loading...",
+    "genericError": "Something went wrong.",
+    "toggleLanguage": "Switch language"
+  },
+  "tabBar": {
+    "nav": "Main navigation",
+    "home": "Home",
+    "learnShort": "Learn",
+    "learnFull": "Learn from Work",
+    "practice": "Practice",
+    "notebook": "Notebook"
+  },
+  "appHeader": {
+    "streakLabel": "View your streak progress",
+    "streakDays": "{{count}} days",
+    "toggleTheme": "Toggle light/dark theme",
+    "loggedInAs": "Logged in as: {{email}}",
+    "loginWithEmail": "Log in with email"
+  },
+  "today": {
+    "greetingHello": "Hello.",
+    "greetingMorning": "Good morning.",
+    "greetingAfternoon": "Good afternoon.",
+    "greetingEvening": "Good evening.",
+    "subtitle": "Practice English for work today.",
+    "emptyNotebook": "Your notebook is still empty. Take the 2-minute placement test for words matched to your level, or paste a work document so Gemini can find words worth learning for you.",
+    "checkLevelCta": "Check your level (2 min)",
+    "learnFromDocCta": "Learn from your document",
+    "todayLabel": "Today",
+    "dueWords": "words due for review",
+    "newWords": "new words not yet studied",
+    "leechWords": "words you often forget",
+    "sessionSummary": "About {{minutes}} min · {{count}} cards this session",
+    "startPracticeCta": "Start today's practice",
+    "doneToday": "You're done for today. Come back tomorrow, or add a new document to keep learning.",
+    "learnFromWorkLabel": "Learn from real work",
+    "learnFromWorkBody": "Paste an email, report, or work document. Gemini will find vocabulary, professional phrases, and grammar mistakes worth learning from it.",
+    "pasteText": "Paste text",
+    "uploadDoc": "Upload document",
+    "needsAttention": "Needs attention",
+    "focusLeech": "You often forget {{count}} words. Review those first.",
+    "focusLowAccuracy": "Your accuracy is {{accuracy}}%. Practice more to remember longer.",
+    "focusFewWords": "Your notebook has few words. Add a work document for content tailored to you.",
+    "focusGoodPace": "You're keeping a good pace. {{streak}}-day streak.",
+    "streakFooter": "{{streak}}-day streak · longest {{longest}} days · View progress →",
+    "leaderboardFooter": "Leaderboard →",
+    "studyPlanFooter": "Study plan →"
+  },
+  "learn": {
+    "tabs": {
+      "work": "From your work",
+      "doc": "From a document"
+    },
+    "pastePlaceholder": "Paste an English passage here...",
+    "pastedTextName": "Pasted text",
+    "pastImportsLabel": "Previously analyzed",
+    "work": {
+      "heading": "Learn from real work English",
+      "subtitle": "Paste an email, report, meeting note, or other English document you use at work. AI will find vocabulary, professional phrases, grammar issues, and better ways to write it.",
+      "uploadHint": "Tap to upload a text file (.txt, .md)",
+      "analyzeButton": "Analyze with Gemini"
+    },
+    "doc": {
+      "heading": "Mine vocabulary from a document",
+      "subtitle": "Upload a document, article, or piece of English writing you're reading (.txt, .md, .pdf, .docx). AI will find vocabulary worth learning that you may not know, along with example sentences straight from the document.",
+      "uploadHint": "Tap to upload a file (.txt, .md, .pdf, .docx)",
+      "analyzeButton": "Find vocabulary worth learning"
+    },
+    "importStatus": {
+      "ready": "View results",
+      "done": "Added {{count}} items",
+      "failed": "Error",
+      "analyzing": "Analyzing..."
+    },
+    "analyzingHeading": "Reading your document...",
+    "analyzingBody": "Gemini is finding vocabulary, phrases, and grammar worth learning. This can take up to a minute.",
+    "resultLabel": "Analyzed by Gemini",
+    "defaultHeadline": "Analysis results",
+    "inputTypes": {
+      "workEmail": "Work email",
+      "report": "Report",
+      "meetingNote": "Meeting notes",
+      "chat": "Work message",
+      "document": "Document",
+      "other": "Text"
+    },
+    "counts": {
+      "words": "{{count}} words",
+      "phrases": "{{count}} phrases",
+      "grammar": "{{count}} grammar points",
+      "rewrites": "{{count}} better rewrites"
+    },
+    "section": {
+      "vocab": "Vocabulary",
+      "phrase": "Professional phrases",
+      "grammar": "Grammar points"
+    },
+    "noInsights": "Your text didn't have any clear learning opportunities — try a longer passage or something more work-related.",
+    "addingButton": "Adding...",
+    "addButton": "Add {{count}} items to notebook",
+    "savedHeading": "Added {{count}} items to your notebook",
+    "savedBody": "AI has already prepared examples and practice options for each item — ready to review today.",
+    "learnAnotherDoc": "Learn another document",
+    "openNotebook": "Open notebook",
+    "practiceNow": "Practice now",
+    "errorHeading": "Couldn't analyze the document",
+    "genericError": "Something went wrong.",
+    "retryButton": "Try again",
+    "errors": {
+      "fileEmptyText": "Couldn't read any text from this file. Try pasting the passage directly below instead.",
+      "fileUnreadable": "Couldn't read the file. It may be corrupted — try another file or paste the text.",
+      "fileParseFailed": "Couldn't read the file. Try another file or paste the text."
+    },
+    "rewrite": {
+      "label": "A more professional way to write it",
+      "original": "You wrote",
+      "suggested": "Better to write",
+      "reason": "Why it's better",
+      "savedPhrase": "Saved \"{{phrase}}\"",
+      "savePhrase": "Save phrase \"{{phrase}}\""
+    }
+  },
+  "vocabulary": {
+    "searchPlaceholder": "Search words or Vietnamese meaning...",
+    "emptyTitle": "No words in your notebook yet",
+    "emptyDescription": "Tap the plus button below to add your first word.",
+    "enrichingMeaning": "Loading AI meaning...",
+    "pendingEnrichment": "Waiting for enrichment...",
+    "statusKnown": "Known",
+    "statusLearning": "Learning",
+    "statusNew": "New",
+    "addWordAria": "Add new word",
+    "sourceLabel": "Source",
+    "manualSourceFallback": "Added manually",
+    "dateAddedLabel": "Date added",
+    "reviewCountLabel": "Reviews",
+    "reviewCountValue": "{{count}} times",
+    "nextReviewLabel": "Next review",
+    "notStudiedYet": "Not studied yet",
+    "deleteWord": "Delete word",
+    "addSheetTitle": "Add a new word",
+    "tabType": "Type word",
+    "tabPaste": "Paste text",
+    "tabFile": "Upload file",
+    "typeLabel": "Enter an English word:",
+    "typePlaceholder": "e.g. leverage, orchestrate...",
+    "aiEnrichNote": "AI will automatically enrich it with IPA pronunciation, Vietnamese meaning, example sentences, and related collocations.",
+    "saveNow": "Save word now",
+    "pasteLabel": "Paste a reading passage / email / work document:",
+    "pastePlaceholder": "Paste English text here...",
+    "extracting": "Extracting vocabulary...",
+    "analyzeCta": "Analyze & Filter Words Worth Learning",
+    "suggestedWords": "Suggested words:",
+    "addAllCta": "Add all {{count}} words to notebook",
+    "fileTabDescription": "Analyze a whole document (.txt/.md file or long pasted text) on its own screen — with level filtering and word-by-word classification before adding to your notebook.",
+    "openUploadCta": "Open Upload Document screen"
+  },
+  "practice": {
+    "preparingSession": "Preparing your lesson...",
+    "loadError": "Couldn't load today's lesson. Check your connection and try again.",
+    "retry": "Try again",
+    "doneTitle": "You're all done for today!",
+    "doneDescription": "No words left to review right now. Add an email or work document to get new words.",
+    "doneActionLabel": "Learn from your document",
+    "completeTitle": "Great work! You finished {{count}} words.",
+    "completeStreakPrefix": "Current streak:",
+    "completeStreakValue": "{{streak}} days",
+    "viewNotebook": "View notebook",
+    "learnMore": "Learn more from a document",
+    "sessionBadge": "Today's lesson",
+    "sessionTitle": "Practice workplace vocabulary",
+    "sessionDescription": "Practice {{count}} key words today through recall, multiple-choice, and listening exercises.",
+    "progressAria": "Session progress",
+    "grammarBasics": "Grammar basics",
+    "grammarAttempted": "Practiced {{count}} topics",
+    "grammarStart": "Start",
+    "notebookLabel": "Your notebook",
+    "viewAll": "View all"
+  },
+  "tabsShell": {
+    "errorTitle": "Something went wrong",
+    "errorDescription": "This screen failed to load. Your learning data is still safe on your device.",
+    "backHome": "Go home",
+    "retry": "Try again"
+  },
+  "settings": {
+    "title": "Settings",
+    "account": {
+      "title": "Lexio Account",
+      "notLoggedIn": "Not signed in",
+      "manage": "Manage",
+      "login": "Sign in"
+    },
+    "sync": {
+      "title": "Multi-device sync",
+      "syncing": "Syncing...",
+      "offline": "No connection — will retry automatically.",
+      "errorFallback": "Sync failed — will retry automatically.",
+      "syncedAt": "Synced at {{time}}",
+      "never": "Never synced",
+      "syncNow": "Sync now"
+    },
+    "gmail": {
+      "title": "Gmail study reminders",
+      "description": "Get an email with the vocabulary due for review sent straight to your Gmail inbox. For now you need to tap the button below to send — daily automatic sending is coming in a future release.",
+      "checkingConnection": "Checking connection...",
+      "disconnect": "Disconnect",
+      "sendingEmail": "Sending email...",
+      "sendTestEmail": "Send a test reminder email now",
+      "connect": "Connect Gmail account"
+    },
+    "notices": {
+      "connectedSuccess": "Gmail account connected successfully!",
+      "oauthConfigMissing": "Google OAuth Client ID is not configured on the system.",
+      "connectFailed": "Gmail connection failed. Please try again.",
+      "disconnectedSuccess": "Gmail disconnected.",
+      "disconnectError": "Error while disconnecting.",
+      "sendSuccess": "Successfully sent an email with 5 words to {{recipient}}!",
+      "sendFailedFallback": "Couldn't send the email. Please check your connection.",
+      "sendSystemError": "System error while sending the email."
+    },
+    "contextTopic": {
+      "label": "Work domain topic (guides AI example sentences):"
+    },
+    "level": {
+      "label": "Target English level:",
+      "declared": "You chose this level yourself.",
+      "placement": "Based on the placement test you took.",
+      "autoAdjusted": "Automatically adjusted based on your learning and practice results.",
+      "defaultFallback": "Default level — take the placement test for a more accurate result."
+    },
+    "sessionSize": {
+      "label": "Cards per session:",
+      "decreaseAria": "Decrease cards per session",
+      "increaseAria": "Increase cards per session"
+    },
+    "theme": {
+      "label": "Theme:",
+      "light": "Light theme",
+      "dark": "Dark theme"
+    },
+    "studyPlan": {
+      "title": "Study plan"
+    }
+  },
+  "login": {
+    "title": "Sign in",
+    "tagline": "Five words each morning. Three minutes. Words you actually use at work.",
+    "googleSuccess": "Signed in with Google successfully!",
+    "googleConfigMissing": "Google Sign-In isn't configured with a Client ID. Please sign in with Email instead.",
+    "googleFailed": "Google sign-in failed. Please try again or sign in with Email.",
+    "accountCreated": "Account created successfully!",
+    "signInSuccess": "Signed in successfully!",
+    "invalidEmail": "Please enter a valid email address.",
+    "passwordTooShort": "Password must be at least 6 characters.",
+    "forgotPasswordNeedsEmail": "Enter your email above first, then tap \"Forgot password?\" again.",
+    "passwordResetSent": "Password reset email sent. Check your inbox.",
+    "signedOut": "Signed out successfully.",
+    "signOutFailed": "Couldn't sign out. Please try again later.",
+    "checkingStatus": "Checking status...",
+    "loggedInAs": "Signed in as",
+    "goToApp": "Start learning",
+    "signOut": "Sign out",
+    "tabSignIn": "Sign in",
+    "tabRegister": "Create account",
+    "nameLabel": "Display name (optional)",
+    "namePlaceholder": "Your name",
+    "emailLabel": "Your email address",
+    "emailPlaceholder": "you@company.com",
+    "passwordLabel": "Password",
+    "forgotPassword": "Forgot password?",
+    "creatingAccount": "Creating account...",
+    "signingIn": "Signing in...",
+    "submitRegister": "Create account",
+    "submitSignIn": "Sign in with Email",
+    "orDivider": "or",
+    "googleSignIn": "Sign in with Google"
+  },
+  "calendar": {
+    "title": "Study plan",
+    "heading": "Your study plan",
+    "subtitle": "Keep a steady rhythm — a few minutes a day beats cramming all at once.",
+    "thisWeek": "This week",
+    "daysStudiedSuffix": "/ 7 days studied",
+    "weekProgressAria": "Studied {{count}} out of the last 7 days",
+    "currentStreakLabel": "Current streak:",
+    "daysUnit": "days",
+    "longestStreakLabel": "Longest:",
+    "preferredStudyTime": "Preferred study time",
+    "studyTimeBody": "Studying at the same time every day helps reviewing words become a lasting habit. Lexio only uses this time to remind you — the app won't open on its own at that time.",
+    "reminderEmailHeading": "Reminder emails",
+    "reminderOff": "Off",
+    "reminder7am": "7:00 AM",
+    "reminder8am": "8:00 AM",
+    "reminder9am": "9:00 AM",
+    "reminder8pm": "8:00 PM",
+    "reminderEmailBody": "Save the time you'd like to receive review-reminder emails. Lexio sends them through the Gmail account you connected in Settings — for now you need to tap “Send a test reminder email now” in Settings to send one; automatic sending at your chosen time is coming in a future update."
+  },
+  "progress": {
+    "backHeaderTitle": "Progress",
+    "overviewBadge": "Progress overview",
+    "heroTitle": "A daily learning habit",
+    "heroSubtitle": "Keep up 3 minutes of vocabulary & grammar review a day for maximum confidence at work.",
+    "streakLabel": "Day streak",
+    "streakLongest": "Longest: {{days}} days",
+    "knownWordsLabel": "Words mastered",
+    "knownWordsHint": "Mastery level >= 4",
+    "learningLabel": "Learning",
+    "learningHint": "In active review rotation",
+    "reviewsLabel": "Reviews done",
+    "reviewsAccuracy": "{{accuracy}}% correct",
+    "chartTitle": "Review activity (last 7 days)",
+    "chartTotalLabel": "Total reviews:",
+    "chartTotalUnit": "reviews",
+    "tooltipReviewsLabel": "Reviews:",
+    "accuracyBadge": "{{accuracy}}% accuracy",
+    "activityTitle": "Activity over the last 7 days",
+    "leaderboardCardTitle": "Leaderboard",
+    "leaderboardCardSubtitle": "See where you stand against other learners",
+    "leechSectionTitle": "Words you often get wrong ({{count}})",
+    "leechSectionBody": "These words will automatically switch to typed or listening mode to help them stick.",
+    "startedJourney": "You started your journey with Lexio on {{date}}"
+  },
+  "leaderboardPage": {
+    "backHeaderTitle": "Leaderboard",
+    "demoBannerTitle": "Illustrative leaderboard.",
+    "demoBannerBody": "The 20 learners on this list are fixed sample data, not real users. Only your row reflects real data, read from your notebook and review history on this device.",
+    "tablistAriaLabel": "Choose a ranking metric",
+    "loadingLabel": "Loading leaderboard",
+    "myRankPosition": "Your position",
+    "viewMyRowCta": "View your row",
+    "noDataTitle": "You don't have ranking data yet.",
+    "noDataBody": "Add your first 5 words to your notebook to appear on the board.",
+    "checkLevelCta": "Check your level (2 min)",
+    "meNewcomer": "You — just starting out",
+    "rowSecondary": "{{reviews}} reviews · {{accuracy}}% correct",
+    "sampleBadge": "sample",
+    "metricWords": "Word count",
+    "metricWordsHint": "Total words currently in your notebook.",
+    "metricLongestStreak": "Longest streak",
+    "metricLongestStreakHint": "Most consecutive days studied ever.",
+    "metricTotalReviews": "Reviews",
+    "metricTotalReviewsHint": "Total number of completed reviews.",
+    "metricAccuracy": "Accuracy",
+    "metricAccuracyHint": "Correct-answer rate — requires at least 20 reviews to be ranked.",
+    "metricNewLast7": "New words (7d)",
+    "metricNewLast7Hint": "Words added to your notebook in the last 7 days.",
+    "metricLeechesConquered": "Hard words conquered",
+    "metricLeechesConqueredHint": "Words that used to trip you up, now mastered.",
+    "unitWords": "{{count}} words",
+    "unitDays": "{{count}} days",
+    "unitReviews": "{{count}} reviews"
+  },
+  "placement": {
+    "title": "Level Check",
+    "test": {
+      "heading": "Which words do you know?",
+      "subtitle": "Check the words whose meaning you know well. No need to overthink it — this takes about 1-2 minutes.",
+      "resultsCta": "See results ({{answered}}/{{total}} known)",
+      "skipCta": "Skip for now"
+    },
+    "triage": {
+      "heading": "A few words worth learning now",
+      "subtitlePrefix": "Your estimated level:",
+      "subtitleSuffix": "Confirm how well you know each word to start your notebook."
+    },
+    "done": {
+      "resultLabel": "Your level: {{level}}",
+      "addedWords": "Added {{count}} words to your notebook, ready to practice.",
+      "readyNotebook": "Your notebook is ready.",
+      "homeCta": "Back to home",
+      "practiceCta": "Practice now"
+    }
+  },
+  "grammar": {
+    "title": "Grammar",
+    "list": {
+      "heading": "Workplace Grammar Topics",
+      "subtitle": "Practice key grammar points to write emails and communicate with confidence.",
+      "questionCount": "{{count}} questions",
+      "lastAttempt": " · Last time: {{score}}/{{total}}"
+    },
+    "result": {
+      "title": "Exercise complete!",
+      "topicLabel": "Topic: {{topic}}",
+      "accuracyLabel": "Accuracy: {{percentage}}%",
+      "retryCta": "Retry this topic",
+      "backToListCta": "Back to topic list"
+    },
+    "quiz": {
+      "backToList": "Topic list",
+      "progressLabel": "Question {{current}} / {{total}}"
+    },
+    "quizCard": {
+      "explanationLabel": "Explanation & Grammar Rule",
+      "ruleSummaryLabel": "Remember: {{rule}}",
+      "continueCta": "Continue"
+    }
+  },
+  "exercise": {
+    "continueCta": "Continue",
+    "check": "Check",
+    "write": {
+      "title": "Exercise: Write your own sentence",
+      "gradeError": "Couldn't grade your sentence. Check your connection and try again.",
+      "prompt": "Write an English sentence containing \"{{word}}\":",
+      "placeholder": "Example: We need to {{word}} the process...",
+      "hintLabel": "Collocation hint:",
+      "grading": "Grading your sentence...",
+      "checkButton": "Check sentence",
+      "correctFeedback": "Well-formed sentence!",
+      "needsAdjustment": "Needs a bit more work",
+      "aiSuggestionLabel": "A more natural way to say it, from AI:"
+    },
+    "recall": {
+      "title": "Exercise: Recall the word from its meaning",
+      "placeholder": "Type the English word...",
+      "correctFeedback": "Correct!",
+      "answerIsLabel": "The correct word is:"
+    },
+    "fillBlank": {
+      "title": "Exercise: Fill in the blank",
+      "incorrectLabel": "Not quite right",
+      "answerLabel": "Answer: {{word}}"
+    },
+    "listen": {
+      "title": "Exercise: Listen and choose the word",
+      "playAudioAria": "Play audio",
+      "tapToListen": "Tap to hear the pronunciation"
+    }
+  },
+  "components": {
+    "triageList": {
+      "optionKnown": "Know it well",
+      "optionPartial": "Kind of know it",
+      "optionUnknown": "Don't know it",
+      "confirmDefault": "Confirm",
+      "showMore": "Show {{shown}} more ({{remaining}} left)",
+      "confirmWithCount": "{{label}} ({{count}} words)"
+    },
+    "wordCard": {
+      "leechBadge": "Tricky",
+      "playAudio": "Play pronunciation",
+      "collocationsLabel": "Goes with (Collocations)",
+      "wordFamilyLabel": "Word family:"
+    },
+    "sheet": {
+      "close": "Close"
+    },
+    "legacyClaimBanner": {
+      "title": "Move your notebook into this account?",
+      "body": "This device has a notebook you studied before signing in. Would you like to move all its words, review progress, and streak into the account you just signed into?",
+      "claimCta": "Move it into this account",
+      "declineCta": "Skip, start a new notebook"
+    }
+  },
+  "learnDoc": {
+    "analyzing": {
+      "heading": "Finding vocabulary in your document...",
+      "ariaLabel": "Document analysis progress",
+      "progressLabel": "{{completed}}/{{total}} parts · {{percent}}%",
+      "preparingProgress": "Preparing...",
+      "unitsInfo": "The document has {{count}} {{unit}}. This may take a minute.",
+      "preparingInfo": "Preparing analysis. This may take a minute."
+    },
+    "error": {
+      "heading": "Couldn't analyze the document",
+      "fallback": "Something went wrong.",
+      "retry": "Try again"
+    },
+    "success": {
+      "heading": "Added {{count}} words to your notebook",
+      "skippedNote": "{{count}} words you already know well — not added to your notebook.",
+      "readyNote": "Ready to review today.",
+      "startOver": "Learn another document",
+      "openNotebook": "Open notebook",
+      "practiceNow": "Practice now"
+    },
+    "result": {
+      "analyzedBy": "Analyzed by Gemini",
+      "title": "Vocabulary in {{fileName}}",
+      "untitledDoc": "document",
+      "subtitle": "{{count}} words worth learning. Choose how well you know each one before adding it to your notebook.",
+      "truncatedNotice": "The document is longer than {{count}} {{unit}} — only the first {{count}} {{unit}} were analyzed.",
+      "degradedNotice": "Some parts of the document couldn't be analyzed — you can still learn from the words that were found.",
+      "confirmLabel": "Add to notebook",
+      "fromDocument": "from document",
+      "fromAi": "AI-written"
+    },
+    "category": {
+      "academic": "Academic",
+      "technical": "Technical",
+      "ielts": "IELTS",
+      "phrasal": "Phrasal verb",
+      "idiom": "Idiom"
+    },
+    "unit": {
+      "page": "page",
+      "part": "part"
+    },
+    "dropzone": {
+      "readingFile": "Reading file...",
+      "orPasteHint": "Or paste text directly below",
+      "loadedFile": "Loaded: {{fileName}}"
+    }
+  },
+  "shell": {
+    "backHomeCta": "Back to home",
+    "error": {
+      "title": "Something went wrong",
+      "body": "This screen couldn't load. Your learning data is still safe on this device.",
+      "retryCta": "Try again"
+    },
+    "notFound": {
+      "title": "Page not found",
+      "body": "The link you opened doesn't exist or has changed."
+    }
+  }
+}

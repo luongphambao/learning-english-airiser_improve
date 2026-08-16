@@ -7,6 +7,7 @@ import { useSessionStore } from '@/stores/session-store';
 import { useTopupStore } from '@/stores/topup-store';
 import { useProfile } from '@/hooks/use-profile';
 import { useLastGrammarAttempts } from '@/hooks/use-grammar';
+import { useT } from '@/hooks/use-i18n';
 import { ExerciseFillBlank } from '@/components/ExerciseFillBlank';
 import { ExerciseListen } from '@/components/ExerciseListen';
 import { ExerciseWrite } from '@/components/ExerciseWrite';
@@ -22,6 +23,7 @@ import { CheckCircle2, Sparkles, AlertTriangle, BookCheck, Bookmark } from 'luci
 // (docs/decision.md ADR-004 — session.items is frozen for the session's lifetime).
 export default function PracticePage() {
   const router = useRouter();
+  const { t } = useT();
   const { session, status, error, start, answer, reset } = useSessionStore();
   const ensureSupply = useTopupStore((s) => s.ensureSupply);
   const { stats, settings } = useProfile();
@@ -45,7 +47,7 @@ export default function PracticePage() {
         className="py-16 text-center text-sm text-ink-soft font-mono-utility animate-pulse"
         aria-live="polite"
       >
-        Đang chuẩn bị bài học...
+        {t('practice.preparingSession')}
       </div>
     );
   }
@@ -55,13 +57,13 @@ export default function PracticePage() {
       <div className="py-16 text-center space-y-4" role="alert">
         <AlertTriangle size={32} className="mx-auto text-wrong" />
         <div className="text-sm text-wrong">
-          Không tải được bài học hôm nay. Kiểm tra kết nối rồi thử lại.
+          {t('practice.loadError')}
           {error ? <span className="block text-xs text-ink-soft mt-1 font-mono-utility">{error}</span> : null}
         </div>
         {/* Previously terminal until a hard reload — reset() returns status to
             'idle', which re-fires the effect above and retries start(). */}
         <Button variant="primary" onClick={() => reset()}>
-          Thử lại
+          {t('practice.retry')}
         </Button>
       </div>
     );
@@ -72,9 +74,9 @@ export default function PracticePage() {
       <div className="py-8 space-y-6">
         <EmptyState
           icon={<CheckCircle2 size={32} className="text-green" />}
-          title="Bạn đã học xong hôm nay!"
-          description="Không còn từ nào cần ôn lúc này. Thêm một email hay tài liệu công việc để có từ mới."
-          actionLabel="Học từ tài liệu của bạn"
+          title={t('practice.doneTitle')}
+          description={t('practice.doneDescription')}
+          actionLabel={t('practice.doneActionLabel')}
           onAction={() => router.push('/learn')}
         />
         <PracticeExtras grammarTopicsAttempted={grammarTopicsAttempted} />
@@ -90,17 +92,20 @@ export default function PracticePage() {
             <Sparkles size={32} />
           </div>
           <h2 className="font-serif-display text-3xl sm:text-4xl text-ink mb-2">
-            Xuất sắc! Đã học xong {session.items.length} từ.
+            {t('practice.completeTitle', { count: session.items.length })}
           </h2>
           <p className="text-sm text-ink-soft mb-6">
-            Chuỗi ngày học hiện tại: <span className="font-mono-utility font-semibold text-green">{stats.streak} ngày</span>
+            {t('practice.completeStreakPrefix')}{' '}
+            <span className="font-mono-utility font-semibold text-green">
+              {t('practice.completeStreakValue', { streak: stats.streak })}
+            </span>
           </p>
           <div className="flex gap-2 justify-center">
             <Button variant="quiet" onClick={() => router.push('/vocabulary')}>
-              Xem sổ tay
+              {t('practice.viewNotebook')}
             </Button>
             <Button variant="primary" onClick={() => router.push('/learn')}>
-              Học thêm từ tài liệu
+              {t('practice.learnMore')}
             </Button>
           </div>
         </div>
@@ -117,18 +122,18 @@ export default function PracticePage() {
     <div className="space-y-6">
       <div className="bg-green rounded-card p-6 sm:p-8 text-paper">
         <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3 inline-block">
-          Bài học hôm nay
+          {t('practice.sessionBadge')}
         </span>
-        <h1 className="font-serif-display text-2xl sm:text-3xl mb-2">Luyện từ vựng công sở</h1>
+        <h1 className="font-serif-display text-2xl sm:text-3xl mb-2">{t('practice.sessionTitle')}</h1>
         <p className="text-paper/80 text-sm sm:text-base max-w-md">
-          Luyện tập {session.items.length} từ vựng then chốt hôm nay thông qua bài tập phản xạ, chọn từ và nghe phát âm.
+          {t('practice.sessionDescription', { count: session.items.length })}
         </p>
       </div>
 
       <div
         className="flex items-center justify-center gap-1.5"
         role="progressbar"
-        aria-label="Tiến độ buổi học"
+        aria-label={t('practice.progressAria')}
         aria-valuenow={session.index + 1}
         aria-valuemin={1}
         aria-valuemax={session.items.length}
@@ -165,6 +170,7 @@ export default function PracticePage() {
 // the tab bar (docs/decision.md ADR-013) but stays a real, working feature with its
 // own history (grammarAttempts, ADR-011), reached from here instead.
 function PracticeExtras({ grammarTopicsAttempted }: { grammarTopicsAttempted: number }) {
+  const { t } = useT();
   return (
     <div className="pt-4 border-t border-rule space-y-1">
       <Link
@@ -173,10 +179,12 @@ function PracticeExtras({ grammarTopicsAttempted }: { grammarTopicsAttempted: nu
       >
         <span className="flex items-center gap-2">
           <BookCheck size={16} className="text-ink-soft" />
-          Ngữ pháp cơ bản
+          {t('practice.grammarBasics')}
         </span>
         <span className="text-xs font-mono-utility text-ink-soft">
-          {grammarTopicsAttempted > 0 ? `Đã luyện ${grammarTopicsAttempted} chủ đề` : 'Bắt đầu'}
+          {grammarTopicsAttempted > 0
+            ? t('practice.grammarAttempted', { count: grammarTopicsAttempted })
+            : t('practice.grammarStart')}
         </span>
       </Link>
       <Link
@@ -185,9 +193,9 @@ function PracticeExtras({ grammarTopicsAttempted }: { grammarTopicsAttempted: nu
       >
         <span className="flex items-center gap-2">
           <Bookmark size={16} className="text-ink-soft" />
-          Sổ tay của bạn
+          {t('practice.notebookLabel')}
         </span>
-        <span className="text-xs font-mono-utility text-ink-soft">Xem tất cả</span>
+        <span className="text-xs font-mono-utility text-ink-soft">{t('practice.viewAll')}</span>
       </Link>
     </div>
   );

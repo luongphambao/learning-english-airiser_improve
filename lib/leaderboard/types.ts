@@ -30,12 +30,17 @@ export type LeaderboardMetricId =
   | 'newLast7'
   | 'leechesConquered';
 
+// Matches useT()'s `t` return type (hooks/use-i18n.ts) without importing the hook
+// here — this file must stay hook-free so lib/leaderboard/** keeps working under a
+// plain node vitest environment.
+export type Translate = (key: string, vars?: Record<string, string | number>) => string;
+
 export interface MetricConfig {
   id: LeaderboardMetricId;
-  label: string; // chip label
-  hint: string; // one line shown under the podium
+  labelKey: string; // i18n key for chip label
+  hintKey: string; // i18n key for the one line shown under the podium
   valueOf: (entry: LeaderboardEntry) => number; // higher is always better
-  format: (entry: LeaderboardEntry) => string;
+  format: (entry: LeaderboardEntry, t: Translate) => string;
   // Entries failing this sort below every qualified entry and render "—".
   // Only the 'accuracy' metric uses it.
   qualifies?: (entry: LeaderboardEntry) => boolean;

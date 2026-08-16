@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
+import { useT } from '@/hooks/use-i18n';
 
 interface BackHeaderProps {
   title: string;
@@ -13,6 +14,7 @@ interface BackHeaderProps {
 // (deep-linking straight to /progress would otherwise have nowhere to go back to).
 export function BackHeader({ title }: BackHeaderProps) {
   const router = useRouter();
+  const { t } = useT();
 
   const goBack = () => {
     if (window.history.length > 1) router.back();
@@ -24,7 +26,7 @@ export function BackHeader({ title }: BackHeaderProps) {
       <button
         onClick={goBack}
         className="p-2 -ml-2 rounded-xl text-ink-soft hover:bg-green-wash hover:text-ink transition-colors cursor-pointer"
-        aria-label="Quay lại"
+        aria-label={t('common.back')}
       >
         <ChevronLeft size={22} />
       </button>

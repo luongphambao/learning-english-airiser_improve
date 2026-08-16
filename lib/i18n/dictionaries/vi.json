@@ -1,0 +1,524 @@
+{
+  "common": {
+    "settings": "Cài đặt",
+    "login": "Đăng nhập",
+    "back": "Quay lại",
+    "loading": "Đang tải...",
+    "genericError": "Đã có lỗi xảy ra.",
+    "toggleLanguage": "Chuyển đổi ngôn ngữ"
+  },
+  "tabBar": {
+    "nav": "Điều hướng chính",
+    "home": "Trang chủ",
+    "learnShort": "Học",
+    "learnFull": "Học từ công việc",
+    "practice": "Luyện tập",
+    "notebook": "Sổ tay"
+  },
+  "appHeader": {
+    "streakLabel": "Xem tiến độ chuỗi ngày",
+    "streakDays": "{{count}} ngày",
+    "toggleTheme": "Chuyển đổi giao diện sáng/tối",
+    "loggedInAs": "Đã đăng nhập: {{email}}",
+    "loginWithEmail": "Đăng nhập với email"
+  },
+  "today": {
+    "greetingHello": "Chào bạn.",
+    "greetingMorning": "Chào buổi sáng.",
+    "greetingAfternoon": "Chào buổi chiều.",
+    "greetingEvening": "Chào buổi tối.",
+    "subtitle": "Hôm nay luyện tiếng Anh cho công việc của bạn.",
+    "emptyNotebook": "Sổ tay của bạn còn trống. Làm bài kiểm tra trình độ 2 phút để có ngay vài từ đúng sức học, hoặc dán một tài liệu công việc để Gemini tìm từ đáng học riêng cho bạn.",
+    "checkLevelCta": "Kiểm tra trình độ (2 phút)",
+    "learnFromDocCta": "Học từ tài liệu của bạn",
+    "todayLabel": "Hôm nay",
+    "dueWords": "từ đến hạn ôn",
+    "newWords": "từ mới chưa học",
+    "leechWords": "từ bạn hay quên",
+    "sessionSummary": "Khoảng {{minutes}} phút · {{count}} thẻ trong buổi này",
+    "startPracticeCta": "Bắt đầu luyện tập hôm nay",
+    "doneToday": "Bạn đã học xong hôm nay. Quay lại vào ngày mai, hoặc thêm tài liệu mới để học tiếp.",
+    "learnFromWorkLabel": "Học từ công việc thật",
+    "learnFromWorkBody": "Dán một email, báo cáo hay tài liệu công việc. Gemini sẽ tìm từ vựng, cụm từ chuyên nghiệp và lỗi ngữ pháp đáng học trong đó.",
+    "pasteText": "Dán văn bản",
+    "uploadDoc": "Tải tài liệu",
+    "needsAttention": "Cần chú ý",
+    "focusLeech": "Bạn hay quên {{count}} từ. Ôn lại trước tiên.",
+    "focusLowAccuracy": "Tỉ lệ đúng của bạn là {{accuracy}}%. Luyện thêm để nhớ lâu hơn.",
+    "focusFewWords": "Sổ tay còn ít từ. Thêm một tài liệu công việc để có nội dung học riêng.",
+    "focusGoodPace": "Bạn đang giữ nhịp tốt. Chuỗi {{streak}} ngày.",
+    "streakFooter": "Chuỗi {{streak}} ngày · dài nhất {{longest}} ngày · Xem tiến độ →",
+    "leaderboardFooter": "Bảng xếp hạng →",
+    "studyPlanFooter": "Kế hoạch học →"
+  },
+  "learn": {
+    "tabs": {
+      "work": "Từ công việc",
+      "doc": "Từ tài liệu"
+    },
+    "pastePlaceholder": "Dán đoạn văn tiếng Anh vào đây...",
+    "pastedTextName": "Đoạn văn đã dán",
+    "pastImportsLabel": "Đã phân tích trước đó",
+    "work": {
+      "heading": "Học từ công việc thật",
+      "subtitle": "Dán một email, báo cáo, ghi chú họp hay tài liệu tiếng Anh bạn đang dùng ở công ty. AI sẽ tìm từ vựng, cụm từ chuyên nghiệp, lỗi ngữ pháp và cách viết chuyên nghiệp hơn trong đó.",
+      "uploadHint": "Bấm để tải tệp văn bản (.txt, .md)",
+      "analyzeButton": "Phân tích với Gemini"
+    },
+    "doc": {
+      "heading": "Đào từ vựng từ tài liệu",
+      "subtitle": "Tải một tài liệu, bài báo hay bài viết tiếng Anh bạn đang đọc (.txt, .md, .pdf, .docx). AI sẽ tìm những từ vựng đáng học mà có thể bạn chưa biết, kèm câu ví dụ ngay trong tài liệu.",
+      "uploadHint": "Bấm để tải tệp (.txt, .md, .pdf, .docx)",
+      "analyzeButton": "Tìm từ vựng đáng học"
+    },
+    "importStatus": {
+      "ready": "Xem kết quả",
+      "done": "Đã thêm {{count}} mục",
+      "failed": "Lỗi",
+      "analyzing": "Đang phân tích..."
+    },
+    "analyzingHeading": "Đang đọc tài liệu của bạn...",
+    "analyzingBody": "Gemini đang tìm từ vựng, cụm từ và lỗi ngữ pháp đáng học. Có thể mất đến một phút.",
+    "resultLabel": "Phân tích bởi Gemini",
+    "defaultHeadline": "Kết quả phân tích",
+    "inputTypes": {
+      "workEmail": "Email công việc",
+      "report": "Báo cáo",
+      "meetingNote": "Ghi chú họp",
+      "chat": "Tin nhắn công việc",
+      "document": "Tài liệu",
+      "other": "Văn bản"
+    },
+    "counts": {
+      "words": "{{count}} từ vựng",
+      "phrases": "{{count}} cụm từ",
+      "grammar": "{{count}} điểm ngữ pháp",
+      "rewrites": "{{count}} cách viết hay hơn"
+    },
+    "section": {
+      "vocab": "Từ vựng",
+      "phrase": "Cụm từ chuyên nghiệp",
+      "grammar": "Điểm ngữ pháp"
+    },
+    "noInsights": "Văn bản của bạn không có cơ hội học tập rõ ràng nào — thử một đoạn dài hơn hoặc mang tính công việc hơn.",
+    "addingButton": "Đang thêm...",
+    "addButton": "Thêm {{count}} mục vào sổ tay",
+    "savedHeading": "Đã thêm {{count}} mục vào sổ tay",
+    "savedBody": "AI đã chuẩn bị sẵn ví dụ và lựa chọn luyện tập cho từng mục — sẵn sàng ôn ngay hôm nay.",
+    "learnAnotherDoc": "Học tài liệu khác",
+    "openNotebook": "Mở sổ tay",
+    "practiceNow": "Luyện tập ngay",
+    "errorHeading": "Không phân tích được tài liệu",
+    "genericError": "Đã có lỗi xảy ra.",
+    "retryButton": "Thử lại",
+    "errors": {
+      "fileEmptyText": "Không đọc được nội dung văn bản từ tệp này. Thử dán trực tiếp đoạn văn bên dưới.",
+      "fileUnreadable": "Không đọc được tệp. Tệp có thể bị hỏng — thử tệp khác hoặc dán văn bản.",
+      "fileParseFailed": "Không đọc được tệp. Thử tệp khác hoặc dán văn bản."
+    },
+    "rewrite": {
+      "label": "Cách viết chuyên nghiệp hơn",
+      "original": "Bạn viết",
+      "suggested": "Nên viết",
+      "reason": "Vì sao hay hơn",
+      "savedPhrase": "Đã chọn lưu \"{{phrase}}\"",
+      "savePhrase": "Lưu cụm từ \"{{phrase}}\""
+    }
+  },
+  "vocabulary": {
+    "searchPlaceholder": "Tìm từ vựng hoặc nghĩa tiếng Việt...",
+    "emptyTitle": "Chưa có từ nào trong sổ",
+    "emptyDescription": "Bấm nút dấu cộng bên dưới để thêm từ mới đầu tiên.",
+    "enrichingMeaning": "Đang tải nghĩa AI...",
+    "pendingEnrichment": "Đang chờ làm giàu nội dung...",
+    "statusKnown": "Đã thuộc",
+    "statusLearning": "Đang học",
+    "statusNew": "Từ mới",
+    "addWordAria": "Thêm từ mới",
+    "sourceLabel": "Nguồn",
+    "manualSourceFallback": "Tự thêm",
+    "dateAddedLabel": "Ngày thêm",
+    "reviewCountLabel": "Đã ôn tập",
+    "reviewCountValue": "{{count}} lần",
+    "nextReviewLabel": "Ôn lại tiếp",
+    "notStudiedYet": "Chưa học",
+    "deleteWord": "Xoá từ",
+    "addSheetTitle": "Thêm từ vựng mới",
+    "tabType": "Gõ từ",
+    "tabPaste": "Dán đoạn văn",
+    "tabFile": "Tải tệp",
+    "typeLabel": "Nhập từ tiếng Anh:",
+    "typePlaceholder": "Ví dụ: leverage, orchestrate...",
+    "aiEnrichNote": "AI sẽ tự động làm giàu thông tin: phát âm IPA, nghĩa tiếng Việt, câu ví dụ và collocations đi kèm.",
+    "saveNow": "Lưu từ ngay",
+    "pasteLabel": "Dán bài đọc / email / tài liệu công việc:",
+    "pastePlaceholder": "Dán đoạn văn tiếng Anh vào đây...",
+    "extracting": "Đang trích xuất từ vựng...",
+    "analyzeCta": "Phân tích & Lọc từ đáng học",
+    "suggestedWords": "Các từ vựng gợi ý:",
+    "addAllCta": "Thêm tất cả {{count}} từ vào sổ",
+    "fileTabDescription": "Phân tích cả tài liệu (tệp .txt/.md hoặc dán văn bản dài) trên màn riêng — có bộ lọc theo trình độ và phân loại từng từ trước khi thêm vào sổ.",
+    "openUploadCta": "Mở màn Tải tài liệu"
+  },
+  "practice": {
+    "preparingSession": "Đang chuẩn bị bài học...",
+    "loadError": "Không tải được bài học hôm nay. Kiểm tra kết nối rồi thử lại.",
+    "retry": "Thử lại",
+    "doneTitle": "Bạn đã học xong hôm nay!",
+    "doneDescription": "Không còn từ nào cần ôn lúc này. Thêm một email hay tài liệu công việc để có từ mới.",
+    "doneActionLabel": "Học từ tài liệu của bạn",
+    "completeTitle": "Xuất sắc! Đã học xong {{count}} từ.",
+    "completeStreakPrefix": "Chuỗi ngày học hiện tại:",
+    "completeStreakValue": "{{streak}} ngày",
+    "viewNotebook": "Xem sổ tay",
+    "learnMore": "Học thêm từ tài liệu",
+    "sessionBadge": "Bài học hôm nay",
+    "sessionTitle": "Luyện từ vựng công sở",
+    "sessionDescription": "Luyện tập {{count}} từ vựng then chốt hôm nay thông qua bài tập phản xạ, chọn từ và nghe phát âm.",
+    "progressAria": "Tiến độ buổi học",
+    "grammarBasics": "Ngữ pháp cơ bản",
+    "grammarAttempted": "Đã luyện {{count}} chủ đề",
+    "grammarStart": "Bắt đầu",
+    "notebookLabel": "Sổ tay của bạn",
+    "viewAll": "Xem tất cả"
+  },
+  "tabsShell": {
+    "errorTitle": "Đã có lỗi xảy ra",
+    "errorDescription": "Màn hình này không tải được. Dữ liệu học của bạn vẫn an toàn trên máy.",
+    "backHome": "Về trang chủ",
+    "retry": "Thử lại"
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "account": {
+      "title": "Tài khoản Lexio",
+      "notLoggedIn": "Chưa đăng nhập email",
+      "manage": "Quản lý",
+      "login": "Đăng nhập"
+    },
+    "sync": {
+      "title": "Đồng bộ đa thiết bị",
+      "syncing": "Đang đồng bộ...",
+      "offline": "Không có mạng — sẽ tự thử lại.",
+      "errorFallback": "Đồng bộ thất bại — sẽ tự thử lại.",
+      "syncedAt": "Đồng bộ lúc {{time}}",
+      "never": "Chưa đồng bộ lần nào",
+      "syncNow": "Đồng bộ ngay"
+    },
+    "gmail": {
+      "title": "Nhắc nhở học tập qua Gmail",
+      "description": "Nhận email chứa các từ vựng cần ôn tập trực tiếp vào hộp thư Gmail của bạn. Hiện tại cần bấm nút bên dưới để gửi — gửi tự động mỗi ngày sẽ có ở bản sau.",
+      "checkingConnection": "Đang kiểm tra kết nối...",
+      "disconnect": "Ngắt",
+      "sendingEmail": "Đang gửi email...",
+      "sendTestEmail": "Gửi email nhắc học thử ngay",
+      "connect": "Kết nối tài khoản Gmail"
+    },
+    "notices": {
+      "connectedSuccess": "Đã kết nối tài khoản Gmail thành công!",
+      "oauthConfigMissing": "Google OAuth chưa được cấu hình Client ID trên hệ thống.",
+      "connectFailed": "Kết nối Gmail thất bại. Vui lòng thử lại.",
+      "disconnectedSuccess": "Đã ngắt kết nối Gmail.",
+      "disconnectError": "Lỗi khi ngắt kết nối.",
+      "sendSuccess": "Đã gửi thành công email 5 từ vựng tới {{recipient}}!",
+      "sendFailedFallback": "Không thể gửi email. Vui lòng kiểm tra lại kết nối.",
+      "sendSystemError": "Lỗi hệ thống khi gửi email."
+    },
+    "contextTopic": {
+      "label": "Chủ đề lĩnh vực làm việc (Định hướng câu ví dụ AI):"
+    },
+    "level": {
+      "label": "Trình độ tiếng Anh mục tiêu:",
+      "declared": "Bạn đã tự chọn trình độ này.",
+      "placement": "Dựa trên bài kiểm tra trình độ bạn đã làm.",
+      "autoAdjusted": "Được điều chỉnh tự động dựa trên kết quả học và luyện tập của bạn.",
+      "defaultFallback": "Mức mặc định — hãy làm bài kiểm tra trình độ để có kết quả chính xác hơn."
+    },
+    "sessionSize": {
+      "label": "Số thẻ mỗi buổi:",
+      "decreaseAria": "Giảm số thẻ mỗi buổi",
+      "increaseAria": "Tăng số thẻ mỗi buổi"
+    },
+    "theme": {
+      "label": "Giao diện:",
+      "light": "Giao diện Sáng",
+      "dark": "Giao diện Tối"
+    },
+    "studyPlan": {
+      "title": "Kế hoạch học"
+    }
+  },
+  "login": {
+    "title": "Đăng nhập",
+    "tagline": "Năm từ mỗi sáng. Ba phút. Những từ bạn thật sự dùng trong công việc.",
+    "googleSuccess": "Đăng nhập Google thành công!",
+    "googleConfigMissing": "Google Sign-In chưa được cấu hình Client ID. Vui lòng đăng nhập bằng Email.",
+    "googleFailed": "Đăng nhập Google không thành công. Vui lòng thử lại hoặc đăng nhập bằng Email.",
+    "accountCreated": "Tạo tài khoản thành công!",
+    "signInSuccess": "Đăng nhập thành công!",
+    "invalidEmail": "Vui lòng nhập địa chỉ email hợp lệ.",
+    "passwordTooShort": "Mật khẩu cần ít nhất 6 ký tự.",
+    "forgotPasswordNeedsEmail": "Nhập email của bạn ở ô trên trước, rồi bấm lại \"Quên mật khẩu?\".",
+    "passwordResetSent": "Đã gửi email đặt lại mật khẩu. Kiểm tra hộp thư của bạn.",
+    "signedOut": "Đã đăng xuất tài khoản.",
+    "signOutFailed": "Không thể đăng xuất. Thử lại sau.",
+    "checkingStatus": "Đang kiểm tra trạng thái...",
+    "loggedInAs": "Đang đăng nhập với",
+    "goToApp": "Vào học ngay",
+    "signOut": "Đăng xuất",
+    "tabSignIn": "Đăng nhập",
+    "tabRegister": "Tạo tài khoản",
+    "nameLabel": "Tên hiển thị (không bắt buộc)",
+    "namePlaceholder": "Tên của bạn",
+    "emailLabel": "Địa chỉ email của bạn",
+    "emailPlaceholder": "ban@congty.com",
+    "passwordLabel": "Mật khẩu",
+    "forgotPassword": "Quên mật khẩu?",
+    "creatingAccount": "Đang tạo tài khoản...",
+    "signingIn": "Đang đăng nhập...",
+    "submitRegister": "Tạo tài khoản",
+    "submitSignIn": "Đăng nhập bằng Email",
+    "orDivider": "hoặc",
+    "googleSignIn": "Đăng nhập với Google"
+  },
+  "calendar": {
+    "title": "Kế hoạch học",
+    "heading": "Kế hoạch học của bạn",
+    "subtitle": "Đặt nhịp học đều đặn — vài phút mỗi ngày hiệu quả hơn học dồn một lần.",
+    "thisWeek": "Tuần này",
+    "daysStudiedSuffix": "/ 7 ngày đã học",
+    "weekProgressAria": "Đã học {{count}} trên 7 ngày gần nhất",
+    "currentStreakLabel": "Chuỗi hiện tại:",
+    "daysUnit": "ngày",
+    "longestStreakLabel": "Dài nhất:",
+    "preferredStudyTime": "Giờ học ưa thích",
+    "studyTimeBody": "Học vào cùng một khung giờ mỗi ngày giúp việc ôn từ trở thành thói quen bền vững. Lexio chỉ dùng giờ này để nhắc bạn — ứng dụng không tự mở lên vào giờ đó.",
+    "reminderEmailHeading": "Email nhắc học",
+    "reminderOff": "Tắt",
+    "reminder7am": "7:00 Sáng",
+    "reminder8am": "8:00 Sáng",
+    "reminder9am": "9:00 Sáng",
+    "reminder8pm": "20:00 Tối",
+    "reminderEmailBody": "Lưu giờ bạn muốn nhận email từ cần ôn tập. Lexio gửi qua tài khoản Gmail bạn đã kết nối ở Cài đặt — hiện tại bạn cần bấm “Gửi email nhắc học thử ngay” trong Cài đặt để gửi; gửi tự động theo giờ đã chọn sẽ có ở bản sau."
+  },
+  "progress": {
+    "backHeaderTitle": "Tiến độ",
+    "overviewBadge": "Tổng quan tiến độ",
+    "heroTitle": "Thói quen học tập mỗi ngày",
+    "heroSubtitle": "Duy trì 3 phút ôn tập từ vựng & ngữ pháp để đạt sự tự tin tối đa trong công việc.",
+    "streakLabel": "Chuỗi ngày",
+    "streakLongest": "Dài nhất: {{days}} ngày",
+    "knownWordsLabel": "Từ đã thuộc",
+    "knownWordsHint": "Mức độ thuộc >= 4",
+    "learningLabel": "Đang học",
+    "learningHint": "Đang ôn tập định kỳ",
+    "reviewsLabel": "Lượt bài tập",
+    "reviewsAccuracy": "Đúng {{accuracy}}%",
+    "chartTitle": "Biểu đồ lượt ôn tập (7 ngày qua)",
+    "chartTotalLabel": "Tổng số lượt ôn:",
+    "chartTotalUnit": "lượt",
+    "tooltipReviewsLabel": "Lượt ôn tập:",
+    "accuracyBadge": "Tỉ lệ đúng {{accuracy}}%",
+    "activityTitle": "Hoạt động 7 ngày qua",
+    "leaderboardCardTitle": "Bảng xếp hạng",
+    "leaderboardCardSubtitle": "Xem bạn đang ở đâu so với người học khác",
+    "leechSectionTitle": "Từ vựng hay trả lời sai ({{count}})",
+    "leechSectionBody": "Các từ này sẽ tự động chuyển sang chế độ gõ tự luận hoặc nghe để giúp bạn khắc sâu trí nhớ.",
+    "startedJourney": "Bạn bắt đầu hành trình học cùng Lexio từ {{date}}"
+  },
+  "leaderboardPage": {
+    "backHeaderTitle": "Bảng xếp hạng",
+    "demoBannerTitle": "Bảng xếp hạng minh hoạ.",
+    "demoBannerBody": "20 người học trong danh sách là dữ liệu mẫu cố định, không phải người dùng thật. Chỉ dòng của bạn là số liệu thật, đọc từ sổ tay và lịch sử ôn tập trên máy này.",
+    "tablistAriaLabel": "Chọn tiêu chí xếp hạng",
+    "loadingLabel": "Đang tải bảng xếp hạng",
+    "myRankPosition": "Vị trí của bạn",
+    "viewMyRowCta": "Xem dòng của bạn",
+    "noDataTitle": "Bạn chưa có dữ liệu để xếp hạng.",
+    "noDataBody": "Thêm 5 từ đầu tiên vào sổ tay là bạn có mặt trên bảng.",
+    "checkLevelCta": "Kiểm tra trình độ (2 phút)",
+    "meNewcomer": "Bạn — mới bắt đầu",
+    "rowSecondary": "{{reviews}} lượt · {{accuracy}}% đúng",
+    "sampleBadge": "mẫu",
+    "metricWords": "Số từ vựng",
+    "metricWordsHint": "Tổng số từ đang có trong sổ tay.",
+    "metricLongestStreak": "Chuỗi dài nhất",
+    "metricLongestStreakHint": "Số ngày học liên tiếp nhiều nhất từ trước tới nay.",
+    "metricTotalReviews": "Lượt ôn tập",
+    "metricTotalReviewsHint": "Tổng số lượt trả lời đã hoàn thành.",
+    "metricAccuracy": "Độ chính xác",
+    "metricAccuracyHint": "Tỉ lệ trả lời đúng — cần ít nhất 20 lượt ôn để được xếp hạng.",
+    "metricNewLast7": "Từ mới 7 ngày",
+    "metricNewLast7Hint": "Số từ thêm vào sổ tay trong 7 ngày gần nhất.",
+    "metricLeechesConquered": "Từ khó đã chinh phục",
+    "metricLeechesConqueredHint": "Từ từng hay quên, nay đã thuộc.",
+    "unitWords": "{{count}} từ",
+    "unitDays": "{{count}} ngày",
+    "unitReviews": "{{count}} lượt"
+  },
+  "placement": {
+    "title": "Kiểm tra trình độ",
+    "test": {
+      "heading": "Bạn biết những từ nào?",
+      "subtitle": "Tích vào từ bạn đã biết rõ nghĩa. Không cần suy nghĩ lâu — chỉ mất khoảng 1-2 phút.",
+      "resultsCta": "Xem kết quả ({{answered}}/{{total}} đã biết)",
+      "skipCta": "Bỏ qua, để sau"
+    },
+    "triage": {
+      "heading": "Vài từ đáng học ngay",
+      "subtitlePrefix": "Trình độ ước tính của bạn:",
+      "subtitleSuffix": "Xác nhận mức độ biết của từng từ để bắt đầu sổ tay."
+    },
+    "done": {
+      "resultLabel": "Trình độ của bạn: {{level}}",
+      "addedWords": "Đã thêm {{count}} từ vào sổ tay, sẵn sàng để luyện tập.",
+      "readyNotebook": "Sổ tay của bạn đã sẵn sàng.",
+      "homeCta": "Về trang chủ",
+      "practiceCta": "Luyện tập ngay"
+    }
+  },
+  "grammar": {
+    "title": "Ngữ pháp",
+    "list": {
+      "heading": "Chủ đề Ngữ pháp công sở",
+      "subtitle": "Luyện tập các điểm ngữ pháp then chốt để viết email và giao tiếp tự tin.",
+      "questionCount": "{{count}} câu hỏi",
+      "lastAttempt": " · Lần trước: {{score}}/{{total}}"
+    },
+    "result": {
+      "title": "Hoàn thành bài tập!",
+      "topicLabel": "Chủ đề: {{topic}}",
+      "accuracyLabel": "Tỉ lệ chính xác: {{percentage}}%",
+      "retryCta": "Làm lại chủ đề này",
+      "backToListCta": "Quay lại danh sách chủ đề"
+    },
+    "quiz": {
+      "backToList": "Danh sách chủ đề",
+      "progressLabel": "Câu {{current}} / {{total}}"
+    },
+    "quizCard": {
+      "explanationLabel": "Giải thích & Quy tắc ngữ pháp",
+      "ruleSummaryLabel": "Ghi nhớ: {{rule}}",
+      "continueCta": "Tiếp tục"
+    }
+  },
+  "exercise": {
+    "continueCta": "Tiếp tục",
+    "check": "Kiểm tra",
+    "write": {
+      "title": "Bài tập: Tự đặt câu",
+      "gradeError": "Không chấm được câu. Kiểm tra kết nối rồi thử lại.",
+      "prompt": "Đặt 1 câu tiếng Anh có chứa từ \"{{word}}\":",
+      "placeholder": "Ví dụ: We need to {{word}} the process...",
+      "hintLabel": "Gợi ý cụm từ:",
+      "grading": "Đang chấm câu...",
+      "checkButton": "Kiểm tra câu",
+      "correctFeedback": "Đặt câu đúng!",
+      "needsAdjustment": "Cần điều chỉnh thêm",
+      "aiSuggestionLabel": "Cách nói tự nhiên hơn từ AI:"
+    },
+    "recall": {
+      "title": "Bài tập: Nhớ từ từ nghĩa tiếng Việt",
+      "placeholder": "Nhập từ tiếng Anh...",
+      "correctFeedback": "Chính xác!",
+      "answerIsLabel": "Từ đúng là:"
+    },
+    "fillBlank": {
+      "title": "Bài tập: Điền từ vào chỗ trống",
+      "incorrectLabel": "Chưa chính xác",
+      "answerLabel": "Đáp án: {{word}}"
+    },
+    "listen": {
+      "title": "Bài tập: Nghe và chọn từ",
+      "playAudioAria": "Phát âm thanh",
+      "tapToListen": "Bấm để nghe phát âm"
+    }
+  },
+  "components": {
+    "triageList": {
+      "optionKnown": "Đã biết rõ",
+      "optionPartial": "Biết sơ sơ",
+      "optionUnknown": "Chưa biết",
+      "confirmDefault": "Xác nhận",
+      "showMore": "Xem thêm {{shown}} từ ({{remaining}} từ còn lại)",
+      "confirmWithCount": "{{label}} ({{count}} từ)"
+    },
+    "wordCard": {
+      "leechBadge": "Từ khó",
+      "playAudio": "Nghe phát âm",
+      "collocationsLabel": "Thường đi với (Collocations)",
+      "wordFamilyLabel": "Cùng họ:"
+    },
+    "sheet": {
+      "close": "Đóng"
+    },
+    "legacyClaimBanner": {
+      "title": "Chuyển sổ từ vào tài khoản?",
+      "body": "Máy này có một sổ từ được học trước khi bạn đăng nhập. Bạn có muốn chuyển toàn bộ số từ, tiến độ ôn tập và streak đó vào tài khoản vừa đăng nhập không?",
+      "claimCta": "Chuyển vào tài khoản này",
+      "declineCta": "Bỏ qua, bắt đầu sổ từ mới"
+    }
+  },
+  "learnDoc": {
+    "analyzing": {
+      "heading": "Đang tìm từ vựng trong tài liệu...",
+      "ariaLabel": "Tiến độ phân tích tài liệu",
+      "progressLabel": "{{completed}}/{{total}} phần · {{percent}}%",
+      "preparingProgress": "Đang chuẩn bị...",
+      "unitsInfo": "Tài liệu có {{count}} {{unit}}. Có thể mất một phút.",
+      "preparingInfo": "Đang chuẩn bị phân tích. Có thể mất một phút."
+    },
+    "error": {
+      "heading": "Không phân tích được tài liệu",
+      "fallback": "Đã có lỗi xảy ra.",
+      "retry": "Thử lại"
+    },
+    "success": {
+      "heading": "Đã thêm {{count}} từ vào sổ tay",
+      "skippedNote": "{{count}} từ bạn đã biết rõ — không thêm vào sổ tay.",
+      "readyNote": "Sẵn sàng ôn ngay hôm nay.",
+      "startOver": "Học tài liệu khác",
+      "openNotebook": "Mở sổ tay",
+      "practiceNow": "Luyện tập ngay"
+    },
+    "result": {
+      "analyzedBy": "Phân tích bởi Gemini",
+      "title": "Từ vựng trong {{fileName}}",
+      "untitledDoc": "tài liệu",
+      "subtitle": "{{count}} từ đáng học. Chọn mức độ bạn đã biết cho từng từ trước khi thêm vào sổ tay.",
+      "truncatedNotice": "Tài liệu dài hơn {{count}} {{unit}} — chỉ phân tích {{count}} {{unit}} đầu.",
+      "degradedNotice": "Một số phần tài liệu chưa phân tích được — bạn vẫn có thể học từ những từ đã tìm thấy.",
+      "confirmLabel": "Thêm vào sổ tay",
+      "fromDocument": "từ tài liệu",
+      "fromAi": "AI viết"
+    },
+    "category": {
+      "academic": "Học thuật",
+      "technical": "Chuyên ngành",
+      "ielts": "IELTS",
+      "phrasal": "Phrasal verb",
+      "idiom": "Thành ngữ"
+    },
+    "unit": {
+      "page": "trang",
+      "part": "đoạn"
+    },
+    "dropzone": {
+      "readingFile": "Đang đọc tệp...",
+      "orPasteHint": "Hoặc dán trực tiếp đoạn văn bên dưới",
+      "loadedFile": "Đã nạp: {{fileName}}"
+    }
+  },
+  "shell": {
+    "backHomeCta": "Về trang chủ",
+    "error": {
+      "title": "Đã có lỗi xảy ra",
+      "body": "Màn hình này không tải được. Dữ liệu học của bạn vẫn an toàn trên máy.",
+      "retryCta": "Thử lại"
+    },
+    "notFound": {
+      "title": "Không tìm thấy trang",
+      "body": "Đường dẫn bạn mở không tồn tại hoặc đã được đổi."
+    }
+  }
+}

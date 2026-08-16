@@ -3,6 +3,7 @@
 import React from 'react';
 import { useProfile } from '@/hooks/use-profile';
 import { useWordsList } from '@/hooks/use-words';
+import { useT } from '@/hooks/use-i18n';
 import { WordCard } from '@/components/WordCard';
 import { BackHeader } from '@/components/layout/back-header';
 import Link from 'next/link';
@@ -24,14 +25,14 @@ interface TooltipProps {
   payload?: Array<{ payload: { day: string; date: string; reviews: number } }>;
 }
 
-function CustomTooltip({ active, payload }: TooltipProps) {
+function CustomTooltip({ active, payload, t }: TooltipProps & { t: (key: string, vars?: Record<string, string | number>) => string }) {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
       <div className="bg-surface border border-rule rounded-xl p-3 shadow-card text-xs font-sans">
         <p className="font-semibold text-ink">{data.day} ({data.date})</p>
         <p className="text-green font-mono-utility mt-1">
-          Lượt ôn tập: <span className="font-bold">{data.reviews} lượt</span>
+          {t('progress.tooltipReviewsLabel')} <span className="font-bold">{data.reviews} {t('progress.chartTotalUnit')}</span>
         </p>
       </div>
     );
@@ -51,6 +52,7 @@ function CustomTooltip({ active, payload }: TooltipProps) {
 export default function ProgressPage() {
   const { stats } = useProfile();
   const words = useWordsList();
+  const { t } = useT();
 
   const knownWordsCount = words.filter((w) => w.status === 'known').length;
   const learningWordsCount = words.filter((w) => w.status === 'learning').length;
@@ -85,50 +87,50 @@ export default function ProgressPage() {
 
   return (
     <>
-      <BackHeader title="Tiến độ" />
+      <BackHeader title={t('progress.backHeaderTitle')} />
       <div className="space-y-6 animate-fade-in pt-6">
         <div className="bg-green rounded-card p-6 sm:p-8 text-paper">
           <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-3 inline-block">
-            Tổng quan tiến độ
+            {t('progress.overviewBadge')}
           </span>
-          <h1 className="font-serif-display text-2xl sm:text-3xl mb-2">Thói quen học tập mỗi ngày</h1>
+          <h1 className="font-serif-display text-2xl sm:text-3xl mb-2">{t('progress.heroTitle')}</h1>
           <p className="text-paper/80 text-sm sm:text-base max-w-md">
-            Duy trì 3 phút ôn tập từ vựng & ngữ pháp để đạt sự tự tin tối đa trong công việc.
+            {t('progress.heroSubtitle')}
           </p>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="bg-surface border border-rule rounded-card p-4 text-center">
-            <span className="text-xs font-mono-utility text-ink-soft uppercase block mb-1">Chuỗi ngày</span>
+            <span className="text-xs font-mono-utility text-ink-soft uppercase block mb-1">{t('progress.streakLabel')}</span>
             <div className="flex items-center justify-center gap-1.5 text-2xl sm:text-3xl font-bold text-amber-ink font-mono-utility">
               <Flame size={24} className="fill-amber text-amber" />
               {stats.streak}
             </div>
-            <span className="text-[11px] text-ink-soft block mt-1">Dài nhất: {stats.longestStreak} ngày</span>
+            <span className="text-[11px] text-ink-soft block mt-1">{t('progress.streakLongest', { days: stats.longestStreak })}</span>
           </div>
 
           <div className="bg-surface border border-rule rounded-2xl p-4 shadow-xs text-center">
-            <span className="text-xs font-mono-utility text-ink-soft uppercase block mb-1">Từ đã thuộc</span>
+            <span className="text-xs font-mono-utility text-ink-soft uppercase block mb-1">{t('progress.knownWordsLabel')}</span>
             <div className="text-2xl sm:text-3xl font-bold text-green font-mono-utility">
               {knownWordsCount}
             </div>
-            <span className="text-[11px] text-ink-soft block mt-1">Mức độ thuộc &gt;= 4</span>
+            <span className="text-[11px] text-ink-soft block mt-1">{t('progress.knownWordsHint')}</span>
           </div>
 
           <div className="bg-surface border border-rule rounded-2xl p-4 shadow-xs text-center">
-            <span className="text-xs font-mono-utility text-ink-soft uppercase block mb-1">Đang học</span>
+            <span className="text-xs font-mono-utility text-ink-soft uppercase block mb-1">{t('progress.learningLabel')}</span>
             <div className="text-2xl sm:text-3xl font-bold text-amber-ink font-mono-utility">
               {learningWordsCount}
             </div>
-            <span className="text-[11px] text-ink-soft block mt-1">Đang ôn tập định kỳ</span>
+            <span className="text-[11px] text-ink-soft block mt-1">{t('progress.learningHint')}</span>
           </div>
 
           <div className="bg-surface border border-rule rounded-2xl p-4 shadow-xs text-center">
-            <span className="text-xs font-mono-utility text-ink-soft uppercase block mb-1">Lượt bài tập</span>
+            <span className="text-xs font-mono-utility text-ink-soft uppercase block mb-1">{t('progress.reviewsLabel')}</span>
             <div className="text-2xl sm:text-3xl font-bold text-ink font-mono-utility">
               {stats.totalReviews}
             </div>
-            <span className="text-[11px] text-ink-soft block mt-1">Đúng {accuracy}%</span>
+            <span className="text-[11px] text-ink-soft block mt-1">{t('progress.reviewsAccuracy', { accuracy })}</span>
           </div>
         </div>
 
@@ -138,11 +140,11 @@ export default function ProgressPage() {
             <div className="flex items-center gap-2">
               <BarChart2 size={18} className="text-green" />
               <div>
-                <h3 className="font-semibold text-base text-ink">Biểu đồ lượt ôn tập (7 ngày qua)</h3>
-                <p className="text-xs text-ink-soft">Tổng số lượt ôn: <span className="font-mono-utility font-semibold text-ink">{reviewsLast7Days}</span> lượt</p>
+                <h3 className="font-semibold text-base text-ink">{t('progress.chartTitle')}</h3>
+                <p className="text-xs text-ink-soft">{t('progress.chartTotalLabel')} <span className="font-mono-utility font-semibold text-ink">{reviewsLast7Days}</span> {t('progress.chartTotalUnit')}</p>
               </div>
             </div>
-            <span className="text-xs font-mono-utility text-green font-semibold">Tỉ lệ đúng {accuracy}%</span>
+            <span className="text-xs font-mono-utility text-green font-semibold">{t('progress.accuracyBadge', { accuracy })}</span>
           </div>
 
           <div className="h-56 w-full pt-2">
@@ -162,7 +164,9 @@ export default function ProgressPage() {
                   tickLine={false}
                 />
                 <Tooltip
-                  content={(props) => <CustomTooltip active={props.active} payload={props.payload as unknown as TooltipProps['payload']} />}
+                  content={(props) => (
+                    <CustomTooltip active={props.active} payload={props.payload as unknown as TooltipProps['payload']} t={t} />
+                  )}
                   cursor={{ fill: 'var(--green-wash)', opacity: 0.5 }}
                 />
                 <Bar dataKey="reviews" radius={[6, 6, 0, 0]} fill="var(--rule)">
@@ -179,9 +183,9 @@ export default function ProgressPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Calendar size={18} className="text-green" />
-              <h3 className="font-semibold text-base text-ink">Hoạt động 7 ngày qua</h3>
+              <h3 className="font-semibold text-base text-ink">{t('progress.activityTitle')}</h3>
             </div>
-            <span className="text-xs font-mono-utility text-green font-semibold">Tỉ lệ đúng {accuracy}%</span>
+            <span className="text-xs font-mono-utility text-green font-semibold">{t('progress.accuracyBadge', { accuracy })}</span>
           </div>
 
           <div className="grid grid-cols-7 gap-2 text-center pt-2">
@@ -217,8 +221,8 @@ export default function ProgressPage() {
               <Trophy size={18} className="text-amber" />
             </div>
             <div>
-              <h3 className="font-semibold text-sm text-ink">Bảng xếp hạng</h3>
-              <p className="text-xs text-ink-soft">Xem bạn đang ở đâu so với người học khác</p>
+              <h3 className="font-semibold text-sm text-ink">{t('progress.leaderboardCardTitle')}</h3>
+              <p className="text-xs text-ink-soft">{t('progress.leaderboardCardSubtitle')}</p>
             </div>
           </div>
           <ChevronRight size={18} className="text-ink-soft shrink-0" />
@@ -228,10 +232,10 @@ export default function ProgressPage() {
           <div className="bg-surface border border-wrong/30 rounded-card p-6 space-y-3">
             <div className="flex items-center gap-2 text-wrong">
               <RotateCcw size={18} />
-              <h3 className="font-semibold text-base">Từ vựng hay trả lời sai ({leechWords.length})</h3>
+              <h3 className="font-semibold text-base">{t('progress.leechSectionTitle', { count: leechWords.length })}</h3>
             </div>
             <p className="text-xs text-ink-soft">
-              Các từ này sẽ tự động chuyển sang chế độ gõ tự luận hoặc nghe để giúp bạn khắc sâu trí nhớ.
+              {t('progress.leechSectionBody')}
             </p>
             <div className="space-y-3 pt-2">
               {leechWords.map((word) => (
@@ -243,7 +247,7 @@ export default function ProgressPage() {
 
         {earliestWordDate && (
           <div className="text-center text-xs font-mono-utility text-ink-soft pt-2" suppressHydrationWarning>
-            Bạn bắt đầu hành trình học cùng Lexio từ {new Date(earliestWordDate).toLocaleDateString('vi-VN')}
+            {t('progress.startedJourney', { date: new Date(earliestWordDate).toLocaleDateString('vi-VN') })}
           </div>
         )}
       </div>

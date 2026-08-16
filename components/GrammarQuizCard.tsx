@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GrammarQuestion } from '@/types';
 import { Button } from './Button';
+import { useT } from '@/hooks/use-i18n';
 import { CheckCircle2, XCircle, Lightbulb } from 'lucide-react';
 
 interface GrammarQuizCardProps {
@@ -9,6 +10,7 @@ interface GrammarQuizCardProps {
 }
 
 export function GrammarQuizCard({ question, onAnswer }: GrammarQuizCardProps) {
+  const { t } = useT();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
@@ -93,19 +95,19 @@ export function GrammarQuizCard({ question, onAnswer }: GrammarQuizCardProps) {
           <div className="flex items-center gap-2 text-amber-ink">
             <Lightbulb size={18} />
             <span className="text-xs font-mono-utility font-semibold uppercase tracking-wider">
-              Giải thích & Quy tắc ngữ pháp
+              {t('grammar.quizCard.explanationLabel')}
             </span>
           </div>
           <p className="text-xs text-ink leading-relaxed">{question.explanationVi}</p>
           <div className="pt-2 border-t border-rule">
             <span className="text-[11px] text-ink-soft font-mono-utility block">
-              Ghi nhớ: {question.ruleSummary}
+              {t('grammar.quizCard.ruleSummaryLabel', { rule: question.ruleSummary })}
             </span>
           </div>
 
           <div className="pt-3 flex justify-end">
             <Button variant="primary" onClick={() => onAnswer(isCorrect)}>
-              Tiếp tục
+              {t('grammar.quizCard.continueCta')}
             </Button>
           </div>
         </div>

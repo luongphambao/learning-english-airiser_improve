@@ -3,32 +3,35 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, FileText, Dumbbell, Bookmark } from 'lucide-react';
+import { useT } from '@/hooks/use-i18n';
 
 // Bottom nav on mobile, inline strip under the header on desktop (docs/decision.md
 // ADR-013 — the mockup IA is Home/Learn/Practice/Notebook, four user-goal-centric
 // destinations replacing the old feature-centric Hôm nay/Ngữ pháp/Sổ từ/Lịch strip).
-// `shortLabel` renders in the bottom bar (tight width budget at 360px); `label` is
-// the fuller desktop text. Grammar and Study Plan are no longer top-level tabs —
-// they keep working routes, reached from Practice and Home respectively (see
-// docs/decision.md ADR-013) — de-emphasized, not removed (strategy doc §33).
+// `shortLabelKey` renders in the bottom bar (tight width budget at 360px);
+// `labelKey` is the fuller desktop text. Grammar and Study Plan are no longer
+// top-level tabs — they keep working routes, reached from Practice and Home
+// respectively (see docs/decision.md ADR-013) — de-emphasized, not removed
+// (strategy doc §33).
 const TABS = [
-  { href: '/today', shortLabel: 'Trang chủ', label: 'Trang chủ', icon: Home },
-  { href: '/learn', shortLabel: 'Học', label: 'Học từ công việc', icon: FileText },
-  { href: '/practice', shortLabel: 'Luyện tập', label: 'Luyện tập', icon: Dumbbell },
-  { href: '/vocabulary', shortLabel: 'Sổ tay', label: 'Sổ tay', icon: Bookmark },
+  { href: '/today', shortLabelKey: 'tabBar.home', labelKey: 'tabBar.home', icon: Home },
+  { href: '/learn', shortLabelKey: 'tabBar.learnShort', labelKey: 'tabBar.learnFull', icon: FileText },
+  { href: '/practice', shortLabelKey: 'tabBar.practice', labelKey: 'tabBar.practice', icon: Dumbbell },
+  { href: '/vocabulary', shortLabelKey: 'tabBar.notebook', labelKey: 'tabBar.notebook', icon: Bookmark },
 ] as const;
 
 export function TabBar() {
   const pathname = usePathname();
+  const { t } = useT();
 
   return (
     <>
       {/* Mobile: fixed bottom bar */}
       <nav
-        aria-label="Điều hướng chính"
+        aria-label={t('tabBar.nav')}
         className="md:hidden fixed inset-x-0 bottom-0 z-40 bg-surface border-t border-rule flex pb-safe"
       >
-        {TABS.map(({ href, shortLabel, icon: Icon }) => {
+        {TABS.map(({ href, shortLabelKey, icon: Icon }) => {
           const active = pathname === href;
           return (
             <Link
@@ -40,7 +43,7 @@ export function TabBar() {
               }`}
             >
               <Icon size={20} />
-              <span>{shortLabel}</span>
+              <span>{t(shortLabelKey)}</span>
             </Link>
           );
         })}
@@ -49,7 +52,7 @@ export function TabBar() {
       {/* Desktop: inline strip under the header */}
       <div className="hidden md:block bg-surface border-b border-rule px-4">
         <div className="max-w-3xl mx-auto flex items-center gap-1">
-          {TABS.map(({ href, label, icon: Icon }) => {
+          {TABS.map(({ href, labelKey, icon: Icon }) => {
             const active = pathname === href;
             return (
               <Link
@@ -61,7 +64,7 @@ export function TabBar() {
                 }`}
               >
                 <Icon size={16} />
-                <span>{label}</span>
+                <span>{t(labelKey)}</span>
               </Link>
             );
           })}

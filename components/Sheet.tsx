@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useT } from '@/hooks/use-i18n';
 
 interface SheetProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface SheetProps {
 }
 
 export function Sheet({ isOpen, onClose, title, children }: SheetProps) {
+  const { t } = useT();
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -41,7 +43,7 @@ export function Sheet({ isOpen, onClose, title, children }: SheetProps) {
           <button
             onClick={() => onClose()}
             className="p-1 rounded-full text-ink-soft hover:bg-paper transition-colors cursor-pointer"
-            aria-label="Đóng"
+            aria-label={t('components.sheet.close')}
           >
             <X size={20} />
           </button>

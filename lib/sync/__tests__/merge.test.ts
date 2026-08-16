@@ -216,6 +216,7 @@ describe('mergeUserRow', () => {
         reminderHour: null,
         studyTime: null,
         theme: 'system',
+        locale: 'vi',
         contextTopic: 'general',
         level: 'B1',
         sessionSize: 5,

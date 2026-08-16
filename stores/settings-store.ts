@@ -15,17 +15,24 @@ function applyThemeToDom(theme: UserSettings['theme']) {
   document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
 }
 
-function mirrorThemeForFoucScript(theme: UserSettings['theme']) {
-  // app/layout.tsx's pre-hydration script reads this exact key to avoid a
-  // light-mode flash on a dark reload — see the TODO left there in Phase 1.
-  // IndexedDB is async and can't be read before first paint, so this plain
-  // localStorage write is the synchronous mirror that script depends on.
+function applyLocaleToDom(locale: UserSettings['locale']) {
+  if (typeof document === 'undefined') return;
+  document.documentElement.lang = locale;
+}
+
+/** app/layout.tsx's pre-hydration script reads this exact `lexio_settings` key to
+ * set `data-theme`/`lang` before first paint (avoiding a flash of the wrong
+ * theme/language on reload). IndexedDB is async and can't be read before first
+ * paint, so this plain localStorage write is the synchronous mirror that script
+ * depends on — only the keys actually changing are written, merged into whatever
+ * was mirrored before. */
+function mirrorForFoucScript(patch: Partial<Pick<UserSettings, 'theme' | 'locale'>>) {
   if (typeof localStorage === 'undefined') return;
   try {
     const raw = localStorage.getItem('lexio_settings');
     const existing = raw ? JSON.parse(raw) : {};
     const safeExisting = typeof existing === 'object' && existing !== null && !Array.isArray(existing) ? existing : {};
-    localStorage.setItem('lexio_settings', JSON.stringify({ ...safeExisting, theme }));
+    localStorage.setItem('lexio_settings', JSON.stringify({ ...safeExisting, ...patch }));
   } catch {
     // best-effort only — a failed mirror just means the next cold load may flash
   }
@@ -41,9 +48,10 @@ interface SettingsStoreState {
 export const useSettingsStore = create<SettingsStoreState>()(() => ({
   async updateSettings(patch) {
     const settings = await getRepos().user.updateSettings(patch);
-    if (patch.theme !== undefined) {
-      applyThemeToDom(settings.theme);
-      mirrorThemeForFoucScript(settings.theme);
+    if (patch.theme !== undefined) applyThemeToDom(settings.theme);
+    if (patch.locale !== undefined) applyLocaleToDom(settings.locale);
+    if (patch.theme !== undefined || patch.locale !== undefined) {
+      mirrorForFoucScript({ theme: patch.theme, locale: patch.locale });
     }
     return settings;
   },

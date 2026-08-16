@@ -1,5 +1,6 @@
 import { BookMarked, Flame, Repeat2, Target, Sparkles, Swords } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useT } from '@/hooks/use-i18n';
 import { METRICS } from '@/lib/leaderboard/metrics';
 import type { LeaderboardMetricId } from '@/lib/leaderboard/types';
 
@@ -20,13 +21,14 @@ interface MetricChipsProps {
 }
 
 export function MetricChips({ value, onChange }: MetricChipsProps) {
+  const { t } = useT();
   const active = METRICS.find((m) => m.id === value) ?? METRICS[0];
 
   return (
     <div className="space-y-2">
       <div
         role="tablist"
-        aria-label="Chọn tiêu chí xếp hạng"
+        aria-label={t('leaderboardPage.tablistAriaLabel')}
         className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0 sm:overflow-visible"
       >
         {METRICS.map((m) => {
@@ -46,12 +48,12 @@ export function MetricChips({ value, onChange }: MetricChipsProps) {
               }`}
             >
               <Icon size={14} />
-              {m.label}
+              {t(m.labelKey)}
             </button>
           );
         })}
       </div>
-      <p className="text-xs text-ink-soft">{active.hint}</p>
+      <p className="text-xs text-ink-soft">{t(active.hintKey)}</p>
     </div>
   );
 }

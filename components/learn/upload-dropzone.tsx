@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { FileText, AlertTriangle, Upload } from 'lucide-react';
+import { useT } from '@/hooks/use-i18n';
 
 // Shared by both Learn modes ("Từ công việc" / "Từ tài liệu") — the file-drop box
 // + paste textarea widget is identical between them, only `accept`/labels differ
@@ -35,6 +36,7 @@ export function UploadDropzone({
   placeholder,
   maxLength = 10_000,
 }: UploadDropzoneProps) {
+  const { t } = useT();
   return (
     <div className="space-y-3">
       <div className="border-2 border-dashed border-rule rounded-card p-5 text-center hover:border-green transition-all">
@@ -50,9 +52,9 @@ export function UploadDropzone({
         <label htmlFor="doc-file-input" className="cursor-pointer block">
           <Upload size={28} className="mx-auto text-green mb-2" />
           <span className="text-sm font-medium text-ink block mb-1">
-            {fileBusy ? 'Đang đọc tệp...' : hint}
+            {fileBusy ? t('learnDoc.dropzone.readingFile') : hint}
           </span>
-          <span className="text-xs text-ink-soft">Hoặc dán trực tiếp đoạn văn bên dưới</span>
+          <span className="text-xs text-ink-soft">{t('learnDoc.dropzone.orPasteHint')}</span>
         </label>
       </div>
 
@@ -66,7 +68,7 @@ export function UploadDropzone({
       {pastedFileName && !fileError && (
         <p className="text-xs text-ink-soft flex items-center gap-1.5">
           <FileText size={14} />
-          Đã nạp: {pastedFileName}
+          {t('learnDoc.dropzone.loadedFile', { fileName: pastedFileName })}
         </p>
       )}
 

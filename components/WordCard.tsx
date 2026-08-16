@@ -1,6 +1,7 @@
 import React from 'react';
 import { Word } from '@/types';
 import { Volume2 } from 'lucide-react';
+import { useT } from '@/hooks/use-i18n';
 
 interface WordCardProps {
   word: Word;
@@ -9,6 +10,7 @@ interface WordCardProps {
 }
 
 export function WordCard({ word, onPlayAudio, showDetails = true }: WordCardProps) {
+  const { t } = useT();
   return (
     <div className="bg-surface border border-rule rounded-card p-6 relative transition-all">
       {/* Header: Word & Audio */}
@@ -26,7 +28,7 @@ export function WordCard({ word, onPlayAudio, showDetails = true }: WordCardProp
             </span>
             {word.isLeech && (
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold font-mono-utility bg-amber/10 text-amber-ink border border-amber/30">
-                Từ khó
+                {t('components.wordCard.leechBadge')}
               </span>
             )}
           </div>
@@ -36,8 +38,8 @@ export function WordCard({ word, onPlayAudio, showDetails = true }: WordCardProp
           <button
             onClick={onPlayAudio}
             className="p-3 rounded-card bg-green-wash text-green hover:scale-105 active:scale-95 transition-all cursor-pointer flex-shrink-0"
-            title="Nghe phát âm"
-            aria-label="Nghe phát âm"
+            title={t('components.wordCard.playAudio')}
+            aria-label={t('components.wordCard.playAudio')}
           >
             <Volume2 size={20} />
           </button>
@@ -64,7 +66,7 @@ export function WordCard({ word, onPlayAudio, showDetails = true }: WordCardProp
       {showDetails && word.collocations && word.collocations.length > 0 && (
         <div className="mt-4 pt-3 border-t border-rule">
           <span className="text-xs font-mono-utility text-ink-soft uppercase tracking-wider block mb-2">
-            Thường đi với (Collocations)
+            {t('components.wordCard.collocationsLabel')}
           </span>
           <div className="space-y-1.5">
             {word.collocations.map((col, idx) => (
@@ -80,7 +82,7 @@ export function WordCard({ word, onPlayAudio, showDetails = true }: WordCardProp
       {/* Word Family */}
       {showDetails && word.wordFamily && word.wordFamily.length > 0 && (
         <div className="mt-3 flex items-center gap-2 text-xs text-ink-soft">
-          <span className="font-mono-utility">Cùng họ:</span>
+          <span className="font-mono-utility">{t('components.wordCard.wordFamilyLabel')}</span>
           <span lang="en">{word.wordFamily.join(', ')}</span>
         </div>
       )}

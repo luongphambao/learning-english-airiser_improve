@@ -2,6 +2,7 @@
 
 import { forwardRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useT } from '@/hooks/use-i18n';
 import type { LeaderboardEntry, RankedEntry } from '@/lib/leaderboard/types';
 
 interface RankRowProps {
@@ -19,6 +20,7 @@ export const RankRow = forwardRef<HTMLLIElement, RankRowProps>(function RankRow(
   { ranked, format, secondary, showDash, nameOverride },
   ref,
 ) {
+  const { t } = useT();
   const { entry, rank } = ranked;
   const [open, setOpen] = useState(false);
   const hasWords = entry.sampleWords.length > 0;
@@ -55,7 +57,9 @@ export const RankRow = forwardRef<HTMLLIElement, RankRowProps>(function RankRow(
             >
               {entry.level}
             </span>
-            {!entry.isMe && <span className="shrink-0 text-[10px] text-ink-soft">mẫu</span>}
+            {!entry.isMe && (
+              <span className="shrink-0 text-[10px] text-ink-soft">{t('leaderboardPage.sampleBadge')}</span>
+            )}
           </div>
           <p className="truncate text-[11px] text-ink-soft">{secondary(entry)}</p>
         </div>

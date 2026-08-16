@@ -4,11 +4,13 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useProfile } from '@/hooks/use-profile';
 import { useSettingsStore } from '@/stores/settings-store';
-import { Flame, Sun, Moon, Settings, User } from 'lucide-react';
+import { useT } from '@/hooks/use-i18n';
+import { Flame, Sun, Moon, Settings, User, Languages } from 'lucide-react';
 
 export function AppHeader() {
   const { stats, settings } = useProfile();
   const updateSettings = useSettingsStore((s) => s.updateSettings);
+  const { t, locale, toggleLocale } = useT();
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,18 +56,28 @@ export function AppHeader() {
           <Link
             href="/progress"
             className="flex items-center gap-2 bg-amber/10 px-3 py-1.5 rounded-full border border-amber/30 cursor-pointer hover:scale-105 transition-all"
-            title="Xem tiến độ chuỗi ngày"
+            title={t('appHeader.streakLabel')}
           >
             <Flame size={16} className="text-amber fill-amber" />
             <span className="text-xs sm:text-sm font-semibold text-amber-ink font-mono-utility">
-              {stats.streak} ngày
+              {t('appHeader.streakDays', { count: stats.streak })}
             </span>
           </Link>
 
           <button
+            onClick={toggleLocale}
+            className="px-2 h-9 rounded-xl text-ink-soft hover:bg-green-wash hover:text-ink transition-colors cursor-pointer flex items-center gap-1"
+            aria-label={t('common.toggleLanguage')}
+            title={t('common.toggleLanguage')}
+          >
+            <Languages size={18} />
+            <span className="text-[11px] font-mono-utility uppercase">{locale}</span>
+          </button>
+
+          <button
             onClick={toggleTheme}
             className="p-2 rounded-xl text-ink-soft hover:bg-green-wash hover:text-ink transition-colors cursor-pointer"
-            aria-label="Chuyển đổi giao diện sáng/tối"
+            aria-label={t('appHeader.toggleTheme')}
           >
             {settings.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
@@ -77,18 +89,18 @@ export function AppHeader() {
                 ? 'bg-green-wash border-green/30 text-green font-medium'
                 : 'border-rule text-ink-soft hover:text-ink hover:border-ink-soft/40'
             }`}
-            title={userEmail ? `Đã đăng nhập: ${userEmail}` : 'Đăng nhập với email'}
+            title={userEmail ? t('appHeader.loggedInAs', { email: userEmail }) : t('appHeader.loginWithEmail')}
           >
             <User size={16} />
             <span className="hidden sm:inline truncate max-w-[100px] font-mono-utility">
-              {userEmail ? userEmail.split('@')[0] : 'Đăng nhập'}
+              {userEmail ? userEmail.split('@')[0] : t('common.login')}
             </span>
           </Link>
 
           <Link
             href="/settings"
             className="p-2 rounded-xl text-ink-soft hover:bg-green-wash hover:text-ink transition-colors cursor-pointer"
-            aria-label="Cài đặt"
+            aria-label={t('common.settings')}
           >
             <Settings size={20} />
           </Link>

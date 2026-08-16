@@ -4,6 +4,7 @@ import { Volume2, RefreshCw } from 'lucide-react';
 import { Button } from './Button';
 import { optionsForWord } from '@/lib/text/shuffle';
 import { fetchSpeech } from '@/lib/api/ai-client';
+import { useT } from '@/hooks/use-i18n';
 
 interface ExerciseListenProps {
   word: Word;
@@ -11,6 +12,7 @@ interface ExerciseListenProps {
 }
 
 export function ExerciseListen({ word, onAnswer }: ExerciseListenProps) {
+  const { t } = useT();
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -113,7 +115,7 @@ export function ExerciseListen({ word, onAnswer }: ExerciseListenProps) {
     <div className="w-full max-w-lg mx-auto bg-surface border border-rule rounded-card p-6 sm:p-8">
       <div className="flex items-center justify-between mb-4">
         <span className="font-mono-utility text-xs text-green font-semibold uppercase tracking-wider">
-          Bài tập: Nghe và chọn từ
+          {t('exercise.listen.title')}
         </span>
         <span className="text-xs italic text-ink-soft">{word.partOfSpeech}</span>
       </div>
@@ -123,12 +125,12 @@ export function ExerciseListen({ word, onAnswer }: ExerciseListenProps) {
         <button
           onClick={() => (audioUrl ? playUrl(audioUrl) : fetchAndPlay())}
           className="w-20 h-20 rounded-card bg-green-wash text-green flex items-center justify-center hover:scale-105 active:scale-95 transition-all cursor-pointer mb-3"
-          aria-label="Phát âm thanh"
+          aria-label={t('exercise.listen.playAudioAria')}
         >
           {isPlaying ? <RefreshCw className="animate-spin" size={32} /> : <Volume2 size={36} />}
         </button>
         <span className="text-xs text-ink-soft font-mono-utility">
-          Bấm để nghe phát âm
+          {t('exercise.listen.tapToListen')}
         </span>
       </div>
 
@@ -174,7 +176,7 @@ export function ExerciseListen({ word, onAnswer }: ExerciseListenProps) {
       {showAnswer && !isCorrect && (
         <div className="mt-6 flex justify-end">
           <Button variant="primary" onClick={() => onAnswer(false)}>
-            Tiếp tục
+            {t('exercise.continueCta')}
           </Button>
         </div>
       )}

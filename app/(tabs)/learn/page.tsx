@@ -8,6 +8,7 @@ import { useProfile } from '@/hooks/use-profile';
 import { useImportsList } from '@/hooks/use-imports';
 import { useWorkStore } from '@/stores/work-store';
 import { useDocStore } from '@/stores/doc-store';
+import { useT } from '@/hooks/use-i18n';
 import { Button } from '@/components/Button';
 import { UploadDropzone } from '@/components/learn/upload-dropzone';
 import { DocResult } from '@/components/learn/doc-result';
@@ -18,14 +19,14 @@ import {
   FileText, Loader2, AlertTriangle, CheckCircle2, Sparkles, ChevronDown,
 } from 'lucide-react';
 
-const INPUT_TYPE_VI: Record<string, string> = {
-  work_email: 'Email công việc',
-  email: 'Email công việc',
-  report: 'Báo cáo',
-  meeting_note: 'Ghi chú họp',
-  chat: 'Tin nhắn công việc',
-  document: 'Tài liệu',
-  other: 'Văn bản',
+const INPUT_TYPE_LABEL_KEYS: Record<string, string> = {
+  work_email: 'learn.inputTypes.workEmail',
+  email: 'learn.inputTypes.workEmail',
+  report: 'learn.inputTypes.report',
+  meeting_note: 'learn.inputTypes.meetingNote',
+  chat: 'learn.inputTypes.chat',
+  document: 'learn.inputTypes.document',
+  other: 'learn.inputTypes.other',
 };
 
 type LearnMode = 'work' | 'doc';
@@ -48,6 +49,7 @@ export default function LearnPage() {
   const { settings } = useProfile();
   const pastImports = useImportsList(10);
   const searchParams = useSearchParams();
+  const { t } = useT();
 
   const [learnMode, setLearnMode] = useState<LearnMode>('work');
   const [autoOpenFileDialog, setAutoOpenFileDialog] = useState(false);
@@ -111,13 +113,13 @@ export default function LearnPage() {
     reader.onload = (ev) => {
       const content = ev.target?.result;
       if (typeof content !== 'string' || content.trim().length === 0) {
-        setWorkFileError('Không đọc được nội dung văn bản từ tệp này. Thử dán trực tiếp đoạn văn bên dưới.');
+        setWorkFileError(t('learn.errors.fileEmptyText'));
         return;
       }
       setWorkText(content);
       setWorkFileName(file.name);
     };
-    reader.onerror = () => setWorkFileError('Không đọc được tệp. Tệp có thể bị hỏng — thử tệp khác hoặc dán văn bản.');
+    reader.onerror = () => setWorkFileError(t('learn.errors.fileUnreadable'));
     reader.readAsText(file);
   }
 
@@ -138,7 +140,7 @@ export default function LearnPage() {
       reader.onload = (ev) => {
         const content = ev.target?.result;
         if (typeof content !== 'string' || content.trim().length === 0) {
-          setDocFileError('Không đọc được nội dung văn bản từ tệp này. Thử dán trực tiếp đoạn văn bên dưới.');
+          setDocFileError(t('learn.errors.fileEmptyText'));
           return;
         }
         setDocText(content);
@@ -146,7 +148,7 @@ export default function LearnPage() {
         setDocUnits(splitIntoUnits(content));
         setDocUnitLabel('part');
       };
-      reader.onerror = () => setDocFileError('Không đọc được tệp. Tệp có thể bị hỏng — thử tệp khác hoặc dán văn bản.');
+      reader.onerror = () => setDocFileError(t('learn.errors.fileUnreadable'));
       reader.readAsText(file);
       return;
     }
@@ -159,7 +161,7 @@ export default function LearnPage() {
       setDocUnits(parsed.units);
       setDocUnitLabel(parsed.unitLabel);
     } catch (err) {
-      setDocFileError(err instanceof ApiError ? err.messageVi : 'Không đọc được tệp. Thử tệp khác hoặc dán văn bản.');
+      setDocFileError(err instanceof ApiError ? err.messageVi : t('learn.errors.fileParseFailed'));
     } finally {
       setDocFileBusy(false);
     }
@@ -170,7 +172,7 @@ export default function LearnPage() {
     if (!trimmed) return;
     await workStore.analyze({
       text: trimmed.slice(0, 10_000),
-      fileName: workFileName ?? 'Đoạn văn đã dán',
+      fileName: workFileName ?? t('learn.pastedTextName'),
       sourceType: 'other',
       level: settings.level,
       contextTopic: settings.contextTopic,
@@ -189,7 +191,7 @@ export default function LearnPage() {
     await docStore.analyze({
       units,
       unitLabel,
-      fileName: docFileName ?? 'Đoạn văn đã dán',
+      fileName: docFileName ?? t('learn.pastedTextName'),
       kind: docFileName?.toLowerCase().endsWith('.pdf') ? 'pdf' : 'text',
       level: settings.level,
       contextTopic: settings.contextTopic,
@@ -246,7 +248,7 @@ export default function LearnPage() {
                 learnMode === 'work' ? 'bg-green-wash text-green' : 'text-ink-soft'
               }`}
             >
-              Từ công việc
+              {t('learn.tabs.work')}
             </button>
             <button
               type="button"
@@ -255,46 +257,44 @@ export default function LearnPage() {
                 learnMode === 'doc' ? 'bg-green-wash text-green' : 'text-ink-soft'
               }`}
             >
-              Từ tài liệu
+              {t('learn.tabs.doc')}
             </button>
           </div>
 
           {learnMode === 'work' ? (
             <>
               <div>
-                <h1 className="font-serif-display text-3xl text-ink mb-1">Học từ công việc thật</h1>
+                <h1 className="font-serif-display text-3xl text-ink mb-1">{t('learn.work.heading')}</h1>
                 <p className="text-sm text-ink-soft">
-                  Dán một email, báo cáo, ghi chú họp hay tài liệu tiếng Anh bạn đang dùng ở công ty. AI sẽ tìm từ
-                  vựng, cụm từ chuyên nghiệp, lỗi ngữ pháp và cách viết chuyên nghiệp hơn trong đó.
+                  {t('learn.work.subtitle')}
                 </p>
               </div>
               <UploadDropzone
                 accept=".txt,.md"
-                hint="Bấm để tải tệp văn bản (.txt, .md)"
+                hint={t('learn.work.uploadHint')}
                 fileInputRef={workFileInputRef}
                 onFile={handleWorkFile}
                 fileError={workFileError}
                 pastedFileName={workFileName}
                 text={workText}
                 onTextChange={setWorkText}
-                placeholder="Dán đoạn văn tiếng Anh vào đây..."
+                placeholder={t('learn.pastePlaceholder')}
               />
               <Button variant="primary" onClick={runWorkAnalyze} disabled={!workText.trim()} className="w-full">
-                Phân tích với Gemini
+                {t('learn.work.analyzeButton')}
               </Button>
             </>
           ) : (
             <>
               <div>
-                <h1 className="font-serif-display text-3xl text-ink mb-1">Đào từ vựng từ tài liệu</h1>
+                <h1 className="font-serif-display text-3xl text-ink mb-1">{t('learn.doc.heading')}</h1>
                 <p className="text-sm text-ink-soft">
-                  Tải một tài liệu, bài báo hay bài viết tiếng Anh bạn đang đọc (.txt, .md, .pdf, .docx). AI sẽ tìm
-                  những từ vựng đáng học mà có thể bạn chưa biết, kèm câu ví dụ ngay trong tài liệu.
+                  {t('learn.doc.subtitle')}
                 </p>
               </div>
               <UploadDropzone
                 accept=".txt,.md,.pdf,.docx"
-                hint="Bấm để tải tệp (.txt, .md, .pdf, .docx)"
+                hint={t('learn.doc.uploadHint')}
                 fileInputRef={docFileInputRef}
                 onFile={handleDocFile}
                 fileBusy={docFileBusy}
@@ -302,11 +302,11 @@ export default function LearnPage() {
                 pastedFileName={docFileName}
                 text={docText}
                 onTextChange={handleDocTextChange}
-                placeholder="Dán đoạn văn tiếng Anh vào đây..."
+                placeholder={t('learn.pastePlaceholder')}
                 maxLength={200_000}
               />
               <Button variant="primary" onClick={runDocAnalyze} disabled={!docText.trim() || docFileBusy} className="w-full">
-                Tìm từ vựng đáng học
+                {t('learn.doc.analyzeButton')}
               </Button>
             </>
           )}
@@ -314,7 +314,7 @@ export default function LearnPage() {
           {pastImports.length > 0 && (
             <div className="pt-4 border-t border-rule">
               <span className="font-mono-utility text-xs text-ink-soft uppercase tracking-wider block mb-2">
-                Đã phân tích trước đó
+                {t('learn.pastImportsLabel')}
               </span>
               <div className="space-y-1.5">
                 {pastImports.map((imp) => (
@@ -329,10 +329,10 @@ export default function LearnPage() {
                       <span className="text-sm text-ink truncate">{imp.fileName}</span>
                     </span>
                     <span className="text-[11px] font-mono-utility text-ink-soft shrink-0 ml-2">
-                      {imp.status === 'ready' && 'Xem kết quả'}
-                      {imp.status === 'done' && `Đã thêm ${imp.addedCount} mục`}
-                      {imp.status === 'failed' && 'Lỗi'}
-                      {imp.status === 'analyzing' && 'Đang phân tích...'}
+                      {imp.status === 'ready' && t('learn.importStatus.ready')}
+                      {imp.status === 'done' && t('learn.importStatus.done', { count: imp.addedCount })}
+                      {imp.status === 'failed' && t('learn.importStatus.failed')}
+                      {imp.status === 'analyzing' && t('learn.importStatus.analyzing')}
                     </span>
                   </button>
                 ))}
@@ -347,9 +347,9 @@ export default function LearnPage() {
       {learnMode === 'work' && workStore.status === 'analyzing' && (
         <div className="py-20 text-center space-y-4">
           <Loader2 size={40} className="mx-auto text-green animate-spin" />
-          <p className="font-serif-display text-2xl text-ink">Đang đọc tài liệu của bạn...</p>
+          <p className="font-serif-display text-2xl text-ink">{t('learn.analyzingHeading')}</p>
           <p className="text-sm text-ink-soft">
-            Gemini đang tìm từ vựng, cụm từ và lỗi ngữ pháp đáng học. Có thể mất đến một phút.
+            {t('learn.analyzingBody')}
           </p>
         </div>
       )}
@@ -358,19 +358,21 @@ export default function LearnPage() {
         <div className="space-y-6 pb-24">
           <div>
             <span className="font-mono-utility text-xs uppercase tracking-wider text-ink-soft block mb-1.5">
-              Phân tích bởi Gemini
+              {t('learn.resultLabel')}
             </span>
             <h1 className="font-serif-display text-3xl text-ink mb-2">
-              {workStore.analysis.summary.headlineVi || 'Kết quả phân tích'}
+              {workStore.analysis.summary.headlineVi || t('learn.defaultHeadline')}
             </h1>
             <p className="text-sm text-ink-soft">
-              {INPUT_TYPE_VI[workStore.analysis.summary.inputTypeVi] ?? workStore.analysis.summary.inputTypeVi}
+              {INPUT_TYPE_LABEL_KEYS[workStore.analysis.summary.inputTypeVi]
+                ? t(INPUT_TYPE_LABEL_KEYS[workStore.analysis.summary.inputTypeVi])
+                : workStore.analysis.summary.inputTypeVi}
               {' · '}
               {[
-                workStore.analysis.summary.wordCount > 0 && `${workStore.analysis.summary.wordCount} từ vựng`,
-                workStore.analysis.summary.phraseCount > 0 && `${workStore.analysis.summary.phraseCount} cụm từ`,
-                workStore.analysis.summary.grammarCount > 0 && `${workStore.analysis.summary.grammarCount} điểm ngữ pháp`,
-                workStore.analysis.summary.rewriteCount > 0 && `${workStore.analysis.summary.rewriteCount} cách viết hay hơn`,
+                workStore.analysis.summary.wordCount > 0 && t('learn.counts.words', { count: workStore.analysis.summary.wordCount }),
+                workStore.analysis.summary.phraseCount > 0 && t('learn.counts.phrases', { count: workStore.analysis.summary.phraseCount }),
+                workStore.analysis.summary.grammarCount > 0 && t('learn.counts.grammar', { count: workStore.analysis.summary.grammarCount }),
+                workStore.analysis.summary.rewriteCount > 0 && t('learn.counts.rewrites', { count: workStore.analysis.summary.rewriteCount }),
               ]
                 .filter(Boolean)
                 .join(' · ')}
@@ -382,19 +384,19 @@ export default function LearnPage() {
           ))}
 
           <InsightSection
-            title="Từ vựng"
+            title={t('learn.section.vocab')}
             kind="vocab"
             items={workStore.analysis.insights.filter((i) => i.kind === 'vocab')}
             onToggle={workStore.toggleInsight}
           />
           <InsightSection
-            title="Cụm từ chuyên nghiệp"
+            title={t('learn.section.phrase')}
             kind="phrase"
             items={workStore.analysis.insights.filter((i) => i.kind === 'phrase')}
             onToggle={workStore.toggleInsight}
           />
           <InsightSection
-            title="Điểm ngữ pháp"
+            title={t('learn.section.grammar')}
             kind="grammar"
             items={workStore.analysis.insights.filter((i) => i.kind === 'grammar')}
             onToggle={workStore.toggleInsight}
@@ -402,8 +404,7 @@ export default function LearnPage() {
 
           {workStore.analysis.insights.length === 0 && workStore.analysis.rewrites.length === 0 && (
             <p className="text-sm text-ink-soft text-center py-8">
-              Văn bản của bạn không có cơ hội học tập rõ ràng nào — thử một đoạn dài hơn hoặc mang tính công việc
-              hơn.
+              {t('learn.noInsights')}
             </p>
           )}
 
@@ -418,10 +419,10 @@ export default function LearnPage() {
                 {submitting ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
-                    Đang thêm...
+                    {t('learn.addingButton')}
                   </>
                 ) : (
-                  `Thêm ${selectedCount} mục vào sổ tay`
+                  t('learn.addButton', { count: selectedCount })
                 )}
               </Button>
             </div>
@@ -432,20 +433,20 @@ export default function LearnPage() {
       {learnMode === 'work' && saveResult && (
         <div className="py-20 text-center space-y-4">
           <CheckCircle2 size={48} className="mx-auto text-green" />
-          <p className="font-serif-display text-2xl text-ink">Đã thêm {saveResult.count} mục vào sổ tay</p>
+          <p className="font-serif-display text-2xl text-ink">{t('learn.savedHeading', { count: saveResult.count })}</p>
           <p className="text-sm text-ink-soft">
-            AI đã chuẩn bị sẵn ví dụ và lựa chọn luyện tập cho từng mục — sẵn sàng ôn ngay hôm nay.
+            {t('learn.savedBody')}
           </p>
           <div className="flex flex-wrap gap-2 justify-center pt-2">
             <Button variant="quiet" onClick={startOver}>
               <FileText size={16} />
-              Học tài liệu khác
+              {t('learn.learnAnotherDoc')}
             </Button>
             <Link href="/vocabulary">
-              <Button variant="quiet">Mở sổ tay</Button>
+              <Button variant="quiet">{t('learn.openNotebook')}</Button>
             </Link>
             <Link href="/practice">
-              <Button variant="primary">Luyện tập ngay</Button>
+              <Button variant="primary">{t('learn.practiceNow')}</Button>
             </Link>
           </div>
         </div>
@@ -454,10 +455,10 @@ export default function LearnPage() {
       {learnMode === 'work' && workStore.status === 'error' && (
         <div className="py-20 text-center space-y-4">
           <AlertTriangle size={48} className="mx-auto text-wrong" />
-          <p className="font-serif-display text-2xl text-ink">Không phân tích được tài liệu</p>
-          <p className="text-sm text-ink-soft max-w-sm mx-auto">{workStore.error ?? 'Đã có lỗi xảy ra.'}</p>
+          <p className="font-serif-display text-2xl text-ink">{t('learn.errorHeading')}</p>
+          <p className="text-sm text-ink-soft max-w-sm mx-auto">{workStore.error ?? t('learn.genericError')}</p>
           <Button variant="primary" onClick={startOver}>
-            Thử lại
+            {t('learn.retryButton')}
           </Button>
         </div>
       )}
@@ -535,15 +536,16 @@ function RewriteCard({
   rewrite: NonNullable<ReturnType<typeof useWorkStore.getState>['analysis']>['rewrites'][number];
   onToggleSave: () => void;
 }) {
+  const { t } = useT();
   return (
     <article className="bg-surface border border-rule rounded-card shadow-card p-5 sm:p-6 space-y-4">
       <span className="font-mono-utility text-xs uppercase tracking-wider text-ink-soft flex items-center gap-1.5">
         <Sparkles size={14} className="text-green" />
-        Cách viết chuyên nghiệp hơn
+        {t('learn.rewrite.label')}
       </span>
 
       <div>
-        <span className="text-xs italic text-ink-soft block mb-1.5">Bạn viết</span>
+        <span className="text-xs italic text-ink-soft block mb-1.5">{t('learn.rewrite.original')}</span>
         <p lang="en" className="text-[15px] text-ink-soft leading-relaxed border-l-2 border-rule pl-3">
           {rewrite.original}
         </p>
@@ -554,14 +556,14 @@ function RewriteCard({
       </div>
 
       <div>
-        <span className="text-xs italic text-ink-soft block mb-1.5">Nên viết</span>
+        <span className="text-xs italic text-ink-soft block mb-1.5">{t('learn.rewrite.suggested')}</span>
         <p lang="en" className="font-serif-display text-2xl sm:text-[26px] text-ink leading-snug">
           {rewrite.rewrite}
         </p>
       </div>
 
       <div>
-        <span className="text-xs italic text-ink-soft block mb-1">Vì sao hay hơn</span>
+        <span className="text-xs italic text-ink-soft block mb-1">{t('learn.rewrite.reason')}</span>
         <p className="text-[13px] text-ink-soft leading-relaxed">{rewrite.reasonVi}</p>
       </div>
 
@@ -569,7 +571,9 @@ function RewriteCard({
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <Button variant={rewrite.saved ? 'primary' : 'quiet'} onClick={onToggleSave}>
             {rewrite.saved ? <CheckCircle2 size={16} /> : null}
-            {rewrite.saved ? `Đã chọn lưu "${rewrite.keyPhrase}"` : `Lưu cụm từ "${rewrite.keyPhrase}"`}
+            {rewrite.saved
+              ? t('learn.rewrite.savedPhrase', { phrase: rewrite.keyPhrase })
+              : t('learn.rewrite.savePhrase', { phrase: rewrite.keyPhrase })}
           </Button>
         </div>
       )}

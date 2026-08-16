@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { BackHeader } from '@/components/layout/back-header';
+import { useT } from '@/hooks/use-i18n';
 import { Mail, ArrowRight, CheckCircle2, AlertCircle, Loader2, LogOut, User, Lock, UserPlus } from 'lucide-react';
 import {
   GOOGLE_SIGNIN_ENABLED,
@@ -19,6 +20,7 @@ type Mode = 'login' | 'register';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useT();
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -55,7 +57,7 @@ export default function LoginPage() {
         try {
           const user = await completeGoogleRedirect();
           if (user) {
-            setNotice({ type: 'success', message: 'Đăng nhập Google thành công!' });
+            setNotice({ type: 'success', message: t('login.googleSuccess') });
             window.dispatchEvent(new Event('lexio-auth-changed'));
             setTimeout(() => router.push('/today'), 600);
             return;
@@ -73,19 +75,19 @@ export default function LoginPage() {
       if (errorParam === 'config_missing') {
         setNotice({
           type: 'error',
-          message: 'Google Sign-In chưa được cấu hình Client ID. Vui lòng đăng nhập bằng Email.',
+          message: t('login.googleConfigMissing'),
         });
       } else if (errorParam) {
         setNotice({
           type: 'error',
-          message: 'Đăng nhập Google không thành công. Vui lòng thử lại hoặc đăng nhập bằng Email.',
+          message: t('login.googleFailed'),
         });
       }
     }
   }, []);
 
   const afterSignedIn = () => {
-    setNotice({ type: 'success', message: mode === 'register' ? 'Tạo tài khoản thành công!' : 'Đăng nhập thành công!' });
+    setNotice({ type: 'success', message: mode === 'register' ? t('login.accountCreated') : t('login.signInSuccess') });
     window.dispatchEvent(new Event('lexio-auth-changed'));
     setTimeout(() => router.push('/today'), 600);
   };
@@ -93,11 +95,11 @@ export default function LoginPage() {
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !email.includes('@')) {
-      setNotice({ type: 'error', message: 'Vui lòng nhập địa chỉ email hợp lệ.' });
+      setNotice({ type: 'error', message: t('login.invalidEmail') });
       return;
     }
     if (password.length < 6) {
-      setNotice({ type: 'error', message: 'Mật khẩu cần ít nhất 6 ký tự.' });
+      setNotice({ type: 'error', message: t('login.passwordTooShort') });
       return;
     }
 
@@ -134,12 +136,12 @@ export default function LoginPage() {
 
   const handleForgotPassword = async () => {
     if (!email.trim() || !email.includes('@')) {
-      setNotice({ type: 'error', message: 'Nhập email của bạn ở ô trên trước, rồi bấm lại "Quên mật khẩu?".' });
+      setNotice({ type: 'error', message: t('login.forgotPasswordNeedsEmail') });
       return;
     }
     try {
       await sendPasswordReset(email.trim());
-      setNotice({ type: 'success', message: 'Đã gửi email đặt lại mật khẩu. Kiểm tra hộp thư của bạn.' });
+      setNotice({ type: 'success', message: t('login.passwordResetSent') });
     } catch (err) {
       setNotice({ type: 'error', message: describeAuthError(err) });
     }
@@ -150,15 +152,15 @@ export default function LoginPage() {
       await signOutEverywhere();
       setUserSession(null);
       window.dispatchEvent(new Event('lexio-auth-changed'));
-      setNotice({ type: 'success', message: 'Đã đăng xuất tài khoản.' });
+      setNotice({ type: 'success', message: t('login.signedOut') });
     } catch {
-      setNotice({ type: 'error', message: 'Không thể đăng xuất. Thử lại sau.' });
+      setNotice({ type: 'error', message: t('login.signOutFailed') });
     }
   };
 
   return (
     <>
-      <BackHeader title="Đăng nhập" />
+      <BackHeader title={t('login.title')} />
       <div className="pt-6 pb-12 max-w-sm mx-auto space-y-6">
 
         {/* Brand Header */}
@@ -166,14 +168,14 @@ export default function LoginPage() {
           <div className="font-serif text-5xl font-bold text-ink tracking-tight">Lexio</div>
           <div className="font-mono-utility text-xs text-ink-soft">/ˈleksioʊ/</div>
           <p className="text-sm text-ink-soft max-w-[28ch] mx-auto pt-2 leading-relaxed">
-            Năm từ mỗi sáng. Ba phút. Những từ bạn thật sự dùng trong công việc.
+            {t('login.tagline')}
           </p>
         </div>
 
         {statusLoading ? (
           <div className="p-8 rounded-2xl bg-surface border border-rule flex flex-col items-center justify-center gap-2 text-ink-soft">
             <Loader2 className="w-5 h-5 animate-spin text-green" />
-            <span className="text-xs">Đang kiểm tra trạng thái...</span>
+            <span className="text-xs">{t('login.checkingStatus')}</span>
           </div>
         ) : userSession ? (
           /* Logged In State */
@@ -182,7 +184,7 @@ export default function LoginPage() {
               <User className="w-6 h-6" />
             </div>
             <div>
-              <div className="text-xs text-ink-soft">Đang đăng nhập với</div>
+              <div className="text-xs text-ink-soft">{t('login.loggedInAs')}</div>
               <div className="text-base font-semibold text-ink font-mono-utility mt-0.5">{userSession.email}</div>
             </div>
 
@@ -191,7 +193,7 @@ export default function LoginPage() {
                 onClick={() => router.push('/today')}
                 className="w-full py-3 px-4 rounded-xl bg-green text-paper text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer hover:bg-green/90 transition"
               >
-                Vào học ngay
+                {t('login.goToApp')}
                 <ArrowRight className="w-4 h-4" />
               </button>
 
@@ -200,7 +202,7 @@ export default function LoginPage() {
                 className="w-full py-2.5 px-4 rounded-xl border border-rule text-ink-soft hover:text-wrong hover:border-wrong/30 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer transition"
               >
                 <LogOut className="w-3.5 h-3.5" />
-                Đăng xuất
+                {t('login.signOut')}
               </button>
             </div>
           </div>
@@ -215,7 +217,7 @@ export default function LoginPage() {
                   mode === 'login' ? 'bg-green text-paper' : 'text-ink-soft hover:text-ink'
                 }`}
               >
-                Đăng nhập
+                {t('login.tabSignIn')}
               </button>
               <button
                 type="button"
@@ -224,19 +226,19 @@ export default function LoginPage() {
                   mode === 'register' ? 'bg-green text-paper' : 'text-ink-soft hover:text-ink'
                 }`}
               >
-                Tạo tài khoản
+                {t('login.tabRegister')}
               </button>
             </div>
 
             <form onSubmit={handleEmailSubmit} className="space-y-4">
               {mode === 'register' && (
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-mono-utility text-ink-soft">Tên hiển thị (không bắt buộc)</label>
+                  <label className="block text-xs font-mono-utility text-ink-soft">{t('login.nameLabel')}</label>
                   <div className="relative">
                     <UserPlus className="w-4 h-4 text-ink-soft absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type="text"
-                      placeholder="Tên của bạn"
+                      placeholder={t('login.namePlaceholder')}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-paper border border-rule text-sm text-ink placeholder:text-ink-soft/50 focus:outline-none focus:border-green transition"
@@ -246,13 +248,13 @@ export default function LoginPage() {
               )}
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-mono-utility text-ink-soft">Địa chỉ email của bạn</label>
+                <label className="block text-xs font-mono-utility text-ink-soft">{t('login.emailLabel')}</label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-ink-soft absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="email"
                     required
-                    placeholder="ban@congty.com"
+                    placeholder={t('login.emailPlaceholder')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-paper border border-rule text-sm text-ink placeholder:text-ink-soft/50 focus:outline-none focus:border-green transition"
@@ -262,14 +264,14 @@ export default function LoginPage() {
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="block text-xs font-mono-utility text-ink-soft">Mật khẩu</label>
+                  <label className="block text-xs font-mono-utility text-ink-soft">{t('login.passwordLabel')}</label>
                   {mode === 'login' && (
                     <button
                       type="button"
                       onClick={handleForgotPassword}
                       className="text-xs text-green hover:underline cursor-pointer"
                     >
-                      Quên mật khẩu?
+                      {t('login.forgotPassword')}
                     </button>
                   )}
                 </div>
@@ -295,11 +297,11 @@ export default function LoginPage() {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    {mode === 'register' ? 'Đang tạo tài khoản...' : 'Đang đăng nhập...'}
+                    {mode === 'register' ? t('login.creatingAccount') : t('login.signingIn')}
                   </>
                 ) : (
                   <>
-                    {mode === 'register' ? 'Tạo tài khoản' : 'Đăng nhập bằng Email'}
+                    {mode === 'register' ? t('login.submitRegister') : t('login.submitSignIn')}
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -310,7 +312,7 @@ export default function LoginPage() {
               <>
                 <div className="relative flex items-center py-1">
                   <div className="flex-grow border-t border-rule"></div>
-                  <span className="flex-shrink mx-3 text-xs text-ink-soft font-mono-utility">hoặc</span>
+                  <span className="flex-shrink mx-3 text-xs text-ink-soft font-mono-utility">{t('login.orDivider')}</span>
                   <div className="flex-grow border-t border-rule"></div>
                 </div>
 
@@ -342,7 +344,7 @@ export default function LoginPage() {
                       />
                     </svg>
                   )}
-                  Đăng nhập với Google
+                  {t('login.googleSignIn')}
                 </button>
               </>
             )}

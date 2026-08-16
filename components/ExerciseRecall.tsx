@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Word } from '@/types';
 import { Button } from './Button';
+import { useT } from '@/hooks/use-i18n';
 
 interface ExerciseRecallProps {
   word: Word;
@@ -8,6 +9,7 @@ interface ExerciseRecallProps {
 }
 
 export function ExerciseRecall({ word, onAnswer }: ExerciseRecallProps) {
+  const { t } = useT();
   const [typedInput, setTypedInput] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
@@ -28,7 +30,7 @@ export function ExerciseRecall({ word, onAnswer }: ExerciseRecallProps) {
     <div className="w-full max-w-lg mx-auto bg-surface border border-rule rounded-card p-6 sm:p-8">
       <div className="flex items-center justify-between mb-4">
         <span className="font-mono-utility text-xs text-green font-semibold uppercase tracking-wider">
-          Bài tập: Nhớ từ từ nghĩa tiếng Việt
+          {t('exercise.recall.title')}
         </span>
         <span className="text-xs italic text-ink-soft">{word.partOfSpeech}</span>
       </div>
@@ -44,7 +46,7 @@ export function ExerciseRecall({ word, onAnswer }: ExerciseRecallProps) {
           lang="en"
           value={typedInput}
           onChange={(e) => setTypedInput(e.target.value)}
-          placeholder="Nhập từ tiếng Anh..."
+          placeholder={t('exercise.recall.placeholder')}
           disabled={submitted}
           autoFocus
           className="w-full p-4 rounded-btn bg-paper border border-rule text-ink text-center text-lg font-semibold focus:outline-none focus:border-green transition-all mb-4"
@@ -52,7 +54,7 @@ export function ExerciseRecall({ word, onAnswer }: ExerciseRecallProps) {
 
         {!submitted ? (
           <Button variant="primary" type="submit" disabled={!typedInput.trim()} className="w-full">
-            Kiểm tra
+            {t('exercise.check')}
           </Button>
         ) : (
           <div className="space-y-4 animate-fade-in">
@@ -62,11 +64,11 @@ export function ExerciseRecall({ word, onAnswer }: ExerciseRecallProps) {
                 isCorrect ? 'bg-green-wash text-green border-green/30' : 'bg-wrong/10 text-wrong border-wrong/30'
               }`}
             >
-              {isCorrect ? 'Chính xác!' : <>Từ đúng là: <span lang="en">{word.word}</span></>}
+              {isCorrect ? t('exercise.recall.correctFeedback') : <>{t('exercise.recall.answerIsLabel')} <span lang="en">{word.word}</span></>}
             </div>
 
             <Button variant="primary" onClick={() => onAnswer(isCorrect || false)} className="w-full">
-              Tiếp tục
+              {t('exercise.continueCta')}
             </Button>
           </div>
         )}

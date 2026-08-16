@@ -9,18 +9,21 @@ export const metadata: Metadata = {
 };
 
 // Runs before hydration so the resolved theme (light/dark, with 'system' resolved via
-// matchMedia) is on <html> for the very first paint — no light-mode flash on a dark
-// reload. Reads the `lexio_settings` localStorage key, which stores/settings-store.ts
-// mirrors on every theme change (IndexedDB itself can't be read synchronously before
-// first paint, so this plain localStorage key is the sync mirror of the Dexie value).
+// matchMedia) and the display language are on <html> for the very first paint — no
+// light-mode/wrong-language flash on reload. Reads the `lexio_settings` localStorage
+// key, which stores/settings-store.ts mirrors on every theme/locale change (IndexedDB
+// itself can't be read synchronously before first paint, so this plain localStorage
+// key is the sync mirror of the Dexie value).
 const THEME_INIT_SCRIPT = `(function () {
   try {
     var raw = localStorage.getItem('lexio_settings');
-    var pref = raw ? (JSON.parse(raw).theme || 'system') : 'system';
+    var stored = raw ? JSON.parse(raw) : {};
+    var pref = stored.theme || 'system';
     var dark = pref === 'dark' || (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
     var root = document.documentElement;
     root.setAttribute('data-theme', dark ? 'dark' : 'light');
     root.style.colorScheme = dark ? 'dark' : 'light';
+    if (stored.locale === 'en' || stored.locale === 'vi') root.lang = stored.locale;
   } catch (e) {}
 })();`;
 

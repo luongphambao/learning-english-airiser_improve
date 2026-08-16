@@ -27,46 +27,51 @@ export const isConqueredHardWord = (word: Word): boolean =>
 export const METRICS: readonly MetricConfig[] = [
   {
     id: 'words',
-    label: 'Số từ vựng',
-    hint: 'Tổng số từ đang có trong sổ tay.',
+    labelKey: 'leaderboardPage.metricWords',
+    hintKey: 'leaderboardPage.metricWordsHint',
     valueOf: (e) => e.words,
-    format: (e) => `${e.words} từ`,
+    format: (e, t) => t('leaderboardPage.unitWords', { count: e.words }),
   },
   {
     id: 'longestStreak',
-    label: 'Chuỗi dài nhất',
-    hint: 'Số ngày học liên tiếp nhiều nhất từ trước tới nay.',
+    labelKey: 'leaderboardPage.metricLongestStreak',
+    hintKey: 'leaderboardPage.metricLongestStreakHint',
     valueOf: (e) => e.longestStreak,
-    format: (e) => `${e.longestStreak} ngày`,
+    format: (e, t) => t('leaderboardPage.unitDays', { count: e.longestStreak }),
   },
   {
     id: 'totalReviews',
-    label: 'Lượt ôn tập',
-    hint: 'Tổng số lượt trả lời đã hoàn thành.',
+    labelKey: 'leaderboardPage.metricTotalReviews',
+    hintKey: 'leaderboardPage.metricTotalReviewsHint',
     valueOf: (e) => e.totalReviews,
-    format: (e) => `${e.totalReviews} lượt`,
+    format: (e, t) => t('leaderboardPage.unitReviews', { count: e.totalReviews }),
   },
   {
     id: 'accuracy',
-    label: 'Độ chính xác',
-    hint: `Tỉ lệ trả lời đúng — cần ít nhất ${MIN_REVIEWS_FOR_ACCURACY} lượt ôn để được xếp hạng.`,
+    labelKey: 'leaderboardPage.metricAccuracy',
+    // MIN_REVIEWS_FOR_ACCURACY (20) is baked as a literal into both dictionary
+    // strings rather than passed as a t() var — it's a compile-time constant, not
+    // runtime data, so a static translated sentence is simpler than plumbing vars
+    // through this non-component config object.
+    hintKey: 'leaderboardPage.metricAccuracyHint',
     valueOf: accuracyPct,
     qualifies: (e) => e.totalReviews >= MIN_REVIEWS_FOR_ACCURACY,
+    // No unit to localize — a percentage sign reads the same in both languages.
     format: (e) => `${accuracyPct(e).toFixed(1)}%`,
   },
   {
     id: 'newLast7',
-    label: 'Từ mới 7 ngày',
-    hint: 'Số từ thêm vào sổ tay trong 7 ngày gần nhất.',
+    labelKey: 'leaderboardPage.metricNewLast7',
+    hintKey: 'leaderboardPage.metricNewLast7Hint',
     valueOf: (e) => e.newLast7,
-    format: (e) => `${e.newLast7} từ`,
+    format: (e, t) => t('leaderboardPage.unitWords', { count: e.newLast7 }),
   },
   {
     id: 'leechesConquered',
-    label: 'Từ khó đã chinh phục',
-    hint: 'Từ từng hay quên, nay đã thuộc.',
+    labelKey: 'leaderboardPage.metricLeechesConquered',
+    hintKey: 'leaderboardPage.metricLeechesConqueredHint',
     valueOf: (e) => e.leechesConquered,
-    format: (e) => `${e.leechesConquered} từ`,
+    format: (e, t) => t('leaderboardPage.unitWords', { count: e.leechesConquered }),
   },
 ] as const;
 

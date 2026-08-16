@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import { useProfile } from '@/hooks/use-profile';
 import { useSettingsStore } from '@/stores/settings-store';
 import { BackHeader } from '@/components/layout/back-header';
+import { useT } from '@/hooks/use-i18n';
 import { dayKey, lastNDays } from '@/lib/srs/date';
 import { Calendar, Mail, Target } from 'lucide-react';
 
@@ -17,6 +18,7 @@ import { Calendar, Mail, Target } from 'lucide-react';
 export default function StudyPlanPage() {
   const { settings, stats } = useProfile();
   const updateSettings = useSettingsStore((s) => s.updateSettings);
+  const { t } = useT();
 
   const daysStudiedThisWeek = useMemo(() => {
     const today = dayKey(Date.now());
@@ -25,25 +27,25 @@ export default function StudyPlanPage() {
 
   return (
     <>
-      <BackHeader title="Kế hoạch học" />
+      <BackHeader title={t('calendar.title')} />
       <div className="pt-6 space-y-6">
         <div className="pb-2 border-b border-rule">
-          <h2 className="font-serif-display text-2xl text-ink">Kế hoạch học của bạn</h2>
+          <h2 className="font-serif-display text-2xl text-ink">{t('calendar.heading')}</h2>
           <p className="text-sm text-ink-soft mt-1">
-            Đặt nhịp học đều đặn — vài phút mỗi ngày hiệu quả hơn học dồn một lần.
+            {t('calendar.subtitle')}
           </p>
         </div>
 
         <div className="p-5 rounded-card bg-surface border border-rule space-y-4">
           <div className="flex items-center gap-2">
             <Target size={20} className="text-green" />
-            <h3 className="font-serif-display text-2xl text-ink">Tuần này</h3>
+            <h3 className="font-serif-display text-2xl text-ink">{t('calendar.thisWeek')}</h3>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="font-mono-utility text-3xl font-semibold text-ink">{daysStudiedThisWeek}</span>
-            <span className="text-sm text-ink-soft">/ 7 ngày đã học</span>
+            <span className="text-sm text-ink-soft">{t('calendar.daysStudiedSuffix')}</span>
           </div>
-          <div className="flex gap-1.5" role="img" aria-label={`Đã học ${daysStudiedThisWeek} trên 7 ngày gần nhất`}>
+          <div className="flex gap-1.5" role="img" aria-label={t('calendar.weekProgressAria', { count: daysStudiedThisWeek })}>
             {lastNDays(dayKey(Date.now()), 7).map((d) => (
               <div
                 key={d}
@@ -52,8 +54,14 @@ export default function StudyPlanPage() {
             ))}
           </div>
           <p className="text-xs text-ink-soft">
-            Chuỗi hiện tại: <span className="font-mono-utility text-ink">{stats.streak} ngày</span> · Dài nhất:{' '}
-            <span className="font-mono-utility text-ink">{stats.longestStreak} ngày</span>
+            {t('calendar.currentStreakLabel')}{' '}
+            <span className="font-mono-utility text-ink">
+              {stats.streak} {t('calendar.daysUnit')}
+            </span>{' '}
+            · {t('calendar.longestStreakLabel')}{' '}
+            <span className="font-mono-utility text-ink">
+              {stats.longestStreak} {t('calendar.daysUnit')}
+            </span>
           </p>
         </div>
 
@@ -61,7 +69,7 @@ export default function StudyPlanPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Calendar size={20} className="text-green" />
-              <h3 className="font-serif-display text-2xl text-ink">Giờ học ưa thích</h3>
+              <h3 className="font-serif-display text-2xl text-ink">{t('calendar.preferredStudyTime')}</h3>
             </div>
             <input
               type="time"
@@ -71,8 +79,7 @@ export default function StudyPlanPage() {
             />
           </div>
           <p className="text-xs text-ink-soft leading-relaxed">
-            Học vào cùng một khung giờ mỗi ngày giúp việc ôn từ trở thành thói quen bền vững. Lexio chỉ dùng giờ này
-            để nhắc bạn — ứng dụng không tự mở lên vào giờ đó.
+            {t('calendar.studyTimeBody')}
           </p>
         </div>
 
@@ -80,7 +87,7 @@ export default function StudyPlanPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Mail size={20} className="text-green" />
-              <h3 className="font-serif-display text-2xl text-ink">Email nhắc học</h3>
+              <h3 className="font-serif-display text-2xl text-ink">{t('calendar.reminderEmailHeading')}</h3>
             </div>
             <select
               value={settings.reminderHour === null ? 'off' : String(settings.reminderHour)}
@@ -91,17 +98,15 @@ export default function StudyPlanPage() {
               }
               className="p-1.5 rounded-btn bg-paper border border-rule font-mono-utility text-xs text-ink"
             >
-              <option value="off">Tắt</option>
-              <option value="7">7:00 Sáng</option>
-              <option value="8">8:00 Sáng</option>
-              <option value="9">9:00 Sáng</option>
-              <option value="20">20:00 Tối</option>
+              <option value="off">{t('calendar.reminderOff')}</option>
+              <option value="7">{t('calendar.reminder7am')}</option>
+              <option value="8">{t('calendar.reminder8am')}</option>
+              <option value="9">{t('calendar.reminder9am')}</option>
+              <option value="20">{t('calendar.reminder8pm')}</option>
             </select>
           </div>
           <p className="text-xs text-ink-soft leading-relaxed">
-            Lưu giờ bạn muốn nhận email từ cần ôn tập. Lexio gửi qua tài khoản Gmail bạn đã kết nối ở Cài đặt —
-            hiện tại bạn cần bấm &ldquo;Gửi email nhắc học thử ngay&rdquo; trong Cài đặt để gửi; gửi tự động theo
-            giờ đã chọn sẽ có ở bản sau.
+            {t('calendar.reminderEmailBody')}
           </p>
         </div>
       </div>

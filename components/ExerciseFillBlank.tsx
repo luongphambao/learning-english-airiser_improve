@@ -4,6 +4,7 @@ import { WordCard } from './WordCard';
 import { Button } from './Button';
 import { optionsForWord } from '@/lib/text/shuffle';
 import { splitForBlank } from '@/lib/text/blank';
+import { useT } from '@/hooks/use-i18n';
 
 interface ExerciseFillBlankProps {
   word: Word;
@@ -11,6 +12,7 @@ interface ExerciseFillBlankProps {
 }
 
 export function ExerciseFillBlank({ word, onAnswer }: ExerciseFillBlankProps) {
+  const { t } = useT();
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
@@ -55,7 +57,7 @@ export function ExerciseFillBlank({ word, onAnswer }: ExerciseFillBlankProps) {
         <div className="backface-hidden bg-surface border border-rule rounded-card p-6">
           <div className="flex items-center justify-between mb-4">
             <span className="font-mono-utility text-xs text-green font-semibold uppercase tracking-wider">
-              Bài tập: Điền từ vào chỗ trống
+              {t('exercise.fillBlank.title')}
             </span>
             <span className="text-xs italic text-ink-soft">{word.partOfSpeech}</span>
           </div>
@@ -111,8 +113,8 @@ export function ExerciseFillBlank({ word, onAnswer }: ExerciseFillBlankProps) {
         <div className="absolute inset-0 backface-hidden rotate-y-180 bg-surface border border-wrong/30 rounded-card p-6 shadow-card flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-mono-utility text-wrong">Chưa chính xác</span>
-              <span className="text-xs font-mono-utility text-ink-soft">Đáp án: {word.word}</span>
+              <span className="text-xs font-mono-utility text-wrong">{t('exercise.fillBlank.incorrectLabel')}</span>
+              <span className="text-xs font-mono-utility text-ink-soft">{t('exercise.fillBlank.answerLabel', { word: word.word })}</span>
             </div>
             <WordCard word={word} showDetails={true} />
           </div>
@@ -124,7 +126,7 @@ export function ExerciseFillBlank({ word, onAnswer }: ExerciseFillBlankProps) {
                 onAnswer(false);
               }}
             >
-              Tiếp tục
+              {t('exercise.continueCta')}
             </Button>
           </div>
         </div>

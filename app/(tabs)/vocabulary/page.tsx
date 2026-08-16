@@ -10,6 +10,7 @@ import { Word } from '@/types';
 import { WordCard } from '@/components/WordCard';
 import { Sheet } from '@/components/Sheet';
 import { Button } from '@/components/Button';
+import { useT } from '@/hooks/use-i18n';
 import { Plus, Search, Loader2, FileText, Type, Upload, Trash2 } from 'lucide-react';
 
 // Rewritten on the repository layer + enrichment-store (Phase 5) — replaces
@@ -19,6 +20,7 @@ import { Plus, Search, Loader2, FileText, Type, Upload, Trash2 } from 'lucide-re
 // after the word was queued into state) structurally impossible: there is no
 // in-memory array to search, only a DB lookup by id.
 export default function WordsPage() {
+  const { t } = useT();
   const words = useWordsList();
   const pendingIds = useEnrichmentStore((s) => s.pendingIds);
   const enrich = useEnrichmentStore((s) => s.enrich);
@@ -83,16 +85,16 @@ export default function WordsPage() {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Tìm từ vựng hoặc nghĩa tiếng Việt..."
+          placeholder={t('vocabulary.searchPlaceholder')}
           className="w-full pl-10 pr-4 py-2.5 rounded-[12px] bg-surface border border-rule text-sm text-ink focus:outline-none focus:border-green transition-all"
         />
       </div>
 
       {filteredWords.length === 0 ? (
         <div className="text-center py-12 bg-surface border border-rule rounded-[16px]">
-          <p className="font-serif-display text-2xl text-ink mb-1">Chưa có từ nào trong sổ</p>
+          <p className="font-serif-display text-2xl text-ink mb-1">{t('vocabulary.emptyTitle')}</p>
           <p className="text-sm text-ink-soft">
-            Bấm nút dấu cộng bên dưới để thêm từ mới đầu tiên.
+            {t('vocabulary.emptyDescription')}
           </p>
         </div>
       ) : (
@@ -115,9 +117,9 @@ export default function WordsPage() {
                   </div>
                   <p className="text-xs text-ink-soft mt-0.5 line-clamp-1">
                     {isEnriching ? (
-                      <span className="animate-pulse text-amber-ink">Đang tải nghĩa AI...</span>
+                      <span className="animate-pulse text-amber-ink">{t('vocabulary.enrichingMeaning')}</span>
                     ) : (
-                      word.meaningVi || 'Đang chờ làm giàu nội dung...'
+                      word.meaningVi || t('vocabulary.pendingEnrichment')
                     )}
                   </p>
                 </div>
@@ -132,7 +134,11 @@ export default function WordsPage() {
                         : 'bg-rule text-ink-soft'
                     }`}
                   >
-                    {word.status === 'known' ? 'Đã thuộc' : word.status === 'learning' ? 'Đang học' : 'Từ mới'}
+                    {word.status === 'known'
+                      ? t('vocabulary.statusKnown')
+                      : word.status === 'learning'
+                      ? t('vocabulary.statusLearning')
+                      : t('vocabulary.statusNew')}
                   </span>
                 </div>
               </button>
@@ -144,7 +150,7 @@ export default function WordsPage() {
       <button
         onClick={() => setIsAddSheetOpen(true)}
         className="fixed bottom-20 right-6 w-14 h-14 rounded-full bg-green text-paper shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-all cursor-pointer z-30"
-        aria-label="Thêm từ mới"
+        aria-label={t('vocabulary.addWordAria')}
       >
         <Plus size={28} />
       </button>
@@ -162,13 +168,13 @@ export default function WordsPage() {
             <div className="pt-4 border-t border-rule grid grid-cols-2 gap-3 text-xs">
               <div>
                 <span className="block text-ink-soft font-mono-utility uppercase tracking-wide mb-0.5">
-                  Nguồn
+                  {t('vocabulary.sourceLabel')}
                 </span>
-                <span className="text-ink">{selectedWord.source?.label || 'Tự thêm'}</span>
+                <span className="text-ink">{selectedWord.source?.label || t('vocabulary.manualSourceFallback')}</span>
               </div>
               <div>
                 <span className="block text-ink-soft font-mono-utility uppercase tracking-wide mb-0.5">
-                  Ngày thêm
+                  {t('vocabulary.dateAddedLabel')}
                 </span>
                 <span className="text-ink">
                   {new Date(selectedWord.createdAt).toLocaleDateString('vi-VN')}
@@ -176,17 +182,17 @@ export default function WordsPage() {
               </div>
               <div>
                 <span className="block text-ink-soft font-mono-utility uppercase tracking-wide mb-0.5">
-                  Đã ôn tập
+                  {t('vocabulary.reviewCountLabel')}
                 </span>
-                <span className="text-ink">{selectedWord.reviewCount} lần</span>
+                <span className="text-ink">{t('vocabulary.reviewCountValue', { count: selectedWord.reviewCount })}</span>
               </div>
               <div>
                 <span className="block text-ink-soft font-mono-utility uppercase tracking-wide mb-0.5">
-                  Ôn lại tiếp
+                  {t('vocabulary.nextReviewLabel')}
                 </span>
                 <span className="text-ink">
                   {selectedWord.status === 'new'
-                    ? 'Chưa học'
+                    ? t('vocabulary.notStudiedYet')
                     : new Date(selectedWord.dueAt).toLocaleDateString('vi-VN')}
                 </span>
               </div>
@@ -201,7 +207,7 @@ export default function WordsPage() {
                 }}
               >
                 <Trash2 size={16} />
-                Xoá từ
+                {t('vocabulary.deleteWord')}
               </Button>
             </div>
           </div>
@@ -214,7 +220,7 @@ export default function WordsPage() {
           setIsAddSheetOpen(false);
           setExtractedCandidates([]);
         }}
-        title="Thêm từ vựng mới"
+        title={t('vocabulary.addSheetTitle')}
       >
         <div className="space-y-5">
           <div className="flex rounded-[12px] bg-paper p-1 border border-rule">
@@ -227,7 +233,7 @@ export default function WordsPage() {
               }`}
             >
               <Type size={14} className="inline mr-1.5" />
-              Gõ từ
+              {t('vocabulary.tabType')}
             </button>
             <button
               onClick={() => setActiveAddTab('paste')}
@@ -238,7 +244,7 @@ export default function WordsPage() {
               }`}
             >
               <FileText size={14} className="inline mr-1.5" />
-              Dán đoạn văn
+              {t('vocabulary.tabPaste')}
             </button>
             <button
               onClick={() => setActiveAddTab('file')}
@@ -249,7 +255,7 @@ export default function WordsPage() {
               }`}
             >
               <Upload size={14} className="inline mr-1.5" />
-              Tải tệp
+              {t('vocabulary.tabFile')}
             </button>
           </div>
 
@@ -257,7 +263,7 @@ export default function WordsPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-mono-utility text-ink-soft mb-2">
-                  Nhập từ tiếng Anh:
+                  {t('vocabulary.typeLabel')}
                 </label>
                 <input
                   type="text"
@@ -265,12 +271,12 @@ export default function WordsPage() {
                   value={typedWord}
                   onChange={(e) => setTypedWord(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSaveTypedWord()}
-                  placeholder="Ví dụ: leverage, orchestrate..."
+                  placeholder={t('vocabulary.typePlaceholder')}
                   className="w-full p-3.5 rounded-[12px] bg-paper border border-rule text-base font-serif-display text-ink focus:outline-none focus:border-green"
                 />
               </div>
               <p className="text-xs text-ink-soft">
-                AI sẽ tự động làm giàu thông tin: phát âm IPA, nghĩa tiếng Việt, câu ví dụ và collocations đi kèm.
+                {t('vocabulary.aiEnrichNote')}
               </p>
               <Button
                 variant="primary"
@@ -278,7 +284,7 @@ export default function WordsPage() {
                 disabled={!typedWord.trim()}
                 className="w-full"
               >
-                Lưu từ ngay
+                {t('vocabulary.saveNow')}
               </Button>
             </div>
           )}
@@ -287,13 +293,13 @@ export default function WordsPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-mono-utility text-ink-soft mb-2">
-                  Dán bài đọc / email / tài liệu công việc:
+                  {t('vocabulary.pasteLabel')}
                 </label>
                 <textarea
                   lang="en"
                   value={pastedText}
                   onChange={(e) => setPastedText(e.target.value)}
-                  placeholder="Dán đoạn văn tiếng Anh vào đây..."
+                  placeholder={t('vocabulary.pastePlaceholder')}
                   rows={4}
                   className="w-full p-3.5 rounded-[12px] bg-paper border border-rule text-sm text-ink focus:outline-none focus:border-green resize-none"
                 />
@@ -309,16 +315,16 @@ export default function WordsPage() {
                   {loadingExtract ? (
                     <>
                       <Loader2 size={18} className="animate-spin" />
-                      Đang trích xuất từ vựng...
+                      {t('vocabulary.extracting')}
                     </>
                   ) : (
-                    'Phân tích & Lọc từ đáng học'
+                    t('vocabulary.analyzeCta')
                   )}
                 </Button>
               ) : (
                 <div className="space-y-3">
                   <span className="block text-xs font-mono-utility text-ink-soft">
-                    Các từ vựng gợi ý:
+                    {t('vocabulary.suggestedWords')}
                   </span>
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {extractedCandidates.map((cand, idx) => (
@@ -341,7 +347,7 @@ export default function WordsPage() {
                     onClick={() => handleSaveCandidates(extractedCandidates.map((c) => c.word))}
                     className="w-full"
                   >
-                    Thêm tất cả {extractedCandidates.length} từ vào sổ
+                    {t('vocabulary.addAllCta', { count: extractedCandidates.length })}
                   </Button>
                 </div>
               )}
@@ -352,12 +358,11 @@ export default function WordsPage() {
             <div className="space-y-4 text-center py-4">
               <Upload size={32} className="mx-auto text-green" />
               <p className="text-sm text-ink">
-                Phân tích cả tài liệu (tệp .txt/.md hoặc dán văn bản dài) trên màn riêng — có bộ lọc theo trình độ và
-                phân loại từng từ trước khi thêm vào sổ.
+                {t('vocabulary.fileTabDescription')}
               </p>
               <Link href="/upload" onClick={() => setIsAddSheetOpen(false)}>
                 <Button variant="primary" className="w-full">
-                  Mở màn Tải tài liệu
+                  {t('vocabulary.openUploadCta')}
                 </Button>
               </Link>
             </div>

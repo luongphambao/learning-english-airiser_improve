@@ -32,7 +32,7 @@ function stats(overrides: Partial<UserStats> = {}): UserStats {
 
 function settings(overrides: Partial<UserSettings> = {}): UserSettings {
   return {
-    reminderHour: null, studyTime: null, theme: 'system', contextTopic: '',
+    reminderHour: null, studyTime: null, theme: 'system', locale: 'vi', contextTopic: '',
     level: 'B1', sessionSize: 5,
     levelProfile: { declared: null, placement: null, work: null, srs: null, updatedAt: null, lastPromptedAt: null },
     ...overrides,
