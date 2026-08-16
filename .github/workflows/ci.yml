@@ -76,3 +76,66 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # Ships main to Cloud Run once `docker` is green. Cloud Run cannot pull from GHCR
+  # without registry credentials, so the image is rebuilt into Artifact Registry —
+  # cheap in practice, because `cache-from: type=gha` reuses the layers the `docker`
+  # job just built.
+  #
+  # Skips itself entirely until the repo has the GCP settings below, so a fork or a
+  # not-yet-configured clone gets a green CI instead of a red required check:
+  #   Variables  GCP_PROJECT_ID, GCP_REGION, GCP_SERVICE, GCP_AR_REPOSITORY
+  #   Secrets    GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_SERVICE_ACCOUNT
+  # Keyless via Workload Identity Federation — no long-lived service-account JSON is
+  # ever stored in the repo. README.md has the one-time gcloud setup.
+  deploy:
+    needs: docker
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.GCP_PROJECT_ID != ''
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write # required for Workload Identity Federation
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Authorize Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
+
+      # Immutable commit-SHA tag, never `latest` — a Cloud Run revision must always
+      # name the exact image it runs, so a rollback is unambiguous.
+      - name: Build and push to Artifact Registry
+        id: image
+        run: |
+          IMAGE="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_AR_REPOSITORY }}/${{ vars.GCP_SERVICE }}:${GITHUB_SHA}"
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+          docker buildx build \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max \
+            --tag "${IMAGE}" \
+            --push .
+
+      # Runtime configuration (GEMINI_API_KEY, GOOGLE_CLIENT_*, ...) deliberately is
+      # NOT set here: `gcloud run deploy --image` carries the previous revision's env
+      # forward, so secrets stay in Cloud Run / Secret Manager and never pass through
+      # GitHub. Adding env_vars here would silently replace that whole set.
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ vars.GCP_SERVICE }}
+          region: ${{ vars.GCP_REGION }}
+          image: ${{ steps.image.outputs.image }}
+
+      - name: Smoke-check the new revision
+        run: curl --fail --silent --show-error --max-time 30 "${{ steps.deploy.outputs.url }}" > /dev/null
