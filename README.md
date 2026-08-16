@@ -158,6 +158,22 @@ browser, so the app works offline and signed out.
 
 Set `AI_PROVIDER=gemini` in `.env` to run the AI features on Gemini.
 
+### Seeing every feature in one run
+
+```bash
+npm run dev            # in another terminal (npm run start works too)
+npm run demo           # drives the whole product, writes screenshots to UI/demo/
+npm run demo -- --list                       # what each scene covers
+npm run demo -- --headed --slow=250          # watch it happen
+npm run demo -- --only=learn-doc,practice    # just these scenes
+```
+
+`scripts/demo-features.mjs` walks a browser through every feature the way a user would — placement
+test, learning from a work email, mining a document, all four exercise types, the notebook, progress,
+leaderboard, grammar, settings, dark mode and the phone layout — asserting what should be on screen
+at each step and printing a pass/fail summary. Every `/api/ai/*` call is answered from a fixture
+table, so it needs no `GEMINI_API_KEY`, costs nothing, and gives the same result every run.
+
 ---
 
 ## Deployment

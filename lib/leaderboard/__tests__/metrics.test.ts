@@ -6,10 +6,12 @@ import {
   buildMyEntry,
   isConqueredHardWord,
   rankBy,
+  type MyIdentity,
 } from '../metrics';
-import { MOCK_ROSTER } from '../mock';
 import type { LeaderboardEntry } from '../types';
 import type { UserSettings, UserStats, Word } from '@/lib/domain';
+
+const ME: MyIdentity = { uid: 'uid-me', name: 'Bạn' };
 
 const NOW = Date.UTC(2026, 5, 1, 12); // 2026-06-01 noon UTC = 2026-06-01 19:00 ICT
 
@@ -33,7 +35,7 @@ function stats(overrides: Partial<UserStats> = {}): UserStats {
 function settings(overrides: Partial<UserSettings> = {}): UserSettings {
   return {
     reminderHour: null, studyTime: null, theme: 'system', locale: 'vi', contextTopic: '',
-    level: 'B1', sessionSize: 5,
+    level: 'B1', sessionSize: 5, leaderboardName: null,
     levelProfile: { declared: null, placement: null, work: null, srs: null, updatedAt: null, lastPromptedAt: null },
     ...overrides,
   };
@@ -101,7 +103,7 @@ describe('lib/leaderboard/metrics rankBy', () => {
 
 describe('lib/leaderboard/metrics buildMyEntry', () => {
   it('reports 0% accuracy, not NaN and not 100%, for a user with no reviews', () => {
-    const me = buildMyEntry(stats(), settings(), [], NOW);
+    const me = buildMyEntry(stats(), settings(), [], NOW, ME);
     expect(me.totalReviews).toBe(0);
     expect(me.totalCorrect).toBe(0);
   });
@@ -112,7 +114,7 @@ describe('lib/leaderboard/metrics buildMyEntry', () => {
       word({ id: 'w2', createdAt: NOW - 6 * 86_400_000 }), // 6 days ago
       word({ id: 'w3', createdAt: NOW - 8 * 86_400_000 }), // 8 days ago — outside window
     ];
-    const me = buildMyEntry(stats(), settings(), words, NOW);
+    const me = buildMyEntry(stats(), settings(), words, NOW, ME);
     expect(me.newLast7).toBe(2);
   });
 
@@ -121,7 +123,7 @@ describe('lib/leaderboard/metrics buildMyEntry', () => {
     // NOW's ICT calendar date (2026-06-01). A now-minus-7*86_400_000 ms window
     // would misclassify this depending on host TZ; the day-key-set approach must not.
     const boundaryWord = word({ id: 'w-boundary', createdAt: Date.UTC(2026, 4, 25, 17, 30) });
-    const me = buildMyEntry(stats(), settings(), [boundaryWord], NOW);
+    const me = buildMyEntry(stats(), settings(), [boundaryWord], NOW, ME);
     expect(me.newLast7).toBe(1);
   });
 
@@ -129,7 +131,7 @@ describe('lib/leaderboard/metrics buildMyEntry', () => {
     const conquered = word({ id: 'w1', status: 'known', isLeech: false, lapseCount: 2 });
     const stillLeech = word({ id: 'w2', status: 'learning', isLeech: true, lapseCount: 4 });
     const neverLapsed = word({ id: 'w3', status: 'known', isLeech: false, lapseCount: 0 });
-    const me = buildMyEntry(stats(), settings(), [conquered, stillLeech, neverLapsed], NOW);
+    const me = buildMyEntry(stats(), settings(), [conquered, stillLeech, neverLapsed], NOW, ME);
     expect(me.leechesConquered).toBe(1);
   });
 
@@ -143,31 +145,70 @@ describe('lib/leaderboard/metrics buildMyEntry', () => {
       word({ id: 'w2', word: 'new', createdAt: NOW }),
       word({ id: 'w3', word: 'mid', createdAt: NOW - 86_400_000 }),
     ];
-    const me = buildMyEntry(stats(), settings(), words, NOW);
+    const me = buildMyEntry(stats(), settings(), words, NOW, ME);
     expect(me.sampleWords).toEqual(['new', 'mid', 'old']);
   });
 
   it('reports an empty sampleWords list, not a placeholder, for an empty notebook', () => {
-    const me = buildMyEntry(stats(), settings(), [], NOW);
+    const me = buildMyEntry(stats(), settings(), [], NOW, ME);
     expect(me.sampleWords).toEqual([]);
   });
 });
 
+// A small roster of real (non-mock) learners, standing in for what
+// lib/leaderboard/remote.ts + map.ts's entryFromDoc() would hand back from
+// Firestore — docs/decision.md ADR-025 replaced the hand-authored MOCK_ROSTER
+// with real published rows, so tests build a real-shaped one instead.
+const OTHERS: LeaderboardEntry[] = [
+  entry({ id: 'uid-a', name: 'A', words: 300, longestStreak: 40, totalReviews: 1200, totalCorrect: 1000 }),
+  entry({ id: 'uid-b', name: 'B', words: 300, longestStreak: 40, totalReviews: 900, totalCorrect: 700 }), // ties A on words/longestStreak
+  entry({ id: 'uid-c', name: 'C', words: 50, longestStreak: 5, totalReviews: 60, totalCorrect: 50 }),
+];
+
 describe('lib/leaderboard/metrics buildLeaderboard', () => {
   it('places a user with an empty notebook last on every metric', () => {
-    const me = buildMyEntry(stats(), settings(), [], NOW);
+    const me = buildMyEntry(stats(), settings(), [], NOW, ME);
     for (const m of METRICS) {
-      const ranked = buildLeaderboard(me, m.id);
+      const ranked = buildLeaderboard(me, OTHERS, m.id);
       const myRow = ranked.find((r) => r.entry.isMe);
       const lastRank = ranked[ranked.length - 1].rank;
       expect(myRow?.rank).toBe(lastRank);
     }
   });
 
-  it('puts the current user on the board exactly once', () => {
-    const me = buildMyEntry(stats({ totalReviews: 500, totalCorrect: 400, longestStreak: 30 }), settings(), [], NOW);
-    const ranked = buildLeaderboard(me, 'words');
+  it('puts the current user on the board exactly once, alongside every other real learner', () => {
+    const me = buildMyEntry(stats({ totalReviews: 500, totalCorrect: 400, longestStreak: 30 }), settings(), [], NOW, ME);
+    const ranked = buildLeaderboard(me, OTHERS, 'words');
     expect(ranked.filter((r) => r.entry.isMe)).toHaveLength(1);
-    expect(ranked).toHaveLength(MOCK_ROSTER.length + 1);
+    expect(ranked).toHaveLength(OTHERS.length + 1);
+  });
+
+  it('drops the current user\'s own stale published doc out of `others` rather than showing it twice', () => {
+    const me = buildMyEntry(stats({ totalReviews: 999 }), settings(), [], NOW, ME);
+    // A doc published by an earlier, staler sync round, still carrying uid-me's id.
+    const staleOwnDoc = entry({ id: ME.uid!, name: 'Bạn (cũ)', totalReviews: 1 });
+    const ranked = buildLeaderboard(me, [...OTHERS, staleOwnDoc], 'totalReviews');
+    expect(ranked.filter((r) => r.entry.isMe)).toHaveLength(1);
+    expect(ranked.find((r) => r.entry.isMe)?.entry.totalReviews).toBe(999);
+    expect(ranked).toHaveLength(OTHERS.length + 1);
+  });
+
+  it('ranks correctly with an empty `others` roster — just the current user, rank 1', () => {
+    const me = buildMyEntry(stats(), settings(), [], NOW, ME);
+    const ranked = buildLeaderboard(me, [], 'words');
+    expect(ranked).toHaveLength(1);
+    expect(ranked[0].rank).toBe(1);
+  });
+
+  it('exercises competition ranking (1, 2, 2, 4) against a real tie in `others`', () => {
+    const me = buildMyEntry(stats({ longestStreak: 1 }), settings(), [], NOW, ME);
+    const ranked = buildLeaderboard(me, OTHERS, 'longestStreak');
+    // uid-a and uid-b both have longestStreak: 40 -> tied rank 1; uid-c (5) -> rank 3; me (1) -> rank 4.
+    expect(ranked.map((r) => [r.entry.id, r.rank])).toEqual([
+      ['uid-a', 1],
+      ['uid-b', 1],
+      ['uid-c', 3],
+      [ME.uid as string, 4],
+    ]);
   });
 });

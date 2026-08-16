@@ -59,6 +59,17 @@ export const UserSettingsSchema = z.object({
   // for the one real break this caused (client-side input validation on AI tasks).
   level: CefrSchema,
   sessionSize: z.number().int().min(3).max(20).default(5),
+  // docs/decision.md ADR-025 — display name override for the real leaderboard.
+  // null means "use the fallback chain" (lib/leaderboard/name.ts): Firebase Auth
+  // displayName, then the local part of email, then a generic placeholder. Additive
+  // field with a default, same no-migration pattern as `locale`/`sessionSize` above.
+  // Deliberately NO `.max()` here: getProfile() (lib/repositories/dexie/
+  // user-repository.ts) safeParses the WHOLE settings object and falls back to
+  // DEFAULT_SETTINGS wholesale on any failure — a length cap here would mean one
+  // over-long nickname silently resets theme/locale/level/sessionSize too. The
+  // 40-char cap is enforced non-destructively instead: the Settings input's
+  // `maxLength`, and a defensive slice in lib/leaderboard/name.ts before publish.
+  leaderboardName: z.string().nullable().default(null),
   levelProfile: LevelProfileSchema.default({
     declared: null,
     placement: null,

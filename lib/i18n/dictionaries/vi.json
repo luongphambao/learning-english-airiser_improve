@@ -253,6 +253,11 @@
     },
     "studyPlan": {
       "title": "Kế hoạch học"
+    },
+    "leaderboard": {
+      "title": "Tên trên bảng xếp hạng",
+      "namePlaceholder": "Để trống dùng tên Google của bạn",
+      "publicNotice": "Số từ, chuỗi ngày học, lượt ôn và độ chính xác của bạn hiển thị công khai cho người dùng đã đăng nhập khác. Sổ tay từ vựng và email của bạn thì không."
     }
   },
   "login": {
@@ -344,7 +349,13 @@
     "checkLevelCta": "Kiểm tra trình độ (2 phút)",
     "meNewcomer": "Bạn — mới bắt đầu",
     "rowSecondary": "{{reviews}} lượt · {{accuracy}}% đúng",
-    "sampleBadge": "mẫu",
+    "anonymousName": "Người học",
+    "signedOutTitle": "Bạn chưa đăng nhập.",
+    "signedOutBody": "Đăng nhập để so tài với người học khác — không có tài khoản thì chỉ thấy được dòng của riêng bạn.",
+    "signedOutCta": "Đăng nhập",
+    "loadError": "Không tải được bảng xếp hạng.",
+    "retryCta": "Thử lại",
+    "capNotice": "Chỉ hiện 200 người học hoạt động gần đây nhất.",
     "metricWords": "Số từ vựng",
     "metricWordsHint": "Tổng số từ đang có trong sổ tay.",
     "metricLongestStreak": "Chuỗi dài nhất",

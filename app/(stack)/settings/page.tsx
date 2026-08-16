@@ -8,6 +8,7 @@ import { useLevelStore } from '@/stores/level-store';
 import { useSyncStore } from '@/stores/sync-store';
 import { BackHeader } from '@/components/layout/back-header';
 import { getRepos } from '@/lib/repositories';
+import { NAME_MAX_LENGTH } from '@/lib/leaderboard/name';
 import { useT } from '@/hooks/use-i18n';
 import type { UserSettings } from '@/types';
 import { Mail, CheckCircle2, AlertCircle, Send, Loader2, LogOut, Calendar, ChevronRight, RefreshCw, CloudOff } from 'lucide-react';
@@ -184,6 +185,26 @@ export default function SettingsPage() {
                 {t('settings.sync.syncNow')}
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Leaderboard display name — only meaningful once signed in, since a
+            signed-out learner has no published row (docs/decision.md ADR-025).
+            NAME_MAX_LENGTH mirrors firestore.rules' name.size() <= 40; kept out of
+            the Zod domain schema on purpose (lib/domain/user.ts's leaderboardName
+            comment) so an over-long value never resets every other setting. */}
+        {signedIn && (
+          <div className="p-4 rounded-2xl bg-surface border border-rule space-y-2">
+            <h2 className="text-sm font-semibold text-ink">{t('settings.leaderboard.title')}</h2>
+            <input
+              type="text"
+              value={settings.leaderboardName ?? ''}
+              onChange={(e) => updateSettings({ leaderboardName: e.target.value.trim() || null })}
+              maxLength={NAME_MAX_LENGTH}
+              placeholder={t('settings.leaderboard.namePlaceholder')}
+              className="w-full p-3 rounded-xl bg-paper border border-rule text-sm text-ink focus:outline-none focus:border-green"
+            />
+            <p className="text-xs text-ink-soft leading-relaxed">{t('settings.leaderboard.publicNotice')}</p>
           </div>
         )}
 

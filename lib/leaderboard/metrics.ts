@@ -1,7 +1,7 @@
 import { dayKey, lastNDays } from '@/lib/srs/date';
 import { LEECH_RESET_LAPSE } from '@/lib/srs/schedule';
 import type { UserSettings, UserStats, Word } from '@/lib/domain';
-import { MOCK_ROSTER } from './mock';
+import { initialsFromName } from './name';
 import type { LeaderboardEntry, LeaderboardMetricId, MetricConfig, RankedEntry } from './types';
 
 // Accuracy on a handful of reviews is noise, not skill: 3/3 = 100% would outrank
@@ -78,6 +78,19 @@ export const METRICS: readonly MetricConfig[] = [
 export const getMetric = (id: LeaderboardMetricId): MetricConfig =>
   METRICS.find((m) => m.id === id) ?? METRICS[0];
 
+/** Identity the current user's row is published/displayed under.
+ * `uid` is null when signed out — the row then exists only locally, keyed 'me',
+ * and is never published (lib/leaderboard/publish.ts checks for a signed-in uid
+ * itself before calling this at all, but `buildMyEntry` stays safe to call either
+ * way since /leaderboard also renders a signed-out user's own local row). `name`
+ * is the already-resolved display name (lib/leaderboard/name.ts's
+ * resolveDisplayName fallback chain) — this function does no name resolution of
+ * its own so it stays free of i18n/Firebase concerns. */
+export interface MyIdentity {
+  uid: string | null;
+  name: string;
+}
+
 /** Pure — caller owns the clock (docs/decision.md ADR-004), like every lib/srs/**
  * function. `words` should be fetched with a high limit by the caller (the default
  * useWordsList limit of 500 would silently undercount a very large notebook here,
@@ -87,21 +100,23 @@ export function buildMyEntry(
   settings: UserSettings,
   words: readonly Word[],
   now: number,
+  identity: MyIdentity,
 ): LeaderboardEntry {
   // A day-key set, not a `now - 7 * 86_400_000` millisecond window: the rest of the
   // app defines "a day" as an Asia/Ho_Chi_Minh calendar date (lib/srs/date.ts), and
   // a ms-window would misclassify a word added late at night some days ago.
   const window = new Set(lastNDays(dayKey(now), 7));
-  // Most-recently-added first, capped — same idea as the mock roster's sampleWords
-  // (a representative taste, not the whole notebook), but genuinely real here.
+  // Most-recently-added first, capped — a representative taste of the notebook,
+  // not the whole thing. Shown ONLY on the current user's own row (never
+  // published to Firestore, ADR-025) — every other entry gets [].
   const sampleWords = [...words]
     .sort((a, b) => b.createdAt - a.createdAt)
     .slice(0, 12)
     .map((w) => w.word);
   return {
-    id: 'me',
-    name: 'Bạn',
-    initials: 'B',
+    id: identity.uid ?? 'me',
+    name: identity.name,
+    initials: initialsFromName(identity.name),
     level: settings.level,
     isMe: true,
     words: words.length,
@@ -156,6 +171,18 @@ export function rankBy(
   return scored;
 }
 
-export function buildLeaderboard(me: LeaderboardEntry, metricId: LeaderboardMetricId): RankedEntry[] {
-  return rankBy([...MOCK_ROSTER, me], metricId);
+/**
+ * `others` comes from Firestore (lib/leaderboard/remote.ts's fetchRecentDocs(),
+ * mapped through entryFromDoc()) — real people, not a mock roster (ADR-025). `me`
+ * is excluded from `others` by id before ranking: the current user's own
+ * Firestore doc (if any) is always at least one publish-round stale compared to
+ * the just-computed `me`, so it must never be allowed to shadow it.
+ */
+export function buildLeaderboard(
+  me: LeaderboardEntry,
+  others: readonly LeaderboardEntry[],
+  metricId: LeaderboardMetricId,
+): RankedEntry[] {
+  const rest = others.filter((e) => e.id !== me.id);
+  return rankBy([...rest, me], metricId);
 }

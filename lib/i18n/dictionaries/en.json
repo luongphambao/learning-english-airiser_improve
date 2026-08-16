@@ -253,6 +253,11 @@
     },
     "studyPlan": {
       "title": "Study plan"
+    },
+    "leaderboard": {
+      "title": "Leaderboard display name",
+      "namePlaceholder": "Leave blank to use your Google name",
+      "publicNotice": "Your word count, streak, review count, and accuracy are shown publicly to other signed-in users. Your vocabulary notebook and email are not."
     }
   },
   "login": {
@@ -344,7 +349,13 @@
     "checkLevelCta": "Check your level (2 min)",
     "meNewcomer": "You — just starting out",
     "rowSecondary": "{{reviews}} reviews · {{accuracy}}% correct",
-    "sampleBadge": "sample",
+    "anonymousName": "Learner",
+    "signedOutTitle": "You're not signed in.",
+    "signedOutBody": "Sign in to compare with other learners — without an account you can only see your own row.",
+    "signedOutCta": "Sign in",
+    "loadError": "Couldn't load the leaderboard.",
+    "retryCta": "Retry",
+    "capNotice": "Showing only the 200 most recently active learners.",
     "metricWords": "Word count",
     "metricWordsHint": "Total words currently in your notebook.",
     "metricLongestStreak": "Longest streak",

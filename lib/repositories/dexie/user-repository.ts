@@ -11,6 +11,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   contextTopic: 'software engineering',
   level: 'B2',
   sessionSize: 5,
+  leaderboardName: null,
   levelProfile: {
     declared: null,
     placement: null,

@@ -220,6 +220,7 @@ describe('mergeUserRow', () => {
         contextTopic: 'general',
         level: 'B1',
         sessionSize: 5,
+        leaderboardName: null,
         levelProfile: { declared: null, placement: null, work: null, srs: null, updatedAt: null, lastPromptedAt: null },
       },
       stats: { streak: 0, longestStreak: 0, lastStudiedOn: null, freezeUsedOn: null, totalReviews: 0, totalCorrect: 0, daysStudied: 0, history: {} },

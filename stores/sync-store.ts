@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { getRepos } from '@/lib/repositories';
 import { getFirebaseAuth } from '@/lib/firebase/client';
 import { syncOnce } from '@/lib/sync/engine';
+import { publishLeaderboard } from '@/lib/leaderboard/publish';
 import type { SyncStatus } from '@/lib/sync/types';
 
 // docs/data-model.md §5 / lib/sync/** — orchestrator-only store (reads/writes via
@@ -59,6 +60,15 @@ export const useSyncStore = create<SyncStoreState>()((set, get) => ({
     if (result.ok) {
       await getRepos().meta.put(LAST_SYNCED_KEY, result.syncedAt);
       set({ status: 'idle', lastSyncedAt: result.syncedAt, error: null });
+      // Best-effort and independent of sync's own status: a leaderboard publish
+      // failure (e.g. the shape/range validation in firestore.rules rejecting a
+      // stale write) must never flip the sync UI to an error state — the user's
+      // real data already synced fine (docs/decision.md ADR-025).
+      try {
+        await publishLeaderboard(now);
+      } catch (err) {
+        console.error('[lexio] leaderboard publish failed:', err);
+      }
     } else {
       set({ status: 'error', error: result.error ?? 'Đồng bộ thất bại.' });
     }

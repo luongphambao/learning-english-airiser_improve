@@ -7,6 +7,14 @@ rules_version = '2';
 // including local testing — use the Firebase emulator instead
 // (firebase emulators:start), which enforces these same rules against fake
 // auth tokens.
+//
+// leaderboard/{uid} (docs/decision.md ADR-025) is the one collection any
+// signed-in user may READ regardless of uid — that's the whole feature. It is
+// kept separate from users/{uid} specifically so it can be world-readable: it
+// carries aggregate numbers + a display name only, never email/settings/
+// sampleWords. The field whitelist below is the enforcement of that promise,
+// not just a comment about it — a client that tries to publish an extra field
+// is rejected by the database itself.
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{uid} {
@@ -17,7 +25,62 @@ service cloud.firestore {
       }
     }
 
-    // Everything else (there is nothing else yet) stays denied by Firestore's
-    // own default-deny — no catch-all rule is declared on purpose.
+    match /leaderboard/{uid} {
+      // Exactly the fields lib/leaderboard/map.ts's toLeaderboardDoc() produces
+      // (mirrored by LeaderboardDocSchema in lib/leaderboard/types.ts).
+      function fields() {
+        return ['uid', 'name', 'level', 'words', 'longestStreak',
+          'totalReviews', 'totalCorrect', 'newLast7', 'leechesConquered', 'updatedAt'];
+      }
+
+      function isCount(v) {
+        return v is int && v >= 0 && v <= 1000000;
+      }
+
+      // Rules can check shape and internal consistency, never ground truth —
+      // there is no server here to compare against the learner's real
+      // notebook. This is a deliberate, documented limit (docs/decision.md
+      // ADR-025), not an oversight: it stops a hostile write from breaking
+      // every OTHER client's rendering, which is what a public collection
+      // must defend against at minimum.
+      function valid() {
+        return request.resource.data.keys().hasOnly(fields())
+          && request.resource.data.keys().hasAll(fields())
+          && request.resource.data.uid == uid
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && request.resource.data.name.size() <= 40
+          && request.resource.data.level in ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
+          && isCount(request.resource.data.words)
+          && isCount(request.resource.data.longestStreak)
+          && isCount(request.resource.data.totalReviews)
+          && isCount(request.resource.data.totalCorrect)
+          && isCount(request.resource.data.newLast7)
+          && isCount(request.resource.data.leechesConquered)
+          && request.resource.data.totalCorrect <= request.resource.data.totalReviews
+          && request.resource.data.newLast7 <= request.resource.data.words
+          && request.resource.data.leechesConquered <= request.resource.data.words
+          // updatedAt is a client Date.now() (ADR-004 — this project never
+          // uses serverTimestamp()). The tight UPPER bound is the one that
+          // matters: reads are `orderBy('updatedAt','desc') limit(200)`, so a
+          // future-dated doc would pin itself at the top of that window
+          // forever. The lower bound only guards against a garbage value —
+          // it's loose because a stale/back-dated write only hurts the
+          // writer (they fall out of the recency window sooner).
+          && request.resource.data.updatedAt is int
+          && request.resource.data.updatedAt <= request.time.toMillis() + 300000
+          && request.resource.data.updatedAt >= request.time.toMillis() - 31536000000;
+      }
+
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null && request.auth.uid == uid && valid();
+      // No UI calls this today — kept so a learner's row CAN be removed (by
+      // them, from the Firebase console, or a future "gỡ khỏi bảng" button)
+      // without a rules change and redeploy.
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Everything else stays denied by Firestore's own default-deny — no
+    // catch-all rule is declared on purpose.
   }
 }
