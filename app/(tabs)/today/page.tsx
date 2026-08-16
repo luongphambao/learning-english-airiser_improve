@@ -7,7 +7,7 @@ import { useDailyPlan } from '@/hooks/use-daily-plan';
 import { useTopupStore } from '@/stores/topup-store';
 import { useT } from '@/hooks/use-i18n';
 import { Button } from '@/components/Button';
-import { FileText, Upload, ChevronRight } from 'lucide-react';
+import { FileText, Upload, ChevronRight, Flame, Trophy, CalendarDays } from 'lucide-react';
 
 // Home — answers "what should I do next?" instead of auto-starting a session
 // (that used to happen here; the session itself moved to /practice unchanged,
@@ -66,6 +66,50 @@ export default function TodayPage() {
         <h1 className="font-serif-display text-3xl text-ink mb-1">{t(greetingKey)}</h1>
         <p className="text-sm text-ink-soft">{t('today.subtitle')}</p>
       </div>
+
+      {/* Streak is the motivation hook, so it leads the page as a full card instead of
+          the row of tiny mono links this used to be; the two destinations under it are
+          pure navigation and stay visually secondary. Gated on hasNotebook so a
+          brand-new user meets the placement CTA first, not a "0 ngày" card. */}
+      {hasNotebook && (
+        <div className="space-y-3">
+          <Link
+            href="/progress"
+            className="flex items-center gap-4 bg-surface border border-rule rounded-card shadow-card p-5 hover:border-green transition-colors"
+          >
+            <div className="w-12 h-12 rounded-full bg-amber/10 grid place-items-center shrink-0">
+              <Flame size={22} className="fill-amber text-amber" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-baseline gap-1.5">
+                <span className="font-mono-utility text-3xl font-bold text-amber-ink leading-none">
+                  {stats.streak}
+                </span>
+                <span className="text-sm text-ink-soft">{t('today.streakHeroLabel')}</span>
+              </div>
+              <span className="text-xs text-ink-soft block mt-1">
+                {t('today.streakHeroLongest', { days: stats.longestStreak })}
+              </span>
+            </div>
+            <ChevronRight size={18} className="text-ink-soft shrink-0" />
+          </Link>
+
+          <div className="grid grid-cols-2 gap-3">
+            <NavTile
+              href="/leaderboard"
+              label={t('today.leaderboardTile')}
+              icon={<Trophy size={18} className="text-amber" />}
+              iconClass="bg-amber/10"
+            />
+            <NavTile
+              href="/calendar"
+              label={t('today.studyPlanTile')}
+              icon={<CalendarDays size={18} className="text-green" />}
+              iconClass="bg-green-wash"
+            />
+          </div>
+        </div>
+      )}
 
       {!hasNotebook ? (
         <div className="space-y-3">
@@ -154,18 +198,32 @@ export default function TodayPage() {
         </Link>
       )}
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-mono-utility text-ink-soft">
-        <Link href="/progress" className="hover:text-ink transition-colors">
-          {t('today.streakFooter', { streak: stats.streak, longest: stats.longestStreak })}
-        </Link>
-        <Link href="/leaderboard" className="hover:text-ink transition-colors">
-          {t('today.leaderboardFooter')}
-        </Link>
-        <Link href="/calendar" className="hover:text-ink transition-colors">
-          {t('today.studyPlanFooter')}
-        </Link>
-      </div>
     </div>
+  );
+}
+
+function NavTile({
+  href,
+  label,
+  icon,
+  iconClass,
+}: {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+  iconClass: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex flex-col gap-3 bg-surface border border-rule rounded-card shadow-card p-4 hover:border-green transition-colors"
+    >
+      <div className={`w-9 h-9 rounded-full grid place-items-center shrink-0 ${iconClass}`}>{icon}</div>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-sm font-semibold text-ink">{label}</span>
+        <ChevronRight size={16} className="text-ink-soft shrink-0" />
+      </div>
+    </Link>
   );
 }
 

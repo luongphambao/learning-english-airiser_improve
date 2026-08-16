@@ -47,9 +47,10 @@
     "focusLowAccuracy": "Your accuracy is {{accuracy}}%. Practice more to remember longer.",
     "focusFewWords": "Your notebook has few words. Add a work document for content tailored to you.",
     "focusGoodPace": "You're keeping a good pace. {{streak}}-day streak.",
-    "streakFooter": "{{streak}}-day streak · longest {{longest}} days · View progress →",
-    "leaderboardFooter": "Leaderboard →",
-    "studyPlanFooter": "Study plan →"
+    "streakHeroLabel": "day streak",
+    "streakHeroLongest": "Longest {{days}} days",
+    "leaderboardTile": "Leaderboard",
+    "studyPlanTile": "Study plan"
   },
   "learn": {
     "tabs": {
@@ -328,12 +329,10 @@
   },
   "leaderboardPage": {
     "backHeaderTitle": "Leaderboard",
-    "demoBannerTitle": "Illustrative leaderboard.",
-    "demoBannerBody": "The 20 learners on this list are fixed sample data, not real users. Only your row reflects real data, read from your notebook and review history on this device.",
     "tablistAriaLabel": "Choose a ranking metric",
     "loadingLabel": "Loading leaderboard",
     "myRankPosition": "Your position",
-    "viewMyRowCta": "View your row",
+    "viewMyRowCta": "View your position",
     "noDataTitle": "You don't have ranking data yet.",
     "noDataBody": "Add your first 5 words to your notebook to appear on the board.",
     "checkLevelCta": "Check your level (2 min)",

@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Info } from 'lucide-react';
 import { useProfile } from '@/hooks/use-profile';
 import { useWordsList } from '@/hooks/use-words';
 import { useT } from '@/hooks/use-i18n';
@@ -46,14 +45,6 @@ export default function LeaderboardPage() {
     <>
       <BackHeader title={t('leaderboardPage.backHeaderTitle')} />
       <div className="space-y-6 animate-fade-in pt-6 pb-24">
-        <div className="flex gap-3 rounded-card border border-amber/30 bg-amber/10 p-4">
-          <Info size={18} className="text-amber shrink-0 mt-0.5" aria-hidden="true" />
-          <p className="text-xs leading-relaxed text-amber-ink">
-            <span className="font-semibold">{t('leaderboardPage.demoBannerTitle')}</span>{' '}
-            {t('leaderboardPage.demoBannerBody')}
-          </p>
-        </div>
-
         <MetricChips value={metric} onChange={setMetric} />
 
         {ranked === null ? (

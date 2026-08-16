@@ -47,9 +47,10 @@
     "focusLowAccuracy": "Tỉ lệ đúng của bạn là {{accuracy}}%. Luyện thêm để nhớ lâu hơn.",
     "focusFewWords": "Sổ tay còn ít từ. Thêm một tài liệu công việc để có nội dung học riêng.",
     "focusGoodPace": "Bạn đang giữ nhịp tốt. Chuỗi {{streak}} ngày.",
-    "streakFooter": "Chuỗi {{streak}} ngày · dài nhất {{longest}} ngày · Xem tiến độ →",
-    "leaderboardFooter": "Bảng xếp hạng →",
-    "studyPlanFooter": "Kế hoạch học →"
+    "streakHeroLabel": "ngày liên tiếp",
+    "streakHeroLongest": "Dài nhất {{days}} ngày",
+    "leaderboardTile": "Bảng xếp hạng",
+    "studyPlanTile": "Kế hoạch học"
   },
   "learn": {
     "tabs": {
@@ -328,12 +329,10 @@
   },
   "leaderboardPage": {
     "backHeaderTitle": "Bảng xếp hạng",
-    "demoBannerTitle": "Bảng xếp hạng minh hoạ.",
-    "demoBannerBody": "20 người học trong danh sách là dữ liệu mẫu cố định, không phải người dùng thật. Chỉ dòng của bạn là số liệu thật, đọc từ sổ tay và lịch sử ôn tập trên máy này.",
     "tablistAriaLabel": "Chọn tiêu chí xếp hạng",
     "loadingLabel": "Đang tải bảng xếp hạng",
     "myRankPosition": "Vị trí của bạn",
-    "viewMyRowCta": "Xem dòng của bạn",
+    "viewMyRowCta": "Xem vị trí của bạn",
     "noDataTitle": "Bạn chưa có dữ liệu để xếp hạng.",
     "noDataBody": "Thêm 5 từ đầu tiên vào sổ tay là bạn có mặt trên bảng.",
     "checkLevelCta": "Kiểm tra trình độ (2 phút)",
