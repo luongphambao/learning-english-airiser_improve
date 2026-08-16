@@ -211,12 +211,43 @@ new revision, so they never pass through GitHub.
 
 ---
 
-## Under the hood
+## Architecture
 
-Next.js 15 and TypeScript. AI keys stay on the server — the browser never sees one. Vocabulary is
-stored locally first, with Firestore syncing on top rather than standing in the way, which is what
-lets the app work with no account and no connection. The scheduling engine is pure and tested,
-including under two different timezones.
+![Lexio MVP solution architecture — client, edge and hosting, application and Gemini AI, identity and user data, continuous delivery](UI/readme/13-architecture.png)
 
-Deeper reading, including 23 architecture decision records, is in [`docs/`](docs/README.md) — with
-what is finished and what is not in [`docs/status.md`](docs/status.md).
+The product is one Next.js application on Cloud Run, with Gemini behind every AI feature and Firebase
+holding the parts that have to follow you between devices. Read the diagram left to right:
+
+**1 · Client experience.** A Next.js 15 + TypeScript web app, designed for a phone and adapting
+upward, in light and dark themes. A two-minute placement test scores twenty words offline and sets
+your CEFR starting level. Vocabulary lives in the browser — usable offline, with no account at all.
+
+**2 · Edge and hosting.** A managed TLS endpoint in front of the Cloud Run service in
+`asia-southeast1`, one revision per deploy. AI keys live on the service itself and are inherited by
+each new revision, so the browser never sees one and no key passes through GitHub.
+
+**3 · Application and Gemini AI.** The server side does four jobs: mining an uploaded PDF or DOCX
+page by page and grading it by CEFR level; `gemini-3.6-flash` for reading work documents, pulling and
+enriching words, and grading sentences; `gemini-3.1-flash-tts-preview` (voice `Kore`) for the
+listening drills; and the learning engine — a pure, tested spaced-repetition scheduler with four
+exercise types that harden on repeated misses.
+
+**4 · Identity and user data.** Firebase Authentication, where signing in is optional and signed-out
+is a first-class, fully usable state. When you do sign in, a two-way sync engine merges words, review
+history, imports, and progress across devices without losing either side, and Cloud Firestore keeps a
+per-user copy of the notebook on top of local storage.
+
+**5 · Continuous delivery.** Every push to `main` runs the full check suite, builds an immutable
+image into Artifact Registry, deploys it, and verifies the new revision answers before the run goes
+green. GitHub authenticates through Workload Identity Federation — keyless OIDC, so there is no
+long-lived credential in the repository.
+
+**Optional integration.** Connect Gmail and the words due today are sent to you as a study digest
+from your own inbox, using a send-only OAuth scope.
+
+Four principles hold the design together: local-first by default, so Firestore syncs on top rather
+than standing in the way; structured AI output, so every Gemini response comes back as validated data
+rather than free text; untrusted input handling, so anything uploaded is treated strictly as content
+to analyse, never as instructions to follow; and decisions on record — 23 architecture decision
+records in [`docs/`](docs/README.md), with what is finished and what is not in
+[`docs/status.md`](docs/status.md).
