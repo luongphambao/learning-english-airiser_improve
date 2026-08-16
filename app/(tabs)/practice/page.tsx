@@ -146,12 +146,17 @@ export default function PracticePage() {
         {session.index + 1} / {session.items.length}
       </p>
 
-      {item.kind === 'fillBlank' && <ExerciseFillBlank word={word} onAnswer={answer} />}
-      {item.kind === 'listen' && <ExerciseListen word={word} onAnswer={answer} />}
+      {/* key={item.wordId} forces a full remount on every word change — without
+          it, two consecutive items of the same kind (e.g. two 'write' exercises
+          in a row) reuse the same component instance, and its local state
+          (typed answer, selected option, grading result...) carries over from
+          the previous word instead of resetting. */}
+      {item.kind === 'fillBlank' && <ExerciseFillBlank key={item.wordId} word={word} onAnswer={answer} />}
+      {item.kind === 'listen' && <ExerciseListen key={item.wordId} word={word} onAnswer={answer} />}
       {item.kind === 'write' && (
-        <ExerciseWrite word={word} onAnswer={answer} contextTopic={settings.contextTopic} />
+        <ExerciseWrite key={item.wordId} word={word} onAnswer={answer} contextTopic={settings.contextTopic} />
       )}
-      {item.kind === 'recall' && <ExerciseRecall word={word} onAnswer={answer} />}
+      {item.kind === 'recall' && <ExerciseRecall key={item.wordId} word={word} onAnswer={answer} />}
     </div>
   );
 }

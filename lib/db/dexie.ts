@@ -155,19 +155,51 @@ const V4_SETTINGS_DEFAULTS = {
   },
 };
 
+/** Name of the signed-out/local-only database — unchanged from before
+ * multi-account support existed, so anyone who used the app before signing in
+ * ever existed keeps their data. See setActiveUser() below. */
+export const LOCAL_DB_NAME = 'lexio';
+
 let instance: LexioDb | null = null;
+let activeDbName: string = LOCAL_DB_NAME;
 
 /** Lazily-created singleton so tests (fake-indexeddb) and the browser each get one
- * live connection instead of a new Dexie instance per repository call. */
+ * live connection instead of a new Dexie instance per repository call. Every
+ * repository calls this fresh per operation (never caches the return value at
+ * module scope), which is what makes setActiveUser() below safe to swap the
+ * underlying database out from under them at any time. */
 export function getDb(): LexioDb {
-  if (!instance) instance = new LexioDb();
+  if (!instance) instance = new LexioDb(activeDbName);
+  return instance;
+}
+
+/**
+ * Switches which IndexedDB database getDb() returns — one database per signed-in
+ * uid (`lexio:<uid>`), so two accounts on one browser never share a notebook and
+ * signing out never exposes another account's words. `null` (signed out) returns
+ * to the pre-auth local database (`lexio`), so the app keeps working fully
+ * offline/signed-out exactly as it did before accounts existed.
+ *
+ * Callers (app/providers.tsx's AuthProvider) must also call
+ * resetRepos() from lib/repositories/index.ts right after this — that memoizes
+ * repository objects that close over the OLD getDb() return value at their own
+ * construction time in some paths, so stale repos could otherwise keep pointing
+ * at the previous account's closed connection.
+ */
+export function setActiveUser(uid: string | null): LexioDb {
+  const name = uid ? `lexio:${uid}` : LOCAL_DB_NAME;
+  if (name === activeDbName && instance) return instance;
+  instance?.close();
+  activeDbName = name;
+  instance = new LexioDb(name);
   return instance;
 }
 
 /** Test-only: swap in a fresh, isolated database (see lib/repositories/__tests__). */
 export function resetDbForTests(name?: string): LexioDb {
   instance?.close();
-  instance = new LexioDb(name ?? `lexio-test-${newTestSuffix()}`);
+  activeDbName = name ?? `lexio-test-${newTestSuffix()}`;
+  instance = new LexioDb(activeDbName);
   return instance;
 }
 

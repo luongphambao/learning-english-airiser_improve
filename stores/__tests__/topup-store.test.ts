@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/msw/server';
 import { resetDbForTests } from '@/lib/db/dexie';
-import { resetReposForTests, getRepos } from '@/lib/repositories';
+import { resetRepos, getRepos } from '@/lib/repositories';
 import { clearCorpusMemoForTests } from '@/lib/corpus/load';
 import { useTopupStore } from '../topup-store';
 
@@ -54,7 +54,7 @@ const NOW = Date.UTC(2026, 5, 1, 12);
 describe('topup-store ensureSupply', () => {
   beforeEach(() => {
     resetDbForTests();
-    resetReposForTests();
+    resetRepos();
     clearCorpusMemoForTests();
     mockCorpus({
       B2: [

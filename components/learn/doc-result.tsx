@@ -35,13 +35,34 @@ export function DocResult({ onStartOver }: { onStartOver: () => void }) {
 
   if (status === 'analyzing') {
     const unitWord = UNIT_VI[unitLabel];
+    const percent = progress && progress.total > 0 ? Math.round((progress.completed / progress.total) * 100) : 0;
     return (
       <div className="py-20 text-center space-y-4">
         <Loader2 size={40} className="mx-auto text-green animate-spin" />
         <p className="font-serif-display text-2xl text-ink">Đang tìm từ vựng trong tài liệu...</p>
+
+        <div className="max-w-xs mx-auto">
+          <div
+            className="h-2 rounded-full bg-rule/40 overflow-hidden"
+            role="progressbar"
+            aria-label="Tiến độ phân tích tài liệu"
+            aria-valuenow={progress ? progress.completed : 0}
+            aria-valuemin={0}
+            aria-valuemax={progress ? progress.total : 0}
+          >
+            <div
+              className="h-full bg-green rounded-full transition-[width] duration-500 ease-out"
+              style={{ width: `${percent}%` }}
+            />
+          </div>
+          <p className="mt-2 text-xs font-mono-utility text-ink-soft">
+            {progress ? `${progress.completed}/${progress.total} phần · ${percent}%` : 'Đang chuẩn bị...'}
+          </p>
+        </div>
+
         <p className="text-sm text-ink-soft">
           {progress
-            ? `Đã xong ${progress.completed}/${progress.total} phần (tổng ${totalUnits} ${unitWord}). Có thể mất một phút.`
+            ? `Tài liệu có ${totalUnits} ${unitWord}. Có thể mất một phút.`
             : 'Đang chuẩn bị phân tích. Có thể mất một phút.'}
         </p>
       </div>

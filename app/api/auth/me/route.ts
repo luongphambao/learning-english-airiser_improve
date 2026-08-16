@@ -10,6 +10,7 @@ export async function GET() {
     return NextResponse.json({
       authenticated: true,
       user: {
+        uid: session.uid,
         email: session.email,
         name: session.name || session.email.split('@')[0],
         loginMethod: session.loginMethod,
@@ -19,22 +20,15 @@ export async function GET() {
     });
   }
 
-  if (googleTokens?.email) {
-    return NextResponse.json({
-      authenticated: true,
-      user: {
-        email: googleTokens.email,
-        name: googleTokens.email.split('@')[0],
-        loginMethod: 'google',
-      },
-      gmailConnected: true,
-      gmailEmail: googleTokens.email,
-    });
-  }
-
+  // No sign-in fallback on Gmail connection alone: connecting Gmail for the
+  // reminder feature (lib/auth/google.ts) is deliberately independent of
+  // sign-in (lib/auth/firebase-auth.ts) — see app/api/auth/google/callback's
+  // comment. Reporting `gmailConnected` here even when signed out lets
+  // Settings still show "Gmail connected" without pretending that's a login.
   return NextResponse.json({
     authenticated: false,
     user: null,
-    gmailConnected: false,
+    gmailConnected: !!(googleTokens?.access_token || googleTokens?.refresh_token),
+    gmailEmail: googleTokens?.email,
   });
 }

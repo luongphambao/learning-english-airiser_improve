@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import { getOAuth2Client, resolveOrigin, setStoredTokens } from '@/lib/auth/google';
-import { setUserSession } from '@/lib/auth/user-session';
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code');
@@ -23,19 +22,16 @@ export async function GET(req: NextRequest) {
     oauth2Client.setCredentials(tokens);
 
     let userEmail = '';
-    let userName = '';
     try {
       const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
       const userInfo = await oauth2.userinfo.get();
       userEmail = userInfo.data.email || '';
-      userName = userInfo.data.name || userEmail.split('@')[0];
     } catch {
       // Fallback: try reading Gmail profile
       try {
         const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
         const profile = await gmail.users.getProfile({ userId: 'me' });
         userEmail = profile.data.emailAddress || '';
-        userName = userEmail.split('@')[0];
       } catch {
         userEmail = 'Gmail User';
       }
@@ -48,14 +44,12 @@ export async function GET(req: NextRequest) {
       email: userEmail,
     });
 
-    if (userEmail && userEmail !== 'Gmail User') {
-      await setUserSession({
-        email: userEmail,
-        name: userName || userEmail.split('@')[0],
-        loginMethod: 'google',
-        createdAt: Date.now(),
-      });
-    }
+    // This flow only connects Gmail for the reminder feature (setStoredTokens
+    // above) — it deliberately does NOT call setUserSession(). Doing so used
+    // to sign the browser in as `userEmail` on Google's say-so alone, with no
+    // Firebase ID token verification; that's a separate identity claim from
+    // the app's real sign-in (lib/auth/firebase-auth.ts) and conflating them
+    // let connecting Gmail silently log you in as whoever's Gmail you linked.
 
     return NextResponse.redirect(new URL('/settings?gmail=connected', origin));
   } catch (err) {

@@ -36,7 +36,16 @@ export function getRepos(): Repositories {
   return cached;
 }
 
-/** Test-only: drop the memoized repositories so a fresh test DB is picked up. */
-export function resetReposForTests(): void {
+/**
+ * Drops the memoized repositories so the next getRepos() call re-reads
+ * getDb()'s current database. Two callers:
+ *  - Tests (lib/repositories/__tests__, stores/__tests__), after
+ *    resetDbForTests() swaps in a fresh fake-indexeddb instance.
+ *  - app/providers.tsx's AuthProvider, after setActiveUser(uid) swaps the
+ *    per-account database on sign-in/sign-out/account-switch — without this,
+ *    getRepos() would keep serving repository objects wired to the previous
+ *    account's now-closed Dexie connection.
+ */
+export function resetRepos(): void {
   cached = null;
 }

@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/msw/server';
 import { resetDbForTests } from '@/lib/db/dexie';
-import { resetReposForTests, getRepos } from '@/lib/repositories';
+import { resetRepos, getRepos } from '@/lib/repositories';
 import { useDocStore } from '../doc-store';
 
 // Same relative-URL-in-Node shim as stores/__tests__/topup-store.test.ts — see its
@@ -59,7 +59,7 @@ async function analyzeOnce(candidates: unknown[]) {
 describe('doc-store', () => {
   beforeEach(() => {
     resetDbForTests();
-    resetReposForTests();
+    resetRepos();
     useDocStore.getState().reset();
   });
 

@@ -3,6 +3,13 @@ import { cookies } from 'next/headers';
 const SESSION_COOKIE_NAME = 'lexio_user_session';
 
 export interface UserSession {
+  // Firebase Auth uid — the app's real identity key everywhere sync/Firestore
+  // touches (lib/db/dexie.ts's per-user DB name, firestore.rules). Every
+  // session is now minted from a verified Firebase ID token
+  // (app/api/auth/session/route.ts), never from a client-supplied email —
+  // that was the previous hole (see git history of email/login/route.ts,
+  // now deleted).
+  uid: string;
   email: string;
   name?: string;
   loginMethod: 'email' | 'google';
@@ -16,7 +23,11 @@ export async function getUserSession(): Promise<UserSession | null> {
 
   try {
     const data = JSON.parse(Buffer.from(cookie.value, 'base64').toString('utf-8'));
-    return data;
+    // Reject cookies minted before `uid` existed (pre-Firebase-Auth sessions,
+    // or the old forgeable email/login route) instead of trusting a session
+    // with no real identity attached.
+    if (!data || typeof data.uid !== 'string' || !data.uid) return null;
+    return data as UserSession;
   } catch {
     return null;
   }
