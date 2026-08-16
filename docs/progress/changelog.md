@@ -2,6 +2,16 @@
 
 > Mỗi dòng = một phase chốt xong. Không phải commit log — xem `git log` cho mức chi tiết dòng code. Định dạng: `YYYY-MM-DD — Phase N — tóm tắt 1 dòng — file/khu vực chính`.
 
+## 2026-08-16 — Phase 11 — Bảng xếp hạng thật giữa người dùng (ADR-025)
+
+**Vấn đề ban đầu:** chủ dự án phát hiện bảng xếp hạng vẫn là dữ liệu mẫu (Phase 10/ADR-023) — hai tài khoản đăng nhập khác nhau không bao giờ thấy nhau, vì `firestore.rules` cũ chỉ cho phép đọc/ghi `users/{uid}/**` của chính mình và không có collection dùng chung nào. Yêu cầu: publish dữ liệu thật, xoá roster mẫu.
+
+**Thiết kế:** collection Firestore mới `leaderboard/{uid}`, tách khỏi `users/{uid}` — chỉ chứa số liệu tổng hợp (`words, longestStreak, totalReviews, totalCorrect, newLast7, leechesConquered`) + `name`/`level`/`updatedAt`, không email/settings/`sampleWords`. Mọi user đã đăng nhập được publish tự động sau mỗi `syncOnce` thành công (`stores/sync-store.ts` gọi `lib/leaderboard/publish.ts`, bọc try/catch riêng — publish hỏng không được làm status sync báo lỗi), chống ghi thừa bằng digest lưu ở `meta['leaderboard:publishedDigest']`. Đọc bằng một query `orderBy('updatedAt','desc') limit(200)` (`lib/leaderboard/remote.ts`), xếp cả 6 tiêu chí ở client bằng `rankBy()` sẵn có — không cần composite index. `newLast7` được làm mới hạn: `lib/leaderboard/map.ts`'s `entryFromDoc()` ép về 0 khi doc không đổi ≥7 ngày, tránh một learner nghỉ học treo mãi số liệu "từ mới 7 ngày" cũ. Tên hiển thị: nickname tuỳ chỉnh (`settings.leaderboardName`, mới, Settings) → `displayName` Firebase Auth → "Người học" — **không** rơi về email để tránh lộ định danh. `firestore.rules` thêm block `leaderboard/{uid}`: đọc cho mọi user đã đăng nhập, ghi chỉ cho chính mình với whitelist field + range check + chặn `updatedAt` tương lai. Chi tiết đầy đủ và các đánh đổi đã cân nhắc: `docs/decision.md` ADR-025.
+
+**UI:** `/leaderboard` nay có thêm trạng thái chưa-đăng-nhập (chỉ dòng của mình + CTA `/login`), trạng thái lỗi tải (nút thử lại), và dòng chú thích trần 200 khi trần thực sự chạm tới. Bỏ nhãn `mẫu` khỏi `rank-row.tsx`. Settings có thêm card đổi tên hiển thị trên bảng, kèm câu nói rõ số liệu nào công khai.
+
+**Xác minh:** `npx vitest run lib/leaderboard` — 88 test xanh trên cả `tz-utc` và `tz-ny` (thêm `name.test.ts`, `map.test.ts`; `metrics.test.ts` viết lại không còn phụ thuộc roster mẫu, có case dedupe doc-của-chính-mình và tie thật trong roster giả lập). `tsc --noEmit` và `eslint .` sạch. **`firebase deploy --only firestore:rules` bắt buộc chạy trước khi thử thật** — chưa deploy thì mọi lượt đọc `leaderboard/**` trả `permission-denied`, dễ nhầm là "chưa ai khác dùng app". Xoá hẳn `lib/leaderboard/mock.ts` + test của nó.
+
 ## 2026-08-16 — Phase 10 — Bảng xếp hạng người học (ADR-023)
 
 **Vấn đề ban đầu:** chủ dự án yêu cầu trực tiếp một bảng xếp hạng nhiều tiêu chí (số từ, chuỗi ngày, lượt ôn, độ chính xác, từ mới 7 ngày, từ khó đã chinh phục) — spec gốc liệt "Leaderboards" vào non-goal, nhưng chính tiêu đề mục đó cho phép ngoại lệ khi được yêu cầu trực tiếp (ADR-023).

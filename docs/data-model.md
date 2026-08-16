@@ -204,28 +204,41 @@ function safeParseRow<T>(schema: ZodType<T>, row: unknown, repair?: (row: any) =
 ```
 Thứ tự: parse thẳng → nếu lỗi, chạy `repair` (điền default cho field migration bỏ sót) → parse lại → nếu vẫn lỗi, ghi row gốc vào `meta['quarantine:<table>:<id>']`, loại khỏi kết quả, `console.warn`. **Không bao giờ throw vào React render, không bao giờ xoá âm thầm.**
 
-## 5. Đường lên Firestore (khi cần, không phải lần này)
+## 5. Đường lên Firestore
+
+`users/{uid}/**` đã lên thật qua `lib/sync/**` (ADR — xem `syncOnce()` ở `lib/sync/engine.ts`); `leaderboard/{uid}` lên thật qua `lib/leaderboard/publish.ts` (ADR-025). `sessions`/`tutors` dưới đây vẫn là sơ đồ mục tiêu, chưa triển khai.
 
 ```
 users/{uid}                        -> UserSettings + UserStats + { email, displayName }
 users/{uid}/words/{wordId}         -> Word
 users/{uid}/reviews/{reviewId}     -> Review
-users/{uid}/sessions/{sessionId}   -> Session (tutor booking)
+users/{uid}/sessions/{sessionId}   -> Session (tutor booking) — chưa triển khai
 users/{uid}/imports/{importId}     -> Import
 users/{uid}/skipped/{wordLower}    -> { word, at }
-tutors/{tutorId}                   -> Tutor (đọc-only cho user)
+leaderboard/{uid}                  -> { uid, name, level, words, longestStreak, totalReviews,
+                                         totalCorrect, newLast7, leechesConquered, updatedAt }
+                                       — ADR-025. Collection duy nhất KHÔNG nằm dưới users/{uid} và
+                                       duy nhất mọi user đã đăng nhập đọc được (không chỉ uid của mình).
+                                       Không email, không settings, không sampleWords — xem
+                                       lib/leaderboard/map.ts's toLeaderboardDoc().
+tutors/{tutorId}                   -> Tutor (đọc-only cho user) — chưa triển khai
 ```
 Repository interface (`WordRepository`, `ReviewRepository`, `UserRepository`, `StudyRepository`, `SkippedRepository`, `MetaRepository` — 2 cái sau thêm cùng đợt corpus/leveling, ADR-016/017/018) đã được thiết kế để một implementation Firestore slot vào cùng chữ ký — `RecordReviewResult` trả giá trị tính cục bộ thay vì đọc lại, đúng thứ Firestore transaction cũng yêu cầu.
 
-Security Rules mục tiêu (từ spec §3.3, giữ nguyên khi implement):
+`meta` KV table (Dexie, per-account) cũng mang theo bookkeeping cho phần Firestore: `sync:cursor:<collection>` (delta-sync cursor, `lib/sync/engine.ts`), `sync:lastSyncedAt`, và `leaderboard:publishedDigest` (chống ghi thừa cho publish, ADR-025).
+
+Security Rules thật (`firestore.rules`, khớp với những gì đã deploy):
 ```
 match /users/{uid} {
   allow read, write: if request.auth != null && request.auth.uid == uid;
   match /{sub=**} { allow read, write: if request.auth != null && request.auth.uid == uid; }
 }
-match /tutors/{tutorId} {
+match /leaderboard/{uid} {
   allow read: if request.auth != null;
-  allow write: if false;
+  allow create, update: if request.auth != null && request.auth.uid == uid && <field whitelist + range checks — xem firestore.rules>;
+  allow delete: if request.auth != null && request.auth.uid == uid;
 }
 ```
+`tutors/{tutorId}` (đọc-only cho user đã đăng nhập, ghi luôn `false`) vẫn là sơ đồ mục tiêu — chưa có trong `firestore.rules` vì collection đó chưa tồn tại.
+
 Không bao giờ ship rule chứa `allow read, write: if true`.

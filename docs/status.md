@@ -15,6 +15,8 @@ actually finished and what is not. For the phase-by-phase breakdown see
 - Offline placement test
 - Progress and grammar screens
 - Vietnamese and English interfaces, light and dark themes
+- Real cross-user leaderboard (`docs/decision.md` ADR-025) — every signed-in user's aggregate stats
+  publish to a shared `leaderboard/{uid}` Firestore collection after each sync
 
 ## Known gaps
 
@@ -22,9 +24,16 @@ actually finished and what is not. For the phase-by-phase breakdown see
 missing authorized redirect URI. Email and password sign-in is the working path, and the button is
 hidden behind a flag rather than shown broken.
 
-**The leaderboard roster is sample data.** Only the signed-in user's own row is computed from real
-notebook and review history; the other entries are a fixed roster, labelled as samples in the app.
-Ranking live learners against each other needs a server-side aggregate that is out of scope.
+**Leaderboard numbers are client-computed, not server-verified.** `firestore.rules` validates shape
+and internal consistency (field whitelist, non-negative counts, `totalCorrect <= totalReviews`,
+a bounded `updatedAt`), but nothing compares a published doc against the learner's actual notebook —
+there is no server in this project to do that comparison. Accepted for a personal app; see ADR-025
+for the exact escalation path (a Cloud Function mirroring `users/{uid}`'s stats) if it's ever needed.
+The board is also capped at the 200 most recently active learners
+(`orderBy('updatedAt','desc') limit(200)`) — the UI discloses this only once the cap actually binds.
+**Deploying `firestore.rules` is required** for the board to show anyone but yourself — without it
+every leaderboard read fails silently into "just my own row", which is easy to misdiagnose as "no
+one else uses this app yet" rather than "rules were never deployed".
 
 **Seven migration tests are failing** in `lib/db/__tests__/migrations.test.ts` — reported as 14
 because the suite runs under two timezones. They cover `migrateFromLocalStorage` and `seedIfEmpty`,

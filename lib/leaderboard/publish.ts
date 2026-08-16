@@ -19,8 +19,8 @@ const ANONYMOUS_NAME_FALLBACK = 'Người học';
  * it changes every call by definition, so including it would make the digest
  * never match and defeat the whole point. */
 function digestOf(doc: ReturnType<typeof toLeaderboardDoc>): string {
-  const { updatedAt: _updatedAt, ...rest } = doc;
-  return JSON.stringify(rest);
+  const { uid, name, level, words, longestStreak, totalReviews, totalCorrect, newLast7, leechesConquered } = doc;
+  return JSON.stringify({ uid, name, level, words, longestStreak, totalReviews, totalCorrect, newLast7, leechesConquered });
 }
 
 /**
