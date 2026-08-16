@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildSession, isEligible } from '../session';
+import { buildSession, buildReviewSession, isEligible } from '../session';
 import type { SessionCaps } from '../types';
 import type { Word } from '@/lib/domain';
 
@@ -137,5 +137,40 @@ describe('lib/srs/session buildSession', () => {
 
     expect(session.items.map((i) => i.wordId)).toEqual(before);
     expect(session.items).toHaveLength(5);
+  });
+});
+
+describe('buildReviewSession', () => {
+  it('draws `size` words from the pool regardless of dueAt — the whole point of a free-review round', () => {
+    // Every word is scheduled far into the future, so buildSession would return
+    // nothing for them; a review round must still serve them.
+    const pool = Array.from({ length: 12 }, (_, i) =>
+      makeWord({ id: `w_pool_${i}`, dueAt: NOW + 30 * 86_400_000, reviewCount: 5 }),
+    );
+    const session = buildReviewSession({ sessionId: 's_rev', words: pool, now: NOW, size: 5, caps: FULL_CAPS });
+
+    expect(session.items).toHaveLength(5);
+    expect(session.status).toBe('active');
+    expect(new Set(session.items.map((i) => i.wordId)).size).toBe(5); // no repeats
+  });
+
+  it('a different sessionId reshuffles the pool, so consecutive rounds are not the same five words', () => {
+    const pool = Array.from({ length: 20 }, (_, i) => makeWord({ id: `w_pool_${i}` }));
+    const first = buildReviewSession({ sessionId: 's_a', words: pool, now: NOW, size: 5, caps: FULL_CAPS });
+    const second = buildReviewSession({ sessionId: 's_b', words: pool, now: NOW, size: 5, caps: FULL_CAPS });
+
+    expect(first.items.map((i) => i.wordId)).not.toEqual(second.items.map((i) => i.wordId));
+  });
+
+  it('an empty notebook yields a done session with no items, never a crash', () => {
+    const session = buildReviewSession({ sessionId: 's_rev', words: [], now: NOW, size: 5, caps: FULL_CAPS });
+    expect(session.items).toHaveLength(0);
+    expect(session.status).toBe('done');
+  });
+
+  it('still respects isEligible — a leech never gets a fillBlank card, same as a scheduled session', () => {
+    const leech = makeWord({ id: 'leech_rev', isLeech: true });
+    const session = buildReviewSession({ sessionId: 's_rev', words: [leech], now: NOW, size: 5, caps: FULL_CAPS });
+    expect(session.items[0]!.kind).not.toBe('fillBlank');
   });
 });

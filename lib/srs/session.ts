@@ -1,5 +1,6 @@
 import type { ExerciseKind, Word } from '@/lib/domain';
 import { splitForBlank } from '@/lib/text/blank';
+import { seededShuffle } from '@/lib/text/shuffle';
 import { dayKey } from './date';
 import type { SessionCaps, SessionItem, StudySession } from './types';
 
@@ -87,13 +88,44 @@ export interface BuildSessionInput {
  */
 export function buildSession(input: BuildSessionInput): StudySession {
   const picked = dedupeById([...input.leech.slice(0, 1), ...input.due, ...input.fresh]).slice(0, input.size);
+  return assembleSession(picked, input.sessionId, input.now, input.caps);
+}
 
+export interface BuildReviewSessionInput {
+  sessionId: string;
+  /** The whole notebook (or a bounded sample of it) — nothing here is filtered by
+   * dueAt, which is the point. */
+  words: readonly Word[];
+  now: number;
+  size: number;
+  caps: SessionCaps;
+}
+
+/**
+ * A free-review session: `size` words drawn at random from the notebook,
+ * regardless of schedule. This is what the Practice completion screen offers once
+ * nothing is due and no new word is left — "học lại ngẫu nhiên" instead of a dead
+ * end. Answers still go through recordReview(), so an extra-credit round can only
+ * ever pull a word's next due date forward or push it out on its normal curve; it
+ * never bypasses the SRS.
+ *
+ * The shuffle is seeded on `sessionId` rather than Math.random() so this module
+ * stays pure and testable (every other pick in lib/srs/ is deterministic too) —
+ * a fresh id per session is what makes consecutive rounds differ.
+ */
+export function buildReviewSession(input: BuildReviewSessionInput): StudySession {
+  const picked = seededShuffle(dedupeById(input.words), input.sessionId).slice(0, input.size);
+  return assembleSession(picked, input.sessionId, input.now, input.caps);
+}
+
+/** Shared tail of both builders: word list -> exercise kinds -> session. */
+function assembleSession(picked: readonly Word[], sessionId: string, now: number, caps: SessionCaps): StudySession {
   const rawItems: SessionItem[] = picked.map((word, position) => {
     const preferred = PREFERRED_BY_POSITION[position];
     const candidates = preferred ? [preferred, ...FALLBACK_ORDER] : FALLBACK_ORDER;
     const kind =
-      candidates.find((k) => isEligible(k, word, input.caps)) ??
-      (input.caps.aiAvailable ? 'write' : 'recall'); // terminal: always answerable somehow
+      candidates.find((k) => isEligible(k, word, caps)) ??
+      (caps.aiAvailable ? 'write' : 'recall'); // terminal: always answerable somehow
     return { wordId: word.id, kind, snapshot: word, position };
   });
 
@@ -107,14 +139,14 @@ export function buildSession(input: BuildSessionInput): StudySession {
       writeUsed = true;
       return item;
     }
-    const alt = fallbackFor(item.snapshot, input.caps, 'write');
+    const alt = fallbackFor(item.snapshot, caps, 'write');
     return alt ? { ...item, kind: alt } : item;
   });
 
   return {
-    id: input.sessionId,
-    createdAt: input.now,
-    dayKey: dayKey(input.now),
+    id: sessionId,
+    createdAt: now,
+    dayKey: dayKey(now),
     items,
     index: 0,
     answers: {},

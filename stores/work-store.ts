@@ -16,10 +16,16 @@ interface AnalyzeInput {
 }
 
 interface WorkStoreState {
-  status: 'idle' | 'analyzing' | 'ready' | 'saving' | 'error';
+  status: 'idle' | 'analyzing' | 'ready' | 'saving' | 'done' | 'error';
   importId: string | null;
   fileName: string | null;
   analysis: WorkAnalysis | null;
+  /** How many items the last saveSelected() wrote — the success screen's only
+   * input. Lives here rather than in the Learn page's local state so the screen
+   * survives a re-render, and so 'done' is a state the page can recognise on a
+   * later mount instead of silently re-rendering the already-saved insight list
+   * (which is what let the same batch be saved twice). */
+  savedCount: number | null;
   error: string | null;
   analyze(input: AnalyzeInput): Promise<void>;
   toggleInsight(insightId: string): void;
@@ -40,10 +46,11 @@ export const useWorkStore = create<WorkStoreState>()((set, get) => ({
   importId: null,
   fileName: null,
   analysis: null,
+  savedCount: null,
   error: null,
 
   async analyze({ text, fileName, sourceType, level, contextTopic, excludeWords }) {
-    set({ status: 'analyzing', error: null, analysis: null });
+    set({ status: 'analyzing', error: null, analysis: null, savedCount: null });
     const repos = getRepos();
     const created = await repos.imports.create({ fileName, kind: 'work', rawText: text });
     set({ importId: created.id, fileName });
@@ -138,7 +145,11 @@ export const useWorkStore = create<WorkStoreState>()((set, get) => ({
     }
 
     await repos.imports.complete(importId, wordIds.length);
-    set({ status: 'ready' });
+    // 'done', not back to 'ready': the analysis has been consumed. Returning to
+    // 'ready' left the checked insight list on screen with a live "Thêm N mục"
+    // button, so a second tap (or a remount after a tab switch) re-ran the whole
+    // save against the same import.
+    set({ status: 'done', savedCount: wordIds.length });
     return { wordIds, count: wordIds.length };
   },
 
@@ -149,12 +160,13 @@ export const useWorkStore = create<WorkStoreState>()((set, get) => ({
       importId: row.id,
       fileName: row.fileName,
       analysis: row.analysis ?? null,
+      savedCount: null,
       status: row.status === 'analyzing' ? 'analyzing' : row.status === 'failed' ? 'error' : 'ready',
       error: row.status === 'failed' ? row.error ?? null : null,
     });
   },
 
   reset() {
-    set({ status: 'idle', importId: null, fileName: null, analysis: null, error: null });
+    set({ status: 'idle', importId: null, fileName: null, analysis: null, savedCount: null, error: null });
   },
 }));

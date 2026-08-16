@@ -9,6 +9,7 @@ import { useImportsList } from '@/hooks/use-imports';
 import { useWorkStore } from '@/stores/work-store';
 import { useDocStore } from '@/stores/doc-store';
 import { useT } from '@/hooks/use-i18n';
+import { useIsomorphicLayoutEffect } from '@/hooks/use-isomorphic-layout-effect';
 import { Button } from '@/components/Button';
 import { UploadDropzone } from '@/components/learn/upload-dropzone';
 import { DocResult } from '@/components/learn/doc-result';
@@ -16,7 +17,7 @@ import { parseDocumentFile } from '@/lib/api/parse-doc-client';
 import { ApiError } from '@/lib/api/client';
 import { splitIntoUnits } from '@/lib/documents/extract';
 import {
-  FileText, Loader2, AlertTriangle, CheckCircle2, Sparkles, ChevronDown,
+  FileText, Loader2, AlertTriangle, CheckCircle2, Sparkles, ChevronDown, RotateCcw,
 } from 'lucide-react';
 
 const INPUT_TYPE_LABEL_KEYS: Record<string, string> = {
@@ -63,7 +64,6 @@ export default function LearnPage() {
   const [workText, setWorkText] = useState('');
   const [workFileName, setWorkFileName] = useState<string | null>(null);
   const [workFileError, setWorkFileError] = useState<string | null>(null);
-  const [saveResult, setSaveResult] = useState<{ count: number } | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const [docText, setDocText] = useState('');
@@ -82,6 +82,20 @@ export default function LearnPage() {
     setLearnMode(mode);
     window.localStorage.setItem(LEARN_MODE_STORAGE_KEY, mode);
   }
+
+  // work-store/doc-store are module-level zustand singletons, so their state
+  // outlives this page. A flow the user already finished ('done') or already
+  // acknowledged ('error') must not be what greets them when they come back to
+  // the tab — they came here to import something new, so land them on the upload
+  // screen. 'analyzing'/'ready'/'saving' are deliberately kept: leaving the tab
+  // mid-analysis and returning should still find the work in progress, not throw
+  // it away. Runs before paint (see the hook) so the stale result never flashes.
+  useIsomorphicLayoutEffect(() => {
+    const work = useWorkStore.getState();
+    if (work.status === 'done' || work.status === 'error') work.reset();
+    const doc = useDocStore.getState();
+    if (doc.status === 'done' || doc.status === 'error') doc.reset();
+  }, []);
 
   useEffect(() => {
     const mode = searchParams.get('mode');
@@ -201,8 +215,7 @@ export default function LearnPage() {
   async function confirmSave() {
     if (submitting) return;
     setSubmitting(true);
-    const result = await workStore.saveSelected(Date.now());
-    setSaveResult({ count: result.count });
+    await workStore.saveSelected(Date.now());
     setSubmitting(false);
   }
 
@@ -212,7 +225,6 @@ export default function LearnPage() {
     setWorkText('');
     setWorkFileName(null);
     setWorkFileError(null);
-    setSaveResult(null);
     setDocText('');
     setDocFileName(null);
     setDocFileError(null);
@@ -354,9 +366,20 @@ export default function LearnPage() {
         </div>
       )}
 
-      {learnMode === 'work' && (workStore.status === 'ready' || workStore.status === 'saving') && workStore.analysis && !saveResult && (
+      {learnMode === 'work' && (workStore.status === 'ready' || workStore.status === 'saving') && workStore.analysis && (
         <div className="space-y-6 pb-24">
           <div>
+            {/* Same one-way-door fix as the document triage screen: the mode tabs
+                only render in the idle state, so without this the only way out of
+                a result the user didn't want was to save it. */}
+            <button
+              type="button"
+              onClick={startOver}
+              className="flex items-center gap-1.5 text-xs text-ink-soft hover:text-green transition-colors mb-3 cursor-pointer"
+            >
+              <RotateCcw size={13} />
+              {t('learn.learnAnotherDoc')}
+            </button>
             <span className="font-mono-utility text-xs uppercase tracking-wider text-ink-soft block mb-1.5">
               {t('learn.resultLabel')}
             </span>
@@ -430,10 +453,10 @@ export default function LearnPage() {
         </div>
       )}
 
-      {learnMode === 'work' && saveResult && (
+      {learnMode === 'work' && workStore.status === 'done' && workStore.savedCount !== null && (
         <div className="py-20 text-center space-y-4">
           <CheckCircle2 size={48} className="mx-auto text-green" />
-          <p className="font-serif-display text-2xl text-ink">{t('learn.savedHeading', { count: saveResult.count })}</p>
+          <p className="font-serif-display text-2xl text-ink">{t('learn.savedHeading', { count: workStore.savedCount })}</p>
           <p className="text-sm text-ink-soft">
             {t('learn.savedBody')}
           </p>

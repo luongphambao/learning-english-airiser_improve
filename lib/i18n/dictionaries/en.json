@@ -79,7 +79,7 @@
       "analyzing": "Analyzing..."
     },
     "analyzingHeading": "Reading your document...",
-    "analyzingBody": "Gemini is finding vocabulary, phrases, and grammar worth learning. This can take up to a minute.",
+    "analyzingBody": "Gemini is finding vocabulary, phrases, and grammar worth learning. This will just take a moment.",
     "resultLabel": "Analyzed by Gemini",
     "defaultHeadline": "Analysis results",
     "inputTypes": {
@@ -171,6 +171,12 @@
     "completeTitle": "Great work! You finished {{count}} words.",
     "completeStreakPrefix": "Current streak:",
     "completeStreakValue": "{{streak}} days",
+    "completeReviewTitle": "You reviewed {{count}} words. Nicely done!",
+    "continueCta": "Keep going — {{count}} words left",
+    "allCaughtUp": "You've worked through everything you have — nothing else is due. Review a few random words, or add new ones?",
+    "emptyNotebookPrompt": "Your notebook is empty. Add a document to get started.",
+    "reviewRandomCta": "Review random words",
+    "learnNewCta": "Learn new words",
     "viewNotebook": "View notebook",
     "learnMore": "Learn more from a document",
     "sessionBadge": "Today's lesson",
@@ -464,8 +470,8 @@
       "ariaLabel": "Document analysis progress",
       "progressLabel": "{{completed}}/{{total}} parts · {{percent}}%",
       "preparingProgress": "Preparing...",
-      "unitsInfo": "The document has {{count}} {{unit}}. This may take a minute.",
-      "preparingInfo": "Preparing analysis. This may take a minute."
+      "unitsInfo": "The document has {{count}} {{unit}}. This will just take a moment.",
+      "preparingInfo": "Preparing the analysis. This will just take a moment."
     },
     "error": {
       "heading": "Couldn't analyze the document",

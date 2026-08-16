@@ -46,6 +46,12 @@ interface DocStoreState {
    * the result is real but partial, surfaced as a notice rather than an error. */
   degraded: boolean;
   progress: BatchProgress | null;
+  /** What the last saveTriage() wrote — the success screen's only input. Lives
+   * here, not in components/learn/doc-result.tsx's local state, because that
+   * state died with the component on a tab switch while `status` (a module-level
+   * zustand singleton) stayed 'done' — so returning to /learn re-rendered the
+   * whole triage list as if nothing had been saved. */
+  savedResult: SaveTriageResult | null;
   error: string | null;
   analyze(input: AnalyzeInput): Promise<void>;
   saveTriage(choices: Record<string, KnownState>, now: number): Promise<SaveTriageResult>;
@@ -90,6 +96,7 @@ export const useDocStore = create<DocStoreState>()((set, get) => ({
   truncatedAtUnit: null,
   degraded: false,
   progress: null,
+  savedResult: null,
   error: null,
 
   async analyze({ units, unitLabel, fileName, kind, level, contextTopic }) {
@@ -101,6 +108,7 @@ export const useDocStore = create<DocStoreState>()((set, get) => ({
       totalUnits: units.length,
       degraded: false,
       progress: null,
+      savedResult: null,
     });
     const repos = getRepos();
     const created = await repos.imports.create({ fileName, kind, rawText: units.join('\n\n') });
@@ -192,8 +200,9 @@ export const useDocStore = create<DocStoreState>()((set, get) => ({
     }
 
     await repos.imports.complete(importId, added);
-    set({ status: 'done' });
-    return { added, skipped };
+    const result = { added, skipped };
+    set({ status: 'done', savedResult: result });
+    return result;
   },
 
   async open(importId) {
@@ -206,6 +215,11 @@ export const useDocStore = create<DocStoreState>()((set, get) => ({
       truncatedAtUnit: null,
       degraded: false,
       progress: null,
+      // Reopening a finished import from "Đã phân tích trước đó" shows its saved
+      // triage choices again (row.candidates carries them), NOT the success
+      // screen — that screen belongs to the save that just happened, not to a
+      // history entry.
+      savedResult: null,
       status: row.status === 'analyzing' ? 'analyzing' : row.status === 'failed' ? 'error' : row.status === 'done' ? 'done' : 'ready',
       error: row.status === 'failed' ? row.error ?? null : null,
     });
@@ -221,6 +235,7 @@ export const useDocStore = create<DocStoreState>()((set, get) => ({
       truncatedAtUnit: null,
       degraded: false,
       progress: null,
+      savedResult: null,
       error: null,
     });
   },

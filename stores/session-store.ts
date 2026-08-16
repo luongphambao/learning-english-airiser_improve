@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { getRepos } from '@/lib/repositories';
-import { buildSession } from '@/lib/srs/session';
+import { buildSession, buildReviewSession } from '@/lib/srs/session';
 import { dayKey } from '@/lib/srs/date';
 import { newId } from '@/lib/db/ids';
 import { useLevelStore } from './level-store';
@@ -13,11 +13,27 @@ import type { StudySession } from '@/lib/srs/types';
 // ADR-018); this is only the fallback baked into DEFAULT_SETTINGS.
 export const DEFAULT_SESSION_SIZE = 5;
 
+/** How many words a free-review round may draw from. Bounded so a very large
+ * notebook doesn't read every row into memory just to pick `sessionSize` of them. */
+const REVIEW_POOL_SIZE = 300;
+
+/** 'scheduled' is the normal SRS session (due + leech + new). 'review' ignores the
+ * schedule entirely and draws at random from the notebook — the "ôn tập ngẫu
+ * nhiên" option offered once nothing is due and no new word is left. */
+export type SessionMode = 'scheduled' | 'review';
+
 interface SessionStoreState {
   session: StudySession | null;
   status: 'idle' | 'building' | 'active' | 'done' | 'error';
+  /** Which kind of session `session` is — drives the completion screen's wording
+   * (a free-review round shouldn't claim the daily plan is finished). */
+  mode: SessionMode;
   error: string | null;
-  start(opts: { now: number }): Promise<void>;
+  start(opts: { now: number; mode?: SessionMode }): Promise<void>;
+  /** Discards a finished session and immediately builds the next one. Backs the
+   * "Học tiếp" / "Ôn tập ngẫu nhiên" buttons on the completion screen: without it
+   * the only way to a second round was leaving the tab and coming back. */
+  startNext(opts: { now: number; mode?: SessionMode }): Promise<void>;
   answer(correct: boolean): Promise<void>;
   reset(): void;
 }
@@ -34,29 +50,27 @@ interface SessionStoreState {
 export const useSessionStore = create<SessionStoreState>()((set, get) => ({
   session: null,
   status: 'idle',
+  mode: 'scheduled',
   error: null,
 
-  async start({ now }) {
-    set({ status: 'building', error: null });
+  async start({ now, mode = 'scheduled' }) {
+    set({ status: 'building', error: null, mode });
     try {
       const repos = getRepos();
       const today = dayKey(now);
 
-      const resumed = await repos.study.loadActiveSession(today);
-      if (resumed) {
-        set({ session: resumed, status: resumed.status });
-        return;
+      // A free-review round is always freshly built — resuming here would hand
+      // back the scheduled session the user just finished.
+      if (mode === 'scheduled') {
+        const resumed = await repos.study.loadActiveSession(today);
+        if (resumed) {
+          set({ session: resumed, status: resumed.status });
+          return;
+        }
       }
 
       const { settings } = await repos.user.getProfile();
       const size = settings.sessionSize;
-
-      const due = await repos.words.dueBefore(now, size * 2);
-      const leech = await repos.words.leeches(1);
-      const fresh = await repos.words.newNeverReviewed(
-        size,
-        due.map((w) => w.id),
-      );
       // docs/decision.md ADR-018 — a real (if coarse) capability probe: `write` needs
       // gradeSentence and `listen` can fetch TTS, both AI calls that fail outright
       // when the browser is offline. navigator.onLine can't detect "online but the
@@ -66,22 +80,32 @@ export const useSessionStore = create<SessionStoreState>()((set, get) => ({
       // card that immediately errors.
       const online = typeof navigator === 'undefined' || navigator.onLine;
       const caps = { audioAvailable: online, aiAvailable: online };
+      const sessionId = newId('s_');
 
-      const session = buildSession({
-        sessionId: newId('s_'),
-        due,
-        leech,
-        fresh,
-        now,
-        size,
-        caps,
-      });
+      let session: StudySession;
+      if (mode === 'review') {
+        const words = await repos.words.list({ limit: REVIEW_POOL_SIZE });
+        session = buildReviewSession({ sessionId, words, now, size, caps });
+      } else {
+        const due = await repos.words.dueBefore(now, size * 2);
+        const leech = await repos.words.leeches(1);
+        const fresh = await repos.words.newNeverReviewed(
+          size,
+          due.map((w) => w.id),
+        );
+        session = buildSession({ sessionId, due, leech, fresh, now, size, caps });
+      }
 
       if (session.items.length > 0) await repos.study.saveSession(session);
       set({ session, status: session.status });
     } catch (e) {
       set({ status: 'error', error: e instanceof Error ? e.message : 'unknown_error' });
     }
+  },
+
+  async startNext({ now, mode = 'scheduled' }) {
+    set({ session: null, status: 'idle', error: null });
+    await get().start({ now, mode });
   },
 
   async answer(correct) {
@@ -126,6 +150,6 @@ export const useSessionStore = create<SessionStoreState>()((set, get) => ({
   },
 
   reset() {
-    set({ session: null, status: 'idle', error: null });
+    set({ session: null, status: 'idle', mode: 'scheduled', error: null });
   },
 }));

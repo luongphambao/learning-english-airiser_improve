@@ -12,7 +12,9 @@
     "test:watch": "vitest",
     "format": "prettier --write .",
     "clean": "next clean",
-    "corpus:build": "tsx scripts/build-corpus.ts"
+    "corpus:build": "tsx scripts/build-corpus.ts",
+    "demo": "node scripts/demo-features.mjs",
+    "screenshots": "node scripts/capture-screenshots.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

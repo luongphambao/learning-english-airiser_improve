@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { Loader2, AlertTriangle, CheckCircle2, RotateCcw, Info } from 'lucide-react';
 import { useT } from '@/hooks/use-i18n';
@@ -16,14 +15,14 @@ import type { KnownState } from '@/lib/domain';
 // insight arrays.
 
 export function DocResult({ onStartOver }: { onStartOver: () => void }) {
-  const { status, candidates, unitLabel, totalUnits, truncatedAtUnit, degraded, progress, error, fileName, saveTriage } =
-    useDocStore();
+  const {
+    status, candidates, unitLabel, totalUnits, truncatedAtUnit, degraded, progress, error, fileName,
+    savedResult, saveTriage,
+  } = useDocStore();
   const { t } = useT();
-  const [saveResult, setSaveResult] = useState<{ added: number; skipped: number } | null>(null);
 
   async function handleConfirm(choices: Record<string, KnownState>) {
-    const result = await saveTriage(choices, Date.now());
-    setSaveResult(result);
+    await saveTriage(choices, Date.now());
   }
 
   if (status === 'analyzing') {
@@ -77,14 +76,14 @@ export function DocResult({ onStartOver }: { onStartOver: () => void }) {
     );
   }
 
-  if (saveResult) {
+  if (savedResult) {
     return (
       <div className="py-20 text-center space-y-4">
         <CheckCircle2 size={48} className="mx-auto text-green" />
-        <p className="font-serif-display text-2xl text-ink">{t('learnDoc.success.heading', { count: saveResult.added })}</p>
+        <p className="font-serif-display text-2xl text-ink">{t('learnDoc.success.heading', { count: savedResult.added })}</p>
         <p className="text-sm text-ink-soft">
-          {saveResult.skipped > 0
-            ? t('learnDoc.success.skippedNote', { count: saveResult.skipped })
+          {savedResult.skipped > 0
+            ? t('learnDoc.success.skippedNote', { count: savedResult.skipped })
             : t('learnDoc.success.readyNote')}
         </p>
         <div className="flex flex-wrap gap-2 justify-center pt-2">
@@ -120,6 +119,17 @@ export function DocResult({ onStartOver }: { onStartOver: () => void }) {
     return (
       <div className="space-y-5 pb-24">
         <div>
+          {/* Without this the triage screen is a one-way door: the Learn mode
+              tabs only render in the idle state, so a user who opened the wrong
+              document had no way back to the upload box except saving it. */}
+          <button
+            type="button"
+            onClick={onStartOver}
+            className="flex items-center gap-1.5 text-xs text-ink-soft hover:text-green transition-colors mb-3 cursor-pointer"
+          >
+            <RotateCcw size={13} />
+            {t('learnDoc.success.startOver')}
+          </button>
           <span className="font-mono-utility text-xs uppercase tracking-wider text-ink-soft block mb-1.5">
             {t('learnDoc.result.analyzedBy')}
           </span>

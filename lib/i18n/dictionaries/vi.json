@@ -79,7 +79,7 @@
       "analyzing": "Đang phân tích..."
     },
     "analyzingHeading": "Đang đọc tài liệu của bạn...",
-    "analyzingBody": "Gemini đang tìm từ vựng, cụm từ và lỗi ngữ pháp đáng học. Có thể mất đến một phút.",
+    "analyzingBody": "Gemini đang tìm từ vựng, cụm từ và lỗi ngữ pháp đáng học. Bạn chờ một chút nhé.",
     "resultLabel": "Phân tích bởi Gemini",
     "defaultHeadline": "Kết quả phân tích",
     "inputTypes": {
@@ -171,6 +171,12 @@
     "completeTitle": "Xuất sắc! Đã học xong {{count}} từ.",
     "completeStreakPrefix": "Chuỗi ngày học hiện tại:",
     "completeStreakValue": "{{streak}} ngày",
+    "completeReviewTitle": "Đã ôn lại {{count}} từ. Rất tốt!",
+    "continueCta": "Học tiếp {{count}} từ",
+    "allCaughtUp": "Bạn đã học hết từ đang có — không còn từ nào tới hạn. Ôn lại vài từ ngẫu nhiên cho chắc, hay thêm từ mới?",
+    "emptyNotebookPrompt": "Sổ tay của bạn chưa có từ nào. Thêm một tài liệu để bắt đầu.",
+    "reviewRandomCta": "Ôn tập ngẫu nhiên",
+    "learnNewCta": "Học thêm từ mới",
     "viewNotebook": "Xem sổ tay",
     "learnMore": "Học thêm từ tài liệu",
     "sessionBadge": "Bài học hôm nay",
@@ -464,8 +470,8 @@
       "ariaLabel": "Tiến độ phân tích tài liệu",
       "progressLabel": "{{completed}}/{{total}} phần · {{percent}}%",
       "preparingProgress": "Đang chuẩn bị...",
-      "unitsInfo": "Tài liệu có {{count}} {{unit}}. Có thể mất một phút.",
-      "preparingInfo": "Đang chuẩn bị phân tích. Có thể mất một phút."
+      "unitsInfo": "Tài liệu có {{count}} {{unit}}. Bạn chờ một chút nhé.",
+      "preparingInfo": "Đang chuẩn bị phân tích. Bạn chờ một chút nhé."
     },
     "error": {
       "heading": "Không phân tích được tài liệu",

@@ -1,20 +1,22 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSessionStore } from '@/stores/session-store';
 import { useTopupStore } from '@/stores/topup-store';
 import { useProfile } from '@/hooks/use-profile';
+import { useDailyPlan } from '@/hooks/use-daily-plan';
 import { useLastGrammarAttempts } from '@/hooks/use-grammar';
 import { useT } from '@/hooks/use-i18n';
+import { useIsomorphicLayoutEffect } from '@/hooks/use-isomorphic-layout-effect';
 import { ExerciseFillBlank } from '@/components/ExerciseFillBlank';
 import { ExerciseListen } from '@/components/ExerciseListen';
 import { ExerciseWrite } from '@/components/ExerciseWrite';
 import { ExerciseRecall } from '@/components/ExerciseRecall';
 import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
-import { CheckCircle2, Sparkles, AlertTriangle, BookCheck, Bookmark } from 'lucide-react';
+import { CheckCircle2, Sparkles, AlertTriangle, BookCheck, Bookmark, Shuffle, Loader2 } from 'lucide-react';
 
 // Owns the SRS session (moved from app/(tabs)/today/page.tsx — that route is now
 // Home V2 and only links here; it no longer auto-starts a session on load). The
@@ -24,11 +26,35 @@ import { CheckCircle2, Sparkles, AlertTriangle, BookCheck, Bookmark } from 'luci
 export default function PracticePage() {
   const router = useRouter();
   const { t } = useT();
-  const { session, status, error, start, answer, reset } = useSessionStore();
+  const { session, status, mode, error, start, startNext, answer, reset } = useSessionStore();
   const ensureSupply = useTopupStore((s) => s.ensureSupply);
   const { stats, settings } = useProfile();
+  const plan = useDailyPlan();
   const lastGrammarAttempts = useLastGrammarAttempts();
   const grammarTopicsAttempted = Object.keys(lastGrammarAttempts).length;
+  const [startingNext, setStartingNext] = useState(false);
+
+  // useSessionStore is a module-level singleton, so a session finished earlier in
+  // this page's life is still sitting in `status: 'done'` when the tab is
+  // re-entered — and the effect below only builds a session from 'idle'. Without
+  // this, coming back to Practice after learning new words re-showed the OLD
+  // completion screen until a hard reload (which DID build a new session, since
+  // loadActiveSession only ever resumes an 'active' one — the two paths
+  // disagreed). Runs before paint so the stale screen never flashes.
+  useIsomorphicLayoutEffect(() => {
+    if (useSessionStore.getState().status === 'done') useSessionStore.getState().reset();
+  }, []);
+
+  async function handleStartNext(nextMode: 'scheduled' | 'review') {
+    if (startingNext) return;
+    setStartingNext(true);
+    const now = Date.now();
+    // Same order as the mount effect: top up first so a scheduled round can see
+    // any word the corpus supply just wrote.
+    if (nextMode === 'scheduled') await ensureSupply({ now, targetSize: settings.sessionSize });
+    await startNext({ now: Date.now(), mode: nextMode });
+    setStartingNext(false);
+  }
 
   useEffect(() => {
     // docs/decision.md ADR-018 — top up BEFORE start(): ensureSupply writes real
@@ -69,6 +95,11 @@ export default function PracticePage() {
     );
   }
 
+  // How much real work is left AFTER whatever just happened — a live Dexie query,
+  // so answering the last card of a session already moved these numbers before
+  // this renders. This is what decides between "học tiếp" and "hết từ rồi".
+  const remaining = plan.dueCount + plan.freshCount;
+
   if (!session || session.items.length === 0) {
     return (
       <div className="py-8 space-y-6">
@@ -76,8 +107,14 @@ export default function PracticePage() {
           icon={<CheckCircle2 size={32} className="text-green" />}
           title={t('practice.doneTitle')}
           description={t('practice.doneDescription')}
-          actionLabel={t('practice.doneActionLabel')}
-          onAction={() => router.push('/learn')}
+        />
+        <NextStepActions
+          remaining={remaining}
+          canReview={plan.totalWords > 0}
+          busy={startingNext}
+          onContinue={() => handleStartNext('scheduled')}
+          onReview={() => handleStartNext('review')}
+          onLearnNew={() => router.push('/learn')}
         />
         <PracticeExtras grammarTopicsAttempted={grammarTopicsAttempted} />
       </div>
@@ -92,7 +129,9 @@ export default function PracticePage() {
             <Sparkles size={32} />
           </div>
           <h2 className="font-serif-display text-3xl sm:text-4xl text-ink mb-2">
-            {t('practice.completeTitle', { count: session.items.length })}
+            {mode === 'review'
+              ? t('practice.completeReviewTitle', { count: session.items.length })
+              : t('practice.completeTitle', { count: session.items.length })}
           </h2>
           <p className="text-sm text-ink-soft mb-6">
             {t('practice.completeStreakPrefix')}{' '}
@@ -100,14 +139,15 @@ export default function PracticePage() {
               {t('practice.completeStreakValue', { streak: stats.streak })}
             </span>
           </p>
-          <div className="flex gap-2 justify-center">
-            <Button variant="quiet" onClick={() => router.push('/vocabulary')}>
-              {t('practice.viewNotebook')}
-            </Button>
-            <Button variant="primary" onClick={() => router.push('/learn')}>
-              {t('practice.learnMore')}
-            </Button>
-          </div>
+          <NextStepActions
+            remaining={remaining}
+            canReview={plan.totalWords > 0}
+            busy={startingNext}
+            onContinue={() => handleStartNext('scheduled')}
+            onReview={() => handleStartNext('review')}
+            onLearnNew={() => router.push('/learn')}
+            onNotebook={() => router.push('/vocabulary')}
+          />
         </div>
         <PracticeExtras grammarTopicsAttempted={grammarTopicsAttempted} />
       </div>
@@ -162,6 +202,81 @@ export default function PracticePage() {
         <ExerciseWrite key={item.wordId} word={word} onAnswer={answer} contextTopic={settings.contextTopic} />
       )}
       {item.kind === 'recall' && <ExerciseRecall key={item.wordId} word={word} onAnswer={answer} />}
+    </div>
+  );
+}
+
+/**
+ * What to do after a session ends — the answer used to be "leave this screen"
+ * (the only buttons went to /learn or /vocabulary), so a user with 30 words still
+ * due had to navigate away and back to get a second round.
+ *
+ * - Words still due or still new  -> keep going, same scheduled session builder.
+ * - Nothing left, notebook non-empty -> say so, then offer a free-review round
+ *   (random words, ignores the schedule) or learning new material.
+ * - Empty notebook -> only learning new material makes sense.
+ */
+function NextStepActions({
+  remaining,
+  canReview,
+  busy,
+  onContinue,
+  onReview,
+  onLearnNew,
+  onNotebook,
+}: {
+  remaining: number;
+  canReview: boolean;
+  busy: boolean;
+  onContinue: () => void;
+  onReview: () => void;
+  onLearnNew: () => void;
+  onNotebook?: () => void;
+}) {
+  const { t } = useT();
+
+  if (remaining > 0) {
+    return (
+      <div className="space-y-3">
+        <Button variant="primary" onClick={onContinue} disabled={busy} className="w-full">
+          {busy ? <Loader2 size={16} className="animate-spin" /> : null}
+          {t('practice.continueCta', { count: remaining })}
+        </Button>
+        <div className="flex gap-2 justify-center">
+          {onNotebook && (
+            <Button variant="quiet" onClick={onNotebook}>
+              {t('practice.viewNotebook')}
+            </Button>
+          )}
+          <Button variant="quiet" onClick={onLearnNew}>
+            {t('practice.learnMore')}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-ink-soft">
+        {canReview ? t('practice.allCaughtUp') : t('practice.emptyNotebookPrompt')}
+      </p>
+      {canReview && (
+        <Button variant="primary" onClick={onReview} disabled={busy} className="w-full">
+          {busy ? <Loader2 size={16} className="animate-spin" /> : <Shuffle size={16} />}
+          {t('practice.reviewRandomCta')}
+        </Button>
+      )}
+      <Button variant={canReview ? 'quiet' : 'primary'} onClick={onLearnNew} className="w-full">
+        {t('practice.learnNewCta')}
+      </Button>
+      {onNotebook && (
+        <div className="flex justify-center">
+          <Button variant="quiet" onClick={onNotebook}>
+            {t('practice.viewNotebook')}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
