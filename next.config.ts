@@ -16,6 +16,16 @@ const nextConfig: NextConfig = {
   // parsing/bundling either (~3MB+) during `next build`, and nft still traces them
   // into .next/standalone as plain node_modules for the `require()` to resolve.
   serverExternalPackages: ['pdfjs-dist', 'mammoth'],
+  // Without a Worker global (true in Node) pdfjs runs its worker in-process, but that
+  // "fake worker" still imports pdf.worker.mjs at request time — a dynamic specifier
+  // nft cannot see, so tracing shipped pdf.mjs alone and every upload died on
+  // `Setting up fake worker failed: Cannot find module .../pdf.worker.mjs`. Only in
+  // the container: `next dev` resolves it from the full node_modules tree. Naming the
+  // file here is what puts it in .next/standalone next to pdf.mjs, where that import
+  // expects it (see lib/documents/extract.server.ts).
+  outputFileTracingIncludes: {
+    '/api/parse-doc': ['./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs'],
+  },
   experimental: {
     // Trades a bit of build time for a much lower peak heap during `next build` —
     // the Docker build step was hitting "JavaScript heap out of memory" (Cloud Build's

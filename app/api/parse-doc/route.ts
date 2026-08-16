@@ -64,6 +64,11 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json({ units, unitLabel, fileName: file.name }, { headers: { 'x-request-id': requestId } });
   } catch (err) {
     if (err instanceof DocumentParseError) {
+      // The client only ever sees err.code, so without this the cause is lost — the
+      // reason a container-only "DOMMatrix is not defined" regression took a rebuild
+      // to pin down. Safe to log: these messages are library/parser diagnostics and
+      // the code's own discriminator, never uploaded document text.
+      console.error(`[lexio/parse-doc] rejected (${err.code}):`, err.message);
       return problemResponse(err.code, requestId);
     }
     console.error('[lexio/parse-doc] failed:', err instanceof Error ? err.message : err);

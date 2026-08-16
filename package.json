@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
+    "@napi-rs/canvas": "^1.0.6",
     "dexie": "^4.4.4",
     "dexie-react-hooks": "^4.4.0",
     "firebase": "^12.17.1",
