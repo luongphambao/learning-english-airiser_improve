@@ -106,7 +106,7 @@ Không truy vấn `reviews` collection lúc render — `reviews` chỉ đọc kh
 (tabs)  — có TabBar, layout server-component
   /today  /vocabulary (?tu=<id> mở sheet chi tiết)  /calendar  /grammar
 (stack) — có BackHeader, KHÔNG TabBar
-  /progress  /settings
+  /progress  /settings  /leaderboard
 ```
 Route group `(tabs)`/`(stack)` tách theo việc có/không có tab bar, tránh mọi `if (pathname === ...)` trong shell. Layout của `(tabs)` là server component; chỉ `<TabBar/>`/`<AppHeader/>` là `'use client'` — layout tồn tại xuyên suốt điều hướng nên tab bar không bị tháo/dựng lại (điều `useState` tab switching baseline vốn có sẵn "miễn phí", giữ lại ưu điểm đó bằng cách khác).
 

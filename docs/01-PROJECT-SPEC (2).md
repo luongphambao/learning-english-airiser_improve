@@ -30,7 +30,7 @@
 
 ### Non-goals (do NOT build these, ever, unless explicitly asked)
 
-- Leaderboards, friends, social feed, sharing
+- Friends, social feed, sharing, tương tác giữa người dùng thật (bảng xếp hạng: đã được yêu cầu trực tiếp — xem ADR-023; chỉ một bảng dữ liệu **mẫu** có gắn nhãn rõ ràng, không có bạn bè/theo dõi/chia sẻ/thông báo)
 - XP, coins, shops, avatars, mascots, or any collectible economy
 - Multiple learning languages (English only)
 - Real-time voice conversation / Live API (phase 2)

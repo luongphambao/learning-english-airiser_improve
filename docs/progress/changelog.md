@@ -2,6 +2,16 @@
 
 > Mỗi dòng = một phase chốt xong. Không phải commit log — xem `git log` cho mức chi tiết dòng code. Định dạng: `YYYY-MM-DD — Phase N — tóm tắt 1 dòng — file/khu vực chính`.
 
+## 2026-08-16 — Phase 10 — Bảng xếp hạng người học (ADR-023)
+
+**Vấn đề ban đầu:** chủ dự án yêu cầu trực tiếp một bảng xếp hạng nhiều tiêu chí (số từ, chuỗi ngày, lượt ôn, độ chính xác, từ mới 7 ngày, từ khó đã chinh phục) — spec gốc liệt "Leaderboards" vào non-goal, nhưng chính tiêu đề mục đó cho phép ngoại lệ khi được yêu cầu trực tiếp (ADR-023).
+
+**Thiết kế:** app local-first, không có người dùng khác thật — nên `lib/leaderboard/mock.ts` chứa 20 người học **viết tay, cố định**, gắn nhãn `mẫu` trên từng dòng + banner đầu trang. Chỉ dòng của chính người dùng (`isMe: true`) là số liệu thật, dựng từ `UserStats` + sổ tay Dexie qua `buildMyEntry()` (`lib/leaderboard/metrics.ts`, thuần — `now` do caller truyền vào, cùng quy ước `lib/srs/**`). `rankBy()` xếp hạng kiểu competition (1,2,2,4), độ chính xác cần tối thiểu 20 lượt ôn mới được xếp hạng (mẫu nhỏ không phản ánh gì). Mỗi người học (kể cả bản thân) mang theo `sampleWords` — vài từ tiếng Anh minh hoạ đang học, xem được khi bấm mở rộng một dòng.
+
+**UI:** route mới `app/(stack)/leaderboard/page.tsx` (dãy chip đổi tiêu chí, podium top 3, danh sách đầy đủ có thể mở rộng từng dòng, thanh "vị trí của bạn" dính đáy — có copy khích lệ riêng cho người dùng chưa có dữ liệu). Vào từ một card ở `/progress` và một link ở footer `/today`, không đụng `TabBar` 4 mục.
+
+**Xác minh:** `npx vitest run lib/leaderboard` — 50 test xanh trên cả `tz-utc` và `tz-ny` (bao gồm test biên múi giờ ICT lúc nửa đêm cho `newLast7`, và invariant của roster mẫu: không trùng tên/id, tỉ lệ lượt ôn/số từ hợp lý, có tie thật để kiểm ranking).
+
 ## 2026-08-15 — Phase 9 — Kho từ vựng CEFR, phân trình độ, tự nạp từ mới (ADR-014..020)
 
 **Vấn đề ban đầu:** app không có kho từ vựng nào — 5 từ demo hardcode (`lib/db/migrate-local-storage.ts`) là toàn bộ nội dung tĩnh, và `level` chỉ là dropdown tự khai không liên hệ gì tới hiệu suất thật. AI đã trả `cefr`/`summary.estimatedLevel` từ lâu (tính năng "Học từ công việc thật") nhưng bị vứt lúc lưu.

@@ -158,9 +158,12 @@ export default function TodayPage() {
         </Link>
       )}
 
-      <div className="flex items-center justify-between text-xs font-mono-utility text-ink-soft">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-mono-utility text-ink-soft">
         <Link href="/progress" className="hover:text-ink transition-colors">
           Chuỗi {stats.streak} ngày · dài nhất {stats.longestStreak} ngày · Xem tiến độ →
+        </Link>
+        <Link href="/leaderboard" className="hover:text-ink transition-colors">
+          Bảng xếp hạng →
         </Link>
         <Link href="/calendar" className="hover:text-ink transition-colors">
           Kế hoạch học →

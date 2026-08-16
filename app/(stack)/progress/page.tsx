@@ -5,7 +5,8 @@ import { useProfile } from '@/hooks/use-profile';
 import { useWordsList } from '@/hooks/use-words';
 import { WordCard } from '@/components/WordCard';
 import { BackHeader } from '@/components/layout/back-header';
-import { Flame, CheckCircle2, RotateCcw, Calendar, BarChart2 } from 'lucide-react';
+import Link from 'next/link';
+import { Flame, CheckCircle2, RotateCcw, Calendar, BarChart2, Trophy, ChevronRight } from 'lucide-react';
 import { dayKey, lastNDays, weekdayVi } from '@/lib/srs/date';
 import {
   ResponsiveContainer,
@@ -206,6 +207,22 @@ export default function ProgressPage() {
             })}
           </div>
         </div>
+
+        <Link
+          href="/leaderboard"
+          className="flex items-center justify-between gap-3 bg-surface border border-rule rounded-card p-5 shadow-xs hover:border-green transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-amber/10 grid place-items-center shrink-0">
+              <Trophy size={18} className="text-amber" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm text-ink">Bảng xếp hạng</h3>
+              <p className="text-xs text-ink-soft">Xem bạn đang ở đâu so với người học khác</p>
+            </div>
+          </div>
+          <ChevronRight size={18} className="text-ink-soft shrink-0" />
+        </Link>
 
         {leechWords.length > 0 && (
           <div className="bg-surface border border-wrong/30 rounded-card p-6 space-y-3">

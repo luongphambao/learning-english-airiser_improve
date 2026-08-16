@@ -14,6 +14,9 @@
 | 7 | Màn hình: sửa dữ liệu giả (Tiến độ) + thêm 6 màn thiếu (chi tiết từ, import, phân tích, triage, thành công, lỗi file) + nối Ngữ pháp vào SRS | 🟨 Một phần — xem ghi chú | Tiến độ: 1 read `user`, 0 read `reviews`; không màn nào trắng lúc tải |
 | 8 | Chốt: loading/empty/error đủ 3 trạng thái, a11y, 360px, bật ESLint lúc build, README, bật `noUncheckedIndexedAccess` | ⬜ Chưa bắt đầu | Duyệt hết app chỉ bằng bàn phím, focus ring luôn thấy; `npm run build` pass với lint bật |
 | 9 | Kho từ vựng CEFR + phân trình độ + tự nạp từ mới — xem chi tiết dưới, ADR-014..022 | ✅ Xong (9.1-9.5), 9.6 quyết định giữ nguyên `analyzeDocument` mồ côi, 9.7 nối nó vào UI thật, 9.8 chia batch song song + tắt reasoning | `npm run typecheck && npx eslint . && npx vitest run` xanh (trừ 14 test `localStorage`/jsdom lỗi môi trường có sẵn từ trước, không liên quan); đã xác minh bằng trình duyệt thật (placement flow + auto top-up degraded path; 9.7/9.8 xác minh bằng tệp PDF thật 25 trang, xem dưới) |
+| 10 | Bảng xếp hạng người học (dữ liệu mẫu + dòng thật của người dùng) — ADR-023 | ✅ Xong | `npx vitest run lib/leaderboard` xanh 2 TZ; `/leaderboard` render đúng từ `/progress` và `/today`; dòng "Bạn" đọc số liệu thật từ Dexie |
+
+**Nợ kỹ thuật Phase 10:** `lib/leaderboard/metrics.ts`'s `isConqueredHardWord` đếm dư có chủ ý — `Word.isLeech` không lưu lịch sử, nên "từng là leech, nay đã thuộc" được suy ra từ `status==='known' && isLeech===false && lapseCount>=LEECH_RESET_LAPSE`, khớp cả những từ lapse 2 lần mà chưa từng chạm ngưỡng leech thật (`LEECH_LAPSE_THRESHOLD=4`). Chấp nhận cho một màn demo thay vì thêm field `wasLeech` + Dexie migration; sửa đúng nếu tiêu chí này sau này dùng cho việc khác ngoài xếp hạng minh hoạ.
 
 **Chú giải trạng thái:** ⬜ Chưa bắt đầu · 🟨 Đang làm · ✅ Xong · ⛔ Chặn (ghi lý do bên dưới)
 
