@@ -1,8 +1,8 @@
 # Design System
 
-> **Quyết định:** giữ nguyên diện mạo AI Studio hiện tại (xem ADR-006 trong `decision.md`). Phần dưới đây trước hết ghi lại token **đang dùng thật** (nguồn sự thật), sau đó là bảng token trong mockup `docs/ui/` như tài liệu tham chiếu — không áp dụng, chỉ để tra cứu nếu sau này đổi ý.
+> **Quyết định hiện hành:** bảng màu **giấy ấm / xanh rừng** ở §4 là thứ đang chạy — ADR-013 đảo ngược ADR-006. §1 giữ lại bảng token AI Studio (indigo/slate) làm **bản ghi lịch sử** của Phase 1, không phải nguồn sự thật; nguồn sự thật là `app/globals.css`.
 
-## 1. Token đang dùng (nguồn sự thật, sau Phase 1)
+## 1. Token AI Studio (bản ghi lịch sử — đã bị ADR-013 thay thế)
 
 Trước Phase 1, các giá trị này là 9 CSS custom property rời rạc trong `app/globals.css`, tiêu thụ qua cú pháp arbitrary value (`bg-[var(--surface)]`) hàng trăm lần, và song song đó là raw Tailwind palette hardcode (`indigo-600`, `emerald-*`, `rose-*`) rải ở ~12 file khác — hai hệ thống màu không khớp nhau (`--green` là `#4F46E5`, tức tím-indigo, không phải xanh lá). Phase 1 gom hai hệ thống này thành một, **giữ nguyên giá trị màu**, không đổi giá trị.
 
@@ -13,7 +13,7 @@ Trước Phase 1, các giá trị này là 9 CSS custom property rời rạc tro
   --ink:        #0F172A;   /* chữ chính */
   --ink-soft:   #64748B;   /* chữ phụ, nhãn */
   --rule:       #E2E8F0;   /* hairline, viền */
-  --green:      #4F46E5;   /* accent chính — thực chất là indigo, giữ tên biến */
+  --green:      #4F46E5;   /* accent chính — thực chất là indigo, giữ tên biến. Giá trị hiện tại: #2F6B4F, xem §4 */
   --green-wash: #EEF2FF;   /* nền tint accent */
   --amber:      #D97706;   /* trạng thái learning/due/leech */
   --wrong:      #E11D48;   /* trạng thái sai */
@@ -24,7 +24,7 @@ Trước Phase 1, các giá trị này là 9 CSS custom property rời rạc tro
   --amber: #FBBF24; --wrong: #FB7185;
 }
 ```
-Sau Phase 1, các giá trị trên được khai báo lại trong `@theme inline` (Tailwind v4) để sinh utility `bg-paper`, `text-ink-soft`, `border-rule`, `bg-green`, v.v. — **cùng một giá trị**, chỉ đổi cách gọi. Bổ sung token còn thiếu ở baseline: `--radius-card: 16px`, `--radius-btn: 12px`, `--radius-sheet: 24px`, `--shadow-card`, và một token `--accent-gradient` (`from-indigo-600 to-violet-500`) để hero banner ở Hôm nay/Tiến độ dùng chung 1 nguồn thay vì hardcode 2 nơi.
+Sau Phase 1, các giá trị trên được khai báo lại trong `@theme inline` (Tailwind v4) để sinh utility `bg-paper`, `text-ink-soft`, `border-rule`, `bg-green`, v.v. — **cùng một giá trị**, chỉ đổi cách gọi. Bổ sung token còn thiếu ở baseline: `--radius-card: 16px`, `--radius-btn: 12px`, `--radius-sheet: 24px`, `--shadow-card`, và một token `--accent-gradient` (`from-indigo-600 to-violet-500`). **Token gradient này đã bị xoá** cùng ADR-013 — bảng màu mới cấm gradient và không có hue accent thứ hai để tạo một cái.
 
 **Font:** Instrument Serif (chỉ cho từ vựng tiếng Anh, hero word), Inter (UI, subset `vietnamese` bắt buộc vì UI tiếng Việt), IBM Plex Mono (IPA, counter, ngày tháng, streak). Chuyển sang `next/font` ở Phase 1 — bỏ `<link>` Google Fonts chặn render trong `layout.tsx`.
 
@@ -61,9 +61,9 @@ Xoá trùng lặp khi rút primitive: 5 nút tab chép tay trong `AppShell.tsx`,
 - Motion: `prefers-reduced-motion: reduce` tắt animation toàn cục, giữ transition màu.
 - 360px không được tràn ngang ở bất kỳ màn nào (kiểm ở Phase 8).
 
-## 4. Mockup reference (`docs/ui/`, KHÔNG áp dụng — chỉ tham chiếu)
+## 4. Bảng màu đang chạy (giấy ấm / xanh rừng, ADR-013)
 
-Bảng token định nghĩa trong 23 file mockup, khác hẳn bảng token đang dùng ở §1:
+Bảng token này bắt nguồn từ 23 file mockup trong `docs/ui/` và **đã được áp dụng** vào `app/globals.css`. Đây là nguồn sự thật, thay cho §1:
 
 ```css
 --paper:#FAF8F5;  --surface:#FFFFFF;  --ink:#232120;    --ink-soft:#6B655E;
@@ -74,6 +74,6 @@ Bảng token định nghĩa trong 23 file mockup, khác hẳn bảng token đang
 ```
 Dark: `#171614 / #211F1D / #F2EDE6 / #9A938A / #322F2B / #6FA98A / #23302A / #C79B5C / #C4736A`.
 
-Đặc điểm chính (nếu sau này quyết định áp dụng): **cấm gradient hoàn toàn**, một accent hue duy nhất, hairline phân cách row thay vì bọc card, không progress bar/ring (chỉ số + chấm tròn), không toast/modal (chỉ bottom sheet), typography 3 tầng rất nghiêm ngặt (Serif chỉ cho từ vựng, Mono chỉ cho thứ "máy móc" như IPA/đếm/ngày, Inter cho UI). 11 màn trong mockup chưa có implementation nào trong app — xem `progress/00-baseline-audit.md` §4 và `board.md` Phase 7.
+Đặc điểm chính: **cấm gradient hoàn toàn**, một accent hue duy nhất, hairline phân cách row thay vì bọc card, không progress bar/ring (chỉ số + chấm tròn), không toast/modal (chỉ bottom sheet), typography 3 tầng rất nghiêm ngặt (Serif chỉ cho từ vựng, Mono chỉ cho thứ "máy móc" như IPA/đếm/ngày, Inter cho UI). 11 màn trong mockup chưa có implementation nào trong app — xem `progress/00-baseline-audit.md` §4 và `board.md` Phase 7.
 
-**Vì sao ghi lại dù không dùng:** ADR-006 là quyết định có khả năng đảo ngược cao nhất trong toàn bộ lần tái kiến trúc này. Vì primitive ở §2 được thiết kế tách khỏi giá trị màu cụ thể (chỉ tiêu thụ token), đảo ngược ADR-006 sau này chỉ cần đổi giá trị trong `@theme inline`, không cần viết lại component.
+**Việc đảo ngược rẻ đúng như dự đoán:** vì primitive ở §2 chỉ tiêu thụ token chứ không nhúng giá trị màu, ADR-013 chỉ phải đổi giá trị trong `@theme inline` — không component nào phải viết lại.

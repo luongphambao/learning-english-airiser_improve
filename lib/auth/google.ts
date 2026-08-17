@@ -68,6 +68,9 @@ export async function setStoredTokens(tokens: StoredTokens): Promise<void> {
   
   cookieStore.set(COOKIE_NAME, serialized, {
     httpOnly: true,
+    // This cookie carries a Google refresh token, base64-encoded only. Without
+    // `secure` it would travel over plain HTTP on any non-TLS hop.
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
     maxAge: 60 * 60 * 24 * 30, // 30 days

@@ -3,17 +3,21 @@ import type { NextRequest } from 'next/server';
 import { getAppUrl } from '@/lib/ai/config';
 
 /**
- * No accounts exist yet in this pass, so origin + size + rate limit are the whole
- * defence (docs/api_document.md §0 / docs/decision.md). `Sec-Fetch-Site` is set by
- * every modern browser on same-origin fetch() calls and cannot be forged by
- * script; a request missing it AND missing a matching Origin header is rejected.
+ * First layer of the API defence, ahead of size cap, zod validation, rate limit
+ * and (for the costly tasks) a session check — docs/api_document.md §0.
+ *
+ * `Sec-Fetch-Site` is set by every modern browser on fetch() and cannot be forged
+ * by script. A request carrying neither it nor a matching `Origin` is not a
+ * browser request at all — curl and every scripted client land there — so it is
+ * rejected rather than allowed. This used to `return secFetchSite === null`,
+ * which made the whole guard a no-op for anything that wasn't a browser.
  */
 export function isAllowedOrigin(req: NextRequest): boolean {
   const secFetchSite = req.headers.get('sec-fetch-site');
   if (secFetchSite === 'same-origin' || secFetchSite === 'same-site') return true;
 
   const origin = req.headers.get('origin');
-  if (!origin) return secFetchSite === null; // same-origin requests from older clients omit both
+  if (!origin) return false;
   const allowed = new Set([getAppUrl(), 'http://localhost:3000']);
   return allowed.has(origin);
 }

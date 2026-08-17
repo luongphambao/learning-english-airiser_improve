@@ -85,10 +85,13 @@ export default function SettingsPage() {
     try {
       setSendingEmail(true);
       setEmailNotice(null);
-      // Send the user's actual due words — without this the route falls back to a
-      // hardcoded sample ("constitute", ...) regardless of what's in the notebook,
-      // which would make the email lie about what needs reviewing.
+      // The route rejects an empty word list rather than inventing sample words,
+      // so say why here instead of letting it surface as a generic 422.
       const dueWords = await getRepos().words.dueBefore(Date.now(), 5);
+      if (dueWords.length === 0) {
+        setEmailNotice({ type: 'error', message: t('settings.notices.sendNoDueWords') });
+        return;
+      }
       const res = await fetch('/api/gmail/send-reminder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -111,7 +114,7 @@ export default function SettingsPage() {
       } else {
         setEmailNotice({
           type: 'error',
-          message: data.message || t('settings.notices.sendFailedFallback'),
+          message: data?.error?.message || t('settings.notices.sendFailedFallback'),
         });
       }
     } catch {
@@ -301,10 +304,11 @@ export default function SettingsPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-mono-utility text-ink-soft mb-2">
+          <label htmlFor="settings-level" className="block text-xs font-mono-utility text-ink-soft mb-2">
             {t('settings.level.label')}
           </label>
           <select
+            id="settings-level"
             value={settings.level}
             onChange={(e) => setDeclaredLevel(e.target.value as UserSettings['level'], Date.now())}
             className="w-full p-3 rounded-xl bg-paper border border-rule text-sm text-ink"

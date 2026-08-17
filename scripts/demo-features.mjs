@@ -26,6 +26,7 @@
  */
 import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
+import { grantSession } from './demo-session.mjs';
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:3000';
 const OUT = 'UI/demo';
@@ -529,6 +530,7 @@ async function newSession(browser, { viewport = DESKTOP, colorScheme = 'light', 
     isMobile: mobile,
     hasTouch: mobile,
   });
+  await grantSession(context, BASE);
   await mockAi(context);
   const page = await context.newPage();
   page.on('pageerror', (err) => log.fail('uncaught page error', String(err).split('\n')[0]));

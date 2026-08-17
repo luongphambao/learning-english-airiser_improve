@@ -26,6 +26,8 @@
 
 ### ADR-003 — AI provider trừu tượng, mặc định OpenAI-compatible
 
+> **Mặc định bị đảo bởi ADR-012**: Gemini nay là provider mặc định cho mọi tác vụ, OpenAI-compatible lùi thành fallback. Bản thân abstraction `AiProvider` dựng ở đây vẫn nguyên vẹn và vẫn là quyết định đang có hiệu lực — chỉ giá trị mặc định đổi.
+
 **Bối cảnh:** Spec pin `gemini-3-flash` / `gemini-3.1-flash-tts-preview`. Nhưng `.env` thực tế của dự án chỉ có credential cho một router OpenAI-compatible (`OPENAI_API_URL=https://router.bnksolution.com/v1`, `OPENAI_MODEL_NAME=cx/gpt-5.6-luna`); `GEMINI_API_KEY` chưa được điền giá trị thật.
 
 **Lựa chọn:** Một interface `AiProvider` với 2 implementation — OpenAI-compatible (mặc định, chọn qua `AI_PROVIDER=openai`) và Gemini (`AI_PROVIDER=gemini`). Một zod schema định nghĩa 1 lần chiếu ra 2 hình dạng: JSON Schema `strict` cho OpenAI, `responseSchema` (Type.OBJECT) cho Gemini — xem `api_document.md`. TTS luôn thử Gemini trước (OpenAI-compatible router không đảm bảo có TTS), degrade 3 lớp về `speechSynthesis`.
@@ -55,6 +57,8 @@
 ---
 
 ### ADR-006 — Giữ nguyên design system AI Studio hiện tại, không áp dụng mockup `docs/ui/`
+
+> **Bị đảo ngược bởi ADR-013**: bảng màu giấy ấm / xanh rừng của mockup đã được áp dụng. Phần dưới đây giữ nguyên để lưu bối cảnh quyết định ban đầu.
 
 **Bối cảnh:** `docs/ui/` (23 file HTML) và spec §4 định nghĩa một ngôn ngữ thị giác khác hẳn bản đang chạy: giấy ấm `#FAF8F5`, xanh rừng `#2F6B4F`, Instrument Serif, **cấm gradient tuyệt đối**. Bản đang chạy dùng slate/indigo `#4F46E5` + gradient hero. Ban đầu kế hoạch dự định khôi phục đúng mockup.
 
@@ -285,3 +289,31 @@ Ba rủi ro mà non-goal gốc thực sự đang phòng, và cách thiết kế 
 - **Kinh tế phù phiếm**: không đổi — mọi tiêu chí vẫn là số liệu có sẵn trong `UserStats`/`Word`, monogram vẫn suy từ tên, không ảnh, không sưu tầm.
 
 **Hệ quả:** `npx vitest run lib/leaderboard` — 88 test xanh trên cả `tz-utc` và `tz-ny` (bao gồm biên đóng băng 7 ngày của `newLast7`, dedupe doc-của-chính-mình khỏi roster fetch, và tie thật trong roster giả lập cho `buildLeaderboard`). Cần `firebase deploy --only firestore:rules` trước khi thử thật — thiếu bước này thì mọi lượt đọc `leaderboard/**` trả về `permission-denied` và người dùng chỉ thấy đúng một dòng của chính họ, dễ nhầm là "chưa ai khác dùng app" thay vì "quên deploy rules".
+
+### ADR-024 — Song ngữ Việt/Anh bằng từ điển JSON tĩnh, không thư viện i18n
+
+> Viết bù. `lib/domain/user.ts` trích dẫn ADR-024 từ lúc thêm `LocaleSchema`, nhưng ADR tương ứng chưa từng được viết — đúng lỗ hổng mà ADR-014 được dựng ra để bịt. Nội dung dưới đây mô tả quyết định như nó đã được thực hiện, không phải một quyết định mới.
+
+**Bối cảnh:** UI gốc chỉ có tiếng Việt, chuỗi nội suy thẳng trong JSX. Cần thêm tiếng Anh để người không đọc được tiếng Việt (giám khảo, người dùng nước ngoài) dùng được app, mà không kéo theo một tầng phụ thuộc mới.
+
+**Quyết định:**
+- Hai file từ điển JSON phẳng-theo-khối, `lib/i18n/dictionaries/{vi,en}.json`, **giữ thẳng hàng từng dòng** — cùng thứ tự khoá, cùng số dòng. Bất biến này làm diff đọc được và làm khoá thiếu lộ ra ngay khi nhìn.
+- `translateWith()` là hàm thuần: tra khoá theo dot-path, nội suy `{{var}}`, và rơi về `vi` khi khoá thiếu ở `en`, rồi về chính chuỗi khoá khi thiếu cả hai. Không bao giờ ném lỗi — một khoá sót làm xấu một nhãn, không làm trắng cả màn hình.
+- `locale` sống trong `UserSettings` (Dexie), không phải cookie hay route segment: nó là tuỳ chọn của người dùng và phải theo tài khoản khi đồng bộ, không theo thiết bị hay URL.
+- Không dùng `next-intl`/`react-i18next`: không cần định tuyến theo locale, không cần pluralization rules, không cần lazy-load namespace. Toàn bộ tầng dịch là ~45 dòng.
+
+**Hệ quả:** Không có route `/vi`/`/en`, nên không có SEO đa ngôn ngữ và không chia sẻ được link "trang này bằng tiếng Anh" — chấp nhận được với một app sau đăng nhập. Nhãn hệ thống lưu vào Dexie phải lưu **khoá** chứ không lưu câu chữ, nếu không chúng đóng băng theo ngôn ngữ lúc tạo; xem `lib/i18n/source-label.ts` cho cách `Word.source.label` xử lý việc lẫn lộn giữa dữ liệu người dùng và nhãn hệ thống.
+
+### ADR-026 — Bắt buộc đăng nhập, kèm chế độ khách bằng cờ client thay vì tài khoản ẩn danh
+
+**Bối cảnh:** App vốn dùng được hoàn toàn khi chưa đăng nhập. Điều đó khiến mọi route `/api/ai/*` là endpoint tính tiền AI mở cho bất kỳ ai (`competition-audit.md` §6.2), và không có chỗ nào tự nhiên để phân biệt "người học thật" với "khách ghé qua". Nhưng bắt đăng nhập cứng sẽ chặn giám khảo cuộc thi ngay ở màn đầu — trong khi Google Sign-In đang tắt và tạo tài khoản email là ma sát thật.
+
+**Quyết định:**
+- Cổng đăng nhập đặt ở `app/providers.tsx` — điểm nghẽn duy nhất mọi route đã đi qua, nên **không cần `middleware.ts`**. Vào được app khi: có phiên Firebase, **hoặc** có cookie `lexio_user_session` (không cần phiên Firebase), **hoặc** đang ở chế độ khách.
+- **Khách là một cờ `localStorage`, không phải Firebase Anonymous Auth.** Không có uid nghĩa là hai ràng buộc sản phẩm tự thoả mà không phải viết guard nào: `publishLeaderboard()` và `useSyncStore.sync()` đều đã `return` sớm khi thiếu `currentUser`, và `SyncScheduler` chỉ mount khi có `uid`. Tài khoản ẩn danh sẽ cấp uid thật, khiến cả hai bắt đầu chạy và phải chặn thêm ở ba nơi kể cả `firestore.rules`.
+- Ràng buộc còn lại — **không tải tài liệu lên** — được thi hành ở máy chủ (`analyzeDocumentTask.requireSession` và `app/api/parse-doc`), không chỉ ẩn nút. Khách không có cookie session nên bị từ chối bằng chính guard đó, không cần khái niệm "guest" nào ở server.
+- Nút "Dùng thử" đẩy về `/placement`, không phải `/today`: bài kiểm tra trình độ chạy hoàn toàn cục bộ (corpus + Dexie, không auth, không mạng) nên khách có nội dung thật sau một cú bấm, thay vì gặp sổ tay rỗng.
+
+**Hệ quả:** Dữ liệu của khách nằm trong database Dexie cục bộ `lexio` — đúng chỗ dữ liệu của người chưa đăng nhập vẫn nằm từ trước, nên hành vi dữ liệu không đổi. Tác dụng phụ tích cực: khách đăng ký tài khoản sau đó sẽ gặp `LegacyClaimBanner` mời chuyển tiến độ dùng thử sang tài khoản mới, tức đường nâng cấp có sẵn mà không phải viết thêm gì.
+
+Đánh đổi đã biết: cookie `lexio_user_session` chỉ là base64 chưa ký, nên một script tự chế cookie sẽ qua được guard `requireSession`. Guard này vì thế là **cổng sản phẩm, không phải biên bảo mật** — phần chi tiền vẫn được bảo vệ bằng kiểm tra origin và rate limit theo IP (cả hai không bị cookie bỏ qua). Chính đặc tính đó là thứ giữ cho `npm run demo` và `npm run screenshots` chạy được qua cổng (`scripts/demo-session.mjs`). Ký cookie, hoặc chuyển sang Firebase session cookie qua Admin SDK, là bước tiếp theo — xem `status.md`.

@@ -14,7 +14,8 @@
     "clean": "next clean",
     "corpus:build": "tsx scripts/build-corpus.ts",
     "demo": "node scripts/demo-features.mjs",
-    "screenshots": "node scripts/capture-screenshots.mjs"
+    "screenshots": "node scripts/capture-screenshots.mjs",
+    "a11y": "node scripts/a11y-scan.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -35,6 +36,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/eslintrc": "^3.3.6",
     "@tailwindcss/postcss": "4.1.11",
     "@testing-library/react": "^16.1.0",

@@ -90,6 +90,7 @@ export default function StudyPlanPage() {
               <h3 className="font-serif-display text-2xl text-ink">{t('calendar.reminderEmailHeading')}</h3>
             </div>
             <select
+              aria-label={t('calendar.reminderHourLabel')}
               value={settings.reminderHour === null ? 'off' : String(settings.reminderHour)}
               onChange={(e) =>
                 updateSettings({

@@ -90,11 +90,11 @@ export default function ProgressPage() {
       <BackHeader title={t('progress.backHeaderTitle')} />
       <div className="space-y-6 animate-fade-in pt-6">
         <div className="bg-green rounded-card p-6 sm:p-8 text-paper">
-          <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-3 inline-block">
+          <span className="bg-paper text-green px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-3 inline-block">
             {t('progress.overviewBadge')}
           </span>
           <h1 className="font-serif-display text-2xl sm:text-3xl mb-2">{t('progress.heroTitle')}</h1>
-          <p className="text-paper/80 text-sm sm:text-base max-w-md">
+          <p className="text-paper text-sm sm:text-base max-w-md">
             {t('progress.heroSubtitle')}
           </p>
         </div>

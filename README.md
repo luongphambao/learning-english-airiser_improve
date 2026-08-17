@@ -57,7 +57,8 @@ upload is treated strictly as content to analyse, never as instructions to follo
 
 Sign in and your notebook follows you. A two-way sync engine keeps words, review history, imports,
 and progress consistent across devices, merging changes made on two phones without losing either.
-Sign-out is a first-class state: the app stays fully usable offline, with no account at all.
+Guest mode is a first-class state: everything is stored locally and the app keeps working offline,
+without ever creating an account.
 
 ### Gmail — reminders from your own inbox
 
@@ -132,8 +133,11 @@ out your CEFR level, and puts the right first words in your notebook.
 Designed for a phone and adapting upward, in light and dark themes. The leaderboard ranks you by
 words learned, longest streak, and accuracy.
 
-> Other entries on the leaderboard are a sample roster, marked as such in the app — only your own row
-> is real. Ranking live learners needs a server-side aggregate that is out of scope for this build.
+> The leaderboard is real: every signed-in learner publishes an aggregate row to a shared
+> `leaderboard/{uid}` Firestore collection after each sync, and the board shows the 200 most recently
+> active learners. Only aggregate numbers are published — never your notebook or your email — and
+> `firestore.rules` enforces that with a field whitelist. Guests and signed-out visitors see their
+> own row only.
 
 <table>
 <tr>
@@ -152,11 +156,14 @@ cp .env.example .env    # add GEMINI_API_KEY — see the comments in the file
 npm run dev             # http://localhost:3000
 ```
 
-That is the whole setup. No Firebase project, OAuth client, or other backend is needed to run the
-app — accounts, sync, and Gmail reminders are optional layers on top. Your vocabulary lives in the
-browser, so the app works offline and signed out.
+That is the whole setup. Your vocabulary lives in the browser, so the app works offline once you are
+in. The app asks for a login, with a "try it without an account" button on the login screen for
+anyone who just wants to look around — guest mode learns and practises normally, but stays off the
+leaderboard, cannot upload documents, and does not sync across devices.
 
-Set `AI_PROVIDER=gemini` in `.env` to run the AI features on Gemini.
+Gemini is the default AI provider; `AI_PROVIDER=openai` switches to the OpenAI-compatible fallback
+(`docs/decision.md` ADR-012). A Firebase project and OAuth client are only needed for accounts,
+sync, and Gmail reminders.
 
 ### Seeing every feature in one run
 
@@ -264,6 +271,6 @@ from your own inbox, using a send-only OAuth scope.
 Four principles hold the design together: local-first by default, so Firestore syncs on top rather
 than standing in the way; structured AI output, so every Gemini response comes back as validated data
 rather than free text; untrusted input handling, so anything uploaded is treated strictly as content
-to analyse, never as instructions to follow; and decisions on record — 23 architecture decision
+to analyse, never as instructions to follow; and decisions on record — 26 architecture decision
 records in [`docs/`](docs/README.md), with what is finished and what is not in
 [`docs/status.md`](docs/status.md).

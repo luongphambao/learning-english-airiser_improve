@@ -73,6 +73,6 @@ Xem `docs/progress/00-baseline-audit.md` §1 — framework thực tế là Next.
 | # | Sai lệch | Lý do |
 |---|---|---|
 | G1 | Không dùng Vite — giữ Next.js App Router | Vá lỗ hổng E1 rẻ hơn nhiều so với build backend proxy riêng cho Vite |
-| G2 | **Không áp dụng design system trong `docs/ui/`** (warm paper/forest green/Instrument Serif/cấm gradient) | Yêu cầu trực tiếp của chủ dự án: giữ nguyên diện mạo AI Studio hiện tại (indigo/slate/gradient). Xem ADR-006 |
+| G2 | ~~Không áp dụng design system trong `docs/ui/`~~ — **đã áp dụng** (warm paper/forest green/Instrument Serif/cấm gradient) | ADR-006 ban đầu giữ diện mạo AI Studio; ADR-013 đảo ngược và áp dụng bảng màu mockup. Xem ADR-013 |
 | G3 | Không dùng Firebase Auth/Firestore ở vòng này | Local-first trước, có seam rõ ràng để chuyển sau — xem ADR-002 |
-| G4 | AI provider mặc định là OpenAI-compatible, không phải Gemini như spec pin | `.env` hiện có sẵn credential OpenAI-compatible; Gemini vẫn giữ vai trò TTS và là provider thay thế — xem ADR-003 |
+| G4 | ~~AI provider mặc định là OpenAI-compatible~~ — **mặc định đã là Gemini**, khớp lại với spec | ADR-003 dựng abstraction với mặc định OpenAI-compatible; ADR-012 đảo mặc định sang Gemini, OpenAI-compatible lùi thành fallback |

@@ -1,7 +1,8 @@
 import 'server-only';
 import { NextRequest, NextResponse } from 'next/server';
 import { isAllowedOrigin, readBodyWithCap } from './guards';
-import { getRateLimiter, rateLimitKey } from './rate-limit';
+import { getRateLimiter, rateLimitKey, rateLimitKeyForUser } from './rate-limit';
+import { getUserSession } from '@/lib/auth/user-session';
 import { problemResponse, type ProblemCode } from './problem';
 import { getTextProvider } from '@/lib/ai/provider';
 import { withRetry } from '@/lib/ai/retry';
@@ -29,6 +30,11 @@ export function createAiRoute<I, O>(task: ServerTask<I, O>) {
       return problemResponse('forbidden_origin', requestId);
     }
 
+    const session = await getUserSession();
+    if (task.requireSession && !session) {
+      return problemResponse('login_required', requestId);
+    }
+
     const maxBytes = task.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
     const bodyResult = await readBodyWithCap(req, maxBytes);
     if (!bodyResult.ok) {
@@ -48,10 +54,18 @@ export function createAiRoute<I, O>(task: ServerTask<I, O>) {
     }
     const input = parsedInput.data;
 
+    // Both keys are charged when signed in: the IP bucket survives a forged or
+    // rotated session cookie, the uid bucket survives a rotated IP. Either one
+    // running out rejects the call.
     const limiter = getRateLimiter();
-    const rl = await limiter.consume(rateLimitKey(req, task.id), task.rateLimit);
-    if (!rl.ok) {
-      return problemResponse('rate_limited', requestId, { 'retry-after': String(Math.ceil(rl.retryAfterMs / 1000)) });
+    const keys = [rateLimitKey(req, task.id)];
+    if (session) keys.push(rateLimitKeyForUser(session.uid, task.id));
+    const results = await Promise.all(keys.map((key) => limiter.consume(key, task.rateLimit)));
+    const blocked = results.find((r) => !r.ok);
+    if (blocked) {
+      return problemResponse('rate_limited', requestId, {
+        'retry-after': String(Math.ceil(blocked.retryAfterMs / 1000)),
+      });
     }
 
     const provider = getTextProvider();

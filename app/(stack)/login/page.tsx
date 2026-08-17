@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { BackHeader } from '@/components/layout/back-header';
 import { useT } from '@/hooks/use-i18n';
-import { Mail, ArrowRight, CheckCircle2, AlertCircle, Loader2, LogOut, User, Lock, UserPlus } from 'lucide-react';
+import { Mail, ArrowRight, CheckCircle2, AlertCircle, Loader2, LogOut, User, Lock, UserPlus, Compass } from 'lucide-react';
+import { enterGuestMode } from '@/lib/auth/guest';
 import {
   GOOGLE_SIGNIN_ENABLED,
   completeGoogleRedirect,
@@ -132,6 +133,15 @@ export default function LoginPage() {
       setGoogleLoading(false);
       setNotice({ type: 'error', message: describeAuthError(err) });
     }
+  };
+
+  // Straight to the placement test rather than /today: it is entirely local
+  // (corpus + Dexie, no auth, no network) so a guest gets real content in one
+  // tap, where /today would greet them with an empty notebook.
+  const handleTryAsGuest = () => {
+    enterGuestMode();
+    window.dispatchEvent(new Event('lexio-auth-changed'));
+    router.push('/placement');
   };
 
   const handleForgotPassword = async () => {
@@ -348,6 +358,20 @@ export default function LoginPage() {
                 </button>
               </>
             )}
+
+            <div className="pt-1 space-y-2 border-t border-rule">
+              <button
+                onClick={handleTryAsGuest}
+                type="button"
+                className="mt-4 w-full py-3 px-4 rounded-xl border border-rule bg-paper hover:bg-surface text-ink text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition active:scale-98"
+              >
+                <Compass className="w-4 h-4" />
+                {t('login.guestCta')}
+              </button>
+              <p className="text-xs text-ink-soft leading-relaxed text-center">
+                {t('login.guestLimits')}
+              </p>
+            </div>
           </div>
         )}
 

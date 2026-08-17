@@ -132,7 +132,7 @@ export default function WordsPage() {
                         ? 'bg-green-wash text-green'
                         : word.status === 'learning'
                         ? 'bg-amber/10 text-amber-ink'
-                        : 'bg-rule text-ink-soft'
+                        : 'bg-paper text-ink-soft border border-rule'
                     }`}
                   >
                     {word.status === 'known'

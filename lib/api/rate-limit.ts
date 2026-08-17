@@ -66,3 +66,10 @@ export function rateLimitKey(req: { headers: { get(name: string): string | null 
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? req.headers.get('x-real-ip') ?? 'unknown';
   return `${ip}|${taskId}`;
 }
+
+/** Signed-in callers are additionally counted per account, so one user cannot
+ * multiply their quota by rotating IPs. The IP key stays in force alongside it —
+ * the session cookie is not signed, so a uid on its own is caller-chosen. */
+export function rateLimitKeyForUser(uid: string, taskId: string): string {
+  return `uid:${uid}|${taskId}`;
+}

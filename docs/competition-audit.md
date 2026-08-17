@@ -46,9 +46,12 @@ không mua được bằng công sức kỹ thuật — chỉ mua được bằn
 
 Đã chạy thật, không suy đoán:
 
+> **Cập nhật 17/08 (đợt sửa):** mục 5 và mục 6 **đã sửa xong**, kèm cổng đăng nhập + chế độ khách
+> (ADR-026). Chi tiết ở cuối mỗi mục. Sau khi sửa: **608/608 test xanh**, typecheck sạch, lint 0 lỗi.
+
 | Kiểm tra | Kết quả |
 |---|---|
-| `npx vitest run` | **546/546 test xanh**, 62 file, 7,5s |
+| `npx vitest run` | ~~**546/546 test xanh**~~ — sai. Thực tế lúc rà soát là **532/546**: 14 test `migrations.test.ts` đỏ vì Node 26 định nghĩa sẵn `localStorage` toàn cục trả `undefined`, chặn jsdom cấp bản thật. CI ghim Node 22 nên CI xanh. Đã vá bằng polyfill trong `vitest.setup.ts` |
 | `npx tsc --noEmit` | Sạch — lỗi duy nhất đến từ `.next/` cũ tham chiếu route đã xoá |
 | `npx eslint .` | 0 lỗi, 1 cảnh báo (`login/page.tsx:87` exhaustive-deps) |
 | `curl` URL Cloud Run | **HTTP 200**, 7,6s (cold start) |
@@ -179,7 +182,17 @@ khi mở code. Cả hai đang mô tả một phiên bản Lexio **cũ hơn và t
 | `docs/README.md`: *"AI mặc định OpenAI-compatible, Gemini là lựa chọn thứ hai"* | ADR-012 đã đảo lại, `config.ts` mặc định `gemini` | Mâu thuẫn với chính thông điệp dự thi |
 | `docs/README.md`: *"giữ diện mạo AI Studio (indigo/slate/gradient)"* | Giao diện thật là warm paper / forest green | Mô tả sai sản phẩm |
 
-Không có mục nào ở đây cần viết code. Tất cả là sửa chữ và chụp lại ảnh (`npm run screenshots`).
+**Đã sửa toàn bộ.** README (bảng xếp hạng, mặc định Gemini, số ADR), `docs/README.md` (số ADR, mặc
+định AI, bảng màu), `docs/design.md` (§1 đánh dấu là bản ghi lịch sử, §4 thành nguồn sự thật),
+`docs/spec-gaps.md` (G2 và G4 gạch ngang), `docs/status.md` (bỏ lời khai test đỏ, thêm cổng đăng
+nhập), và comment `MOCK_ROSTER` sót trong `lib/leaderboard/metrics.ts`.
+
+Thêm hai việc audit chưa bắt: `docs/decision.md` giờ có nhãn "bị thay thế" trên ADR-003 và ADR-006
+(trước chỉ ADR-023 có), và **ADR-024 đã được viết bù** — `lib/domain/user.ts:6` trích dẫn nó cho
+quyết định i18n nhưng nó chưa từng tồn tại. ADR-026 ghi lại cổng đăng nhập + chế độ khách.
+
+Ảnh `UI/10-…18-…` (bảng xếp hạng còn nhãn "mẫu") **đã xoá**: không file markdown nào trỏ tới chúng
+— mọi ảnh README đều trỏ `UI/readme/*` — nên `npm run screenshots` sẽ không bao giờ thay được chúng.
 
 ---
 
@@ -214,6 +227,13 @@ trên tài khoản trống sẽ nhận đúng email đó.
 chối mọi ký tự xuống dòng; escape HTML cho cả bốn trường; trả mã lỗi cố định; **bỏ hẳn danh sách
 từ demo mặc định** — không có từ thì trả 400.
 
+**Đã sửa.** Route giờ chạy đúng thứ tự guard của `createAiRoute` (origin → cap body 64KB → Zod →
+rate limit 3/phút·20/ngày), `recipient` qua `z.string().email()` cộng một `.refine()` chặn `\r\n`,
+`words` bắt buộc `.min(1)` nên body rỗng trả 422 thay vì gửi email mẫu, cả bốn trường đi qua
+`lib/api/html-escape.ts` (file mới — repo trước đó không có tiện ích escape nào), và lỗi upstream
+chỉ còn nằm ở `console.error`. `app/api/gmail/__tests__/send-reminder.test.ts` khoá lại từng điểm:
+chèn header, body rỗng, escape HTML, rate limit, và rò lỗi.
+
 ### 6.2 · Cao — guard origin có đường vòng, route AI chưa cần đăng nhập
 
 `lib/api/guards.ts:17`:
@@ -238,6 +258,17 @@ tốn kém (`analyze-work`, `analyze-doc`, `enrich-batch`), rate limit theo `uid
 trải nghiệm dùng thử không cần tài khoản thì đặt hạn mức ẩn danh riêng, thật thấp. Đổi nhánh
 `!origin` thành từ chối.
 
+**Đã sửa, theo hướng khác một chút.** Nhánh `!origin` giờ từ chối. Thay vì bắt đăng nhập cho cả ba
+route tốn kém, app dựng hẳn **cổng đăng nhập kèm chế độ khách** (ADR-026): khách vẫn dùng được
+`analyze-work` và `enrich-batch` — đó là câu chuyện khác biệt của sản phẩm, mục 10 — nhưng đường tài
+liệu (`analyze-doc` **và** `parse-doc`, chỗ file thật sự được nhận) yêu cầu session. Rate limit giờ
+tính **cả hai khoá**: theo IP và theo `uid` khi có session, chặn nếu một trong hai cạn.
+
+> **Rủi ro còn lại, cố ý chấp nhận:** `lexio_user_session` chỉ là base64 chưa ký nên script tự chế
+> được cookie để qua guard `requireSession`. Guard này vì thế là *cổng sản phẩm*, không phải biên
+> bảo mật — phần chi tiền vẫn được che bằng kiểm tra origin và rate limit theo IP, cả hai không bị
+> cookie bỏ qua. Ký cookie (hoặc dùng Firebase session cookie qua Admin SDK) nằm ở P3.
+
 ### 6.3 · Cao — cookie chứa OAuth refresh token thiếu cờ `secure`
 
 `gmail_auth_tokens` và `lexio_user_session` đều đặt `httpOnly` + `sameSite: 'lax'` nhưng **không**
@@ -247,6 +278,8 @@ Cookie Gmail đang mang **refresh token của Google**, chỉ base64 — không 
 mã hoá ký tự, không phải bảo vệ.
 
 **Sửa:** thêm `secure: process.env.NODE_ENV === 'production'` vào cả hai chỗ `cookieStore.set()`.
+
+**Đã sửa.** Cả `lib/auth/google.ts` lẫn `lib/auth/user-session.ts`.
 
 ---
 
@@ -318,6 +351,22 @@ Ghi nhận từ chính `status.md` (Phase 8). Nền có sẵn khá tốt — `ar
 bar, `prefers-reduced-motion` đã có trong CSS — nên đây có thể chỉ là rà soát, không phải làm lại.
 Ưu tiên thấp hơn mọi mục trên.
 
+**Đã làm.** Dự đoán "chỉ là rà soát" đúng — bốn lỗi, đều nhỏ:
+
+- `eslint.config.mjs` giờ bật **22 quy tắc `jsx-a11y` ở mức error** (preset của Next chỉ có 6, đều
+  `warn`, và không quy tắc nào chạm tới bàn phím, nhãn hay thứ tự heading). Bắt được: `<label>` cho
+  select trình độ ở Settings không liên kết với control, và backdrop của `Sheet` là `<div>` có
+  `onClick` — bàn phím không tới được. Backdrop giờ là `<button>`; `Sheet` cũng được thêm
+  `role="dialog"` + `aria-modal`.
+- `npm run a11y` (mới, `scripts/a11y-scan.mjs` + `@axe-core/playwright`) quét 9 route × 2 theme.
+  Bắt được thứ ESLint không thể thấy vì chỉ tồn tại sau khi render: `<select>` giờ nhắc email ở
+  Calendar không có tên khả truy cập, và **ba lỗi tương phản màu** — badge `bg-white/20` cùng dòng
+  mô tả `text-paper/80` trên banner xanh, và chip "Từ mới" `bg-rule text-ink-soft` trong Sổ tay.
+- Sau khi sửa: **0 vi phạm ở mọi mức**, cả sáng lẫn tối.
+
+Còn treo (ghi vào `status.md` thay vì cố làm sát hạn nộp): đi bàn phím thủ công từng màn, thử với
+trình đọc màn hình thật, và bẫy focus trong bottom sheet.
+
 ---
 
 ## 8. Những thứ đang thật sự tốt — không đụng vào trước hạn nộp
@@ -362,10 +411,12 @@ Phần lớn codebase này tốt hơn mặt bằng sản phẩm dự thi. Nếu 
 
 ### P1 — trước hạn nộp
 
-6. **Vá route Gmail** (mục 6.1): bốn guard, validate recipient, escape HTML, bỏ từ demo mặc định.
-7. **Bắt đăng nhập cho các route AI tốn kém** và chặn nhánh `!origin` (mục 6.2).
-8. **Thêm `secure: true`** cho cả hai cookie (mục 6.3).
-9. **Sửa toàn bộ doc drift** ở mục 5 và **chụp lại ảnh** bằng `npm run screenshots`.
+6. ~~**Vá route Gmail** (mục 6.1)~~ — **xong**.
+7. ~~**Bắt đăng nhập cho đường tài liệu** và chặn nhánh `!origin` (mục 6.2)~~ — **xong**, kèm cổng
+   đăng nhập + chế độ khách (ADR-026).
+8. ~~**Thêm `secure: true`** cho cả hai cookie (mục 6.3)~~ — **xong**.
+9. ~~**Sửa toàn bộ doc drift** ở mục 5~~ — **xong**. Chụp lại ảnh `UI/readme/` vẫn còn treo: bố cục
+   desktop và màn đăng nhập đều đã đổi.
 10. **`minScale: 1`, `maxScale: 5`** để giám khảo không gặp cold start 8 giây (mục 4b).
 11. **Xoá `SQL_DB_NAME`** khỏi env production.
 
@@ -380,9 +431,13 @@ Phần lớn codebase này tốt hơn mặt bằng sản phẩm dự thi. Nếu 
 
 ### P3 — sau cuộc thi
 
-17. Rà soát accessibility (mục 7.4, Phase 8).
-18. Rate limit dùng Redis — seam đã chừa sẵn trong `lib/api/rate-limit.ts`.
-19. Cloud Function đối chiếu số liệu leaderboard, nếu tính năng này từng cần chống gian lận.
+17. ~~Rà soát accessibility (mục 7.4)~~ — **xong**; còn lại là đi bàn phím thủ công và thử
+    trình đọc màn hình thật.
+18. **Ký cookie session** (hoặc chuyển sang Firebase session cookie qua Admin SDK). Hiện
+    `lexio_user_session` là base64 chưa ký nên guard `requireSession` là cổng sản phẩm, không phải
+    biên bảo mật — xem 6.2.
+19. Rate limit dùng Redis — seam đã chừa sẵn trong `lib/api/rate-limit.ts`.
+20. Cloud Function đối chiếu số liệu leaderboard, nếu tính năng này từng cần chống gian lận.
 
 ---
 

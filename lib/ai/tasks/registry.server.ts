@@ -24,6 +24,10 @@ export interface ServerTask<I, O> {
   timeoutMs: number;
   maxDuration: number;
   rateLimit: { perMinute: number; perDay: number };
+  /** Reject the request with `login_required` unless a session cookie is present.
+   * Set on the document pipeline: it is the most expensive task per call and is
+   * the one feature guests are not given (see app/(tabs)/learn/page.tsx). */
+  requireSession?: boolean;
   temperature?: number;
   requires?: { inlineFiles?: boolean };
   /** Post-parse repair for constraints OpenAI's strict schema mode can't enforce
@@ -272,6 +276,7 @@ export const analyzeDocumentTask: ServerTask<TaskParsedInput<'analyzeDocument'>,
   // call with no local resource contention to serialize for), so the limit has to
   // cover a full burst in one window rather than a steady trickle.
   rateLimit: { perMinute: 20, perDay: 200 },
+  requireSession: true,
   maxBodyBytes: 2 * 1024 * 1024, // one document chunk (~6000 chars, see chunkUnits) + exclusion list
   maxOutputTokens: 8192,
   system: ({ level, contextTopic }) =>

@@ -70,7 +70,11 @@
       "heading": "Mine vocabulary from a document",
       "subtitle": "Upload a document, article, or piece of English writing you're reading (.txt, .md, .pdf, .docx). AI will find vocabulary worth learning that you may not know, along with example sentences straight from the document.",
       "uploadHint": "Tap to upload a file (.txt, .md, .pdf, .docx)",
-      "analyzeButton": "Find vocabulary worth learning"
+      "analyzeButton": "Find vocabulary worth learning",
+      "guestLockedTitle": "Account needed.",
+      "guestLockedBody": "Uploading documents is for signed-in learners. The progress you make in guest mode is kept when you create an account.",
+      "guestLockedCta": "Log in or create an account",
+      "guestLockedFallback": "Or paste your work text directly on the \"From work\" tab"
     },
     "importStatus": {
       "ready": "View results",
@@ -234,6 +238,7 @@
       "disconnectError": "Error while disconnecting.",
       "sendSuccess": "Successfully sent an email with 5 words to {{recipient}}!",
       "sendFailedFallback": "Couldn't send the email. Please check your connection.",
+      "sendNoDueWords": "No words are due for review yet. Add words to your notebook and try again.",
       "sendSystemError": "System error while sending the email."
     },
     "contextTopic": {
@@ -296,7 +301,9 @@
     "submitRegister": "Create account",
     "submitSignIn": "Sign in with Email",
     "orDivider": "or",
-    "googleSignIn": "Sign in with Google"
+    "googleSignIn": "Sign in with Google",
+    "guestCta": "Try it without an account",
+    "guestLimits": "Guest mode lets you learn and practise as normal, but it stays off the leaderboard, cannot upload documents, and does not sync across devices."
   },
   "calendar": {
     "title": "Study plan",
@@ -311,6 +318,7 @@
     "preferredStudyTime": "Preferred study time",
     "studyTimeBody": "Studying at the same time every day helps reviewing words become a lasting habit. Lexio only uses this time to remind you — the app won't open on its own at that time.",
     "reminderEmailHeading": "Reminder emails",
+    "reminderHourLabel": "Reminder email time",
     "reminderOff": "Off",
     "reminder7am": "7:00 AM",
     "reminder8am": "8:00 AM",
@@ -472,7 +480,8 @@
       "wordFamilyLabel": "Word family:"
     },
     "sheet": {
-      "close": "Close"
+      "close": "Close",
+      "fallbackLabel": "Options panel"
     },
     "legacyClaimBanner": {
       "title": "Move your notebook into this account?",

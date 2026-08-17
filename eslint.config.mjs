@@ -37,6 +37,39 @@ export default defineConfig([
     },
   },
   {
+    // eslint-config-next enables six jsx-a11y rules, all at `warn`, and none of
+    // them cover keyboard access, labelling, or heading order. These are the
+    // rules that catch what an axe scan flags as serious/critical — see
+    // scripts/a11y-scan.mjs for the runtime half of the same check.
+    files: ["**/*.tsx"],
+    rules: {
+      "jsx-a11y/alt-text": "error",
+      "jsx-a11y/anchor-has-content": "error",
+      "jsx-a11y/anchor-is-valid": "error",
+      "jsx-a11y/aria-activedescendant-has-tabindex": "error",
+      "jsx-a11y/aria-props": "error",
+      "jsx-a11y/aria-proptypes": "error",
+      "jsx-a11y/aria-role": "error",
+      "jsx-a11y/aria-unsupported-elements": "error",
+      "jsx-a11y/autocomplete-valid": "error",
+      "jsx-a11y/heading-has-content": "error",
+      "jsx-a11y/iframe-has-title": "error",
+      "jsx-a11y/interactive-supports-focus": "error",
+      // depth 2 (the default) misses labels that wrap their control and text in
+      // a flex/stack wrapper, which is how every checkbox row in this app is built.
+      "jsx-a11y/label-has-associated-control": ["error", { depth: 5 }],
+      "jsx-a11y/mouse-events-have-key-events": "error",
+      "jsx-a11y/no-autofocus": "warn",
+      "jsx-a11y/no-noninteractive-element-interactions": "error",
+      "jsx-a11y/no-redundant-roles": "error",
+      "jsx-a11y/no-static-element-interactions": "error",
+      "jsx-a11y/role-has-required-aria-props": "error",
+      "jsx-a11y/role-supports-aria-props": "error",
+      "jsx-a11y/scope": "error",
+      "jsx-a11y/tabindex-no-positive": "error",
+    },
+  },
+  {
     // Design tokens must be consumed as Tailwind utilities (bg-paper, text-ink-soft)
     // after Phase 1, not as arbitrary CSS-var values — see docs/design.md §3.
     files: ["**/*.tsx"],

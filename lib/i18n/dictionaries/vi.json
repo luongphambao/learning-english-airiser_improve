@@ -70,7 +70,11 @@
       "heading": "Đào từ vựng từ tài liệu",
       "subtitle": "Tải một tài liệu, bài báo hay bài viết tiếng Anh bạn đang đọc (.txt, .md, .pdf, .docx). AI sẽ tìm những từ vựng đáng học mà có thể bạn chưa biết, kèm câu ví dụ ngay trong tài liệu.",
       "uploadHint": "Bấm để tải tệp (.txt, .md, .pdf, .docx)",
-      "analyzeButton": "Tìm từ vựng đáng học"
+      "analyzeButton": "Tìm từ vựng đáng học",
+      "guestLockedTitle": "Cần tài khoản.",
+      "guestLockedBody": "Tải tài liệu lên chỉ dành cho người đã đăng nhập. Tiến độ bạn học ở chế độ dùng thử sẽ được giữ lại khi bạn tạo tài khoản.",
+      "guestLockedCta": "Đăng nhập hoặc tạo tài khoản",
+      "guestLockedFallback": "Hoặc dán trực tiếp văn bản công việc ở tab \"Từ công việc\""
     },
     "importStatus": {
       "ready": "Xem kết quả",
@@ -234,6 +238,7 @@
       "disconnectError": "Lỗi khi ngắt kết nối.",
       "sendSuccess": "Đã gửi thành công email 5 từ vựng tới {{recipient}}!",
       "sendFailedFallback": "Không thể gửi email. Vui lòng kiểm tra lại kết nối.",
+      "sendNoDueWords": "Chưa có từ nào đến hạn ôn. Thêm từ vào sổ tay rồi thử lại.",
       "sendSystemError": "Lỗi hệ thống khi gửi email."
     },
     "contextTopic": {
@@ -296,7 +301,9 @@
     "submitRegister": "Tạo tài khoản",
     "submitSignIn": "Đăng nhập bằng Email",
     "orDivider": "hoặc",
-    "googleSignIn": "Đăng nhập với Google"
+    "googleSignIn": "Đăng nhập với Google",
+    "guestCta": "Dùng thử không cần tài khoản",
+    "guestLimits": "Chế độ dùng thử học và luyện tập bình thường, nhưng không lên bảng xếp hạng, không tải tài liệu lên và không đồng bộ giữa các thiết bị."
   },
   "calendar": {
     "title": "Kế hoạch học",
@@ -311,6 +318,7 @@
     "preferredStudyTime": "Giờ học ưa thích",
     "studyTimeBody": "Học vào cùng một khung giờ mỗi ngày giúp việc ôn từ trở thành thói quen bền vững. Lexio chỉ dùng giờ này để nhắc bạn — ứng dụng không tự mở lên vào giờ đó.",
     "reminderEmailHeading": "Email nhắc học",
+    "reminderHourLabel": "Giờ gửi email nhắc học",
     "reminderOff": "Tắt",
     "reminder7am": "7:00 Sáng",
     "reminder8am": "8:00 Sáng",
@@ -472,7 +480,8 @@
       "wordFamilyLabel": "Cùng họ:"
     },
     "sheet": {
-      "close": "Đóng"
+      "close": "Đóng",
+      "fallbackLabel": "Bảng tuỳ chọn"
     },
     "legacyClaimBanner": {
       "title": "Chuyển sổ từ vào tài khoản?",

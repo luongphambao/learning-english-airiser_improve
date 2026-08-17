@@ -9,6 +9,7 @@ import { useImportsList } from '@/hooks/use-imports';
 import { useWorkStore } from '@/stores/work-store';
 import { useDocStore } from '@/stores/doc-store';
 import { useT } from '@/hooks/use-i18n';
+import { useIsGuest } from '@/hooks/use-access';
 import { useIsomorphicLayoutEffect } from '@/hooks/use-isomorphic-layout-effect';
 import { Button } from '@/components/Button';
 import { UploadDropzone } from '@/components/learn/upload-dropzone';
@@ -17,7 +18,7 @@ import { parseDocumentFile } from '@/lib/api/parse-doc-client';
 import { ApiError } from '@/lib/api/client';
 import { splitIntoUnits } from '@/lib/documents/extract';
 import {
-  FileText, Loader2, AlertTriangle, CheckCircle2, Sparkles, ChevronDown, RotateCcw,
+  FileText, Loader2, AlertTriangle, CheckCircle2, Sparkles, ChevronDown, RotateCcw, Lock,
 } from 'lucide-react';
 
 const INPUT_TYPE_LABEL_KEYS: Record<string, string> = {
@@ -51,6 +52,10 @@ export default function LearnPage() {
   const pastImports = useImportsList(10);
   const searchParams = useSearchParams();
   const { t } = useT();
+  // Document upload is the one feature guests do not get — /api/parse-doc and
+  // analyzeDocumentTask both refuse them server-side, so this keeps them from
+  // walking into a 401 (lib/auth/guest.ts).
+  const isGuest = useIsGuest();
 
   const [learnMode, setLearnMode] = useState<LearnMode>('work');
   const [autoOpenFileDialog, setAutoOpenFileDialog] = useState(false);
@@ -295,6 +300,36 @@ export default function LearnPage() {
               <Button variant="primary" onClick={runWorkAnalyze} disabled={!workText.trim()} className="w-full">
                 {t('learn.work.analyzeButton')}
               </Button>
+            </>
+          ) : isGuest ? (
+            <>
+              <div>
+                <h1 className="font-serif-display text-3xl text-ink mb-1">{t('learn.doc.heading')}</h1>
+                <p className="text-sm text-ink-soft">
+                  {t('learn.doc.subtitle')}
+                </p>
+              </div>
+              <div className="space-y-3 bg-surface border border-rule rounded-card p-4">
+                <div className="flex items-start gap-2.5">
+                  <Lock className="w-4 h-4 text-ink-soft shrink-0 mt-0.5" />
+                  <p className="text-sm text-ink leading-relaxed">
+                    <span className="font-semibold">{t('learn.doc.guestLockedTitle')}</span>{' '}
+                    {t('learn.doc.guestLockedBody')}
+                  </p>
+                </div>
+                <Link href="/login">
+                  <Button variant="primary" className="w-full">
+                    {t('learn.doc.guestLockedCta')}
+                  </Button>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => switchMode('work')}
+                  className="w-full text-xs text-ink-soft hover:text-ink underline cursor-pointer"
+                >
+                  {t('learn.doc.guestLockedFallback')}
+                </button>
+              </div>
             </>
           ) : (
             <>

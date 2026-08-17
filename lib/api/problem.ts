@@ -7,6 +7,8 @@ export type ProblemCode =
   | 'payload_too_large'
   | 'rate_limited'
   | 'auth'
+  | 'login_required'
+  | 'gmail_not_connected'
   | 'quota_exhausted'
   | 'timeout'
   | 'aborted'
@@ -26,6 +28,8 @@ const STATUS: Record<ProblemCode, number> = {
   payload_too_large: 413,
   rate_limited: 429,
   auth: 401,
+  login_required: 401,
+  gmail_not_connected: 401,
   quota_exhausted: 429,
   timeout: 504,
   aborted: 499,
@@ -49,6 +53,8 @@ const MESSAGE_VI: Record<ProblemCode, string> = {
   payload_too_large: 'Nội dung gửi lên quá lớn.',
   rate_limited: 'Bạn thao tác hơi nhanh. Đợi một chút rồi thử lại.',
   auth: 'Máy chủ cấu hình sai. Vui lòng báo cho quản trị viên.',
+  login_required: 'Tính năng này cần đăng nhập. Tạo tài khoản hoặc đăng nhập rồi thử lại.',
+  gmail_not_connected: 'Vui lòng kết nối tài khoản Gmail trong Cài đặt.',
   quota_exhausted: 'Đã hết hạn mức sử dụng AI hôm nay.',
   timeout: 'Yêu cầu mất quá nhiều thời gian. Thử lại nhé.',
   aborted: 'Yêu cầu đã bị huỷ.',

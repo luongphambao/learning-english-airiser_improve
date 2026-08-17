@@ -135,7 +135,7 @@ export function buildMyEntry(
  * value is total and metric-independent (totalReviews desc, then words desc, then
  * id asc) so two people tied on one metric always appear in the same relative
  * order, on every metric, on every render — switching chips never reshuffles ties
- * arbitrarily. Never sorts `entries` in place (MOCK_ROSTER is module-level state).
+ * arbitrarily. Never sorts `entries` in place — callers pass arrays they still own.
  */
 export function rankBy(
   entries: readonly LeaderboardEntry[],

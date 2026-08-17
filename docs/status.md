@@ -17,6 +17,8 @@ actually finished and what is not. For the phase-by-phase breakdown see
 - Vietnamese and English interfaces, light and dark themes
 - Real cross-user leaderboard (`docs/decision.md` ADR-025) — every signed-in user's aggregate stats
   publish to a shared `leaderboard/{uid}` Firestore collection after each sync
+- Login gate with a guest "try it" mode — guests learn and practise normally but stay off the
+  leaderboard, cannot upload documents, and do not sync (`lib/auth/guest.ts`)
 
 ## Known gaps
 
@@ -35,13 +37,17 @@ The board is also capped at the 200 most recently active learners
 every leaderboard read fails silently into "just my own row", which is easy to misdiagnose as "no
 one else uses this app yet" rather than "rules were never deployed".
 
-**Seven migration tests are failing** in `lib/db/__tests__/migrations.test.ts` — reported as 14
-because the suite runs under two timezones. They cover `migrateFromLocalStorage` and `seedIfEmpty`,
-and fail on `localStorage` setup in the test harness rather than in the migration logic itself. They
-do not touch the AI, sync, or document paths, but the suite is red until they are fixed.
-
 **Reminder emails are sent on demand.** There is no scheduler; the learner triggers the digest from
 Settings.
 
-**Accessibility pass not started.** Phase 8 in `progress/board.md` — keyboard and screen-reader
-review, plus the last of the legacy CSS token cleanup.
+**Accessibility is checked, not exhaustively audited.** `npm run lint` enforces 22 `jsx-a11y` rules
+as errors (the Next preset ships six, all warnings), and `npm run a11y` runs axe-core against nine
+routes in both themes — currently zero violations at any impact level. What that does *not* cover:
+manual keyboard-only walkthroughs, screen-reader testing, and focus management inside the bottom
+sheet (it announces itself as a dialog but does not trap focus).
+
+**Session cookies are not signed.** `lexio_user_session` is base64 JSON, so a scripted client can
+forge one and reach the features gated on "signed in" (document upload). The guard is a product gate,
+not a security boundary — actual spend is protected by the origin check and the per-IP rate limiter,
+which a forged cookie does not bypass. Signing the cookie, or moving to a Firebase session cookie via
+the Admin SDK, is the fix; see `competition-audit.md` §6.2.

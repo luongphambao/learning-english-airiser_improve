@@ -6,6 +6,7 @@ import { useProfile } from '@/hooks/use-profile';
 import { useDailyPlan } from '@/hooks/use-daily-plan';
 import { useTopupStore } from '@/stores/topup-store';
 import { useT } from '@/hooks/use-i18n';
+import { useIsGuest } from '@/hooks/use-access';
 import { Button } from '@/components/Button';
 import { FileText, Upload, ChevronRight, Flame, Trophy, CalendarDays } from 'lucide-react';
 
@@ -18,6 +19,7 @@ export default function TodayPage() {
   const plan = useDailyPlan();
   const ensureSupply = useTopupStore((s) => s.ensureSupply);
   const { t } = useT();
+  const isGuest = useIsGuest();
   const [greetingKey, setGreetingKey] = useState('today.greetingHello');
 
   // new Date().getHours() would mismatch between SSR prerender and hydration if
@@ -195,12 +197,16 @@ export default function TodayPage() {
                   {t('today.pasteText')}
                 </Button>
               </Link>
-              <Link href="/learn?mode=file">
-                <Button variant="quiet">
-                  <Upload size={16} />
-                  {t('today.uploadDoc')}
-                </Button>
-              </Link>
+              {/* Guests have no upload path (lib/auth/guest.ts) — offering the
+                  shortcut would only land them on the locked tab. */}
+              {!isGuest && (
+                <Link href="/learn?mode=file">
+                  <Button variant="quiet">
+                    <Upload size={16} />
+                    {t('today.uploadDoc')}
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>

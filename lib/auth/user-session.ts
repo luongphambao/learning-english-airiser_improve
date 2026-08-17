@@ -39,6 +39,9 @@ export async function setUserSession(session: UserSession): Promise<void> {
 
   cookieStore.set(SESSION_COOKIE_NAME, serialized, {
     httpOnly: true,
+    // httpOnly stops JavaScript reading the cookie; it does nothing to stop the
+    // cookie travelling over plain HTTP. Off in dev so `next dev` on http:// works.
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
     maxAge: 60 * 60 * 24 * 30, // 30 days

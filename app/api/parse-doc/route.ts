@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isAllowedOrigin } from '@/lib/api/guards';
 import { getRateLimiter, rateLimitKey } from '@/lib/api/rate-limit';
 import { problemResponse } from '@/lib/api/problem';
+import { getUserSession } from '@/lib/auth/user-session';
 import { docKindForFileName, extractDocumentText, DocumentParseError } from '@/lib/documents/extract.server';
 
 export const runtime = 'nodejs';
@@ -18,13 +19,22 @@ const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
  * ADR-021). Deliberately NOT built on createAiRoute (lib/api/create-ai-route.ts) —
  * that helper is JSON-body + zod + AI-provider shaped; this route takes
  * multipart/form-data and never calls a model. Guard order mirrors it anyway:
- * request id -> origin check -> size cap -> rate limit -> parse -> respond.
+ * request id -> origin check -> session -> size cap -> rate limit -> parse -> respond.
+ *
+ * Requires a session for the same reason analyzeDocumentTask does: this is the
+ * half of the document feature that actually accepts the file, so gating only
+ * the model call would leave the upload itself open.
  */
 export async function POST(req: NextRequest): Promise<Response> {
   const requestId = crypto.randomUUID();
 
   if (!isAllowedOrigin(req)) {
     return problemResponse('forbidden_origin', requestId);
+  }
+
+  const session = await getUserSession();
+  if (!session) {
+    return problemResponse('login_required', requestId);
   }
 
   const contentLength = Number(req.headers.get('content-length') ?? '0');

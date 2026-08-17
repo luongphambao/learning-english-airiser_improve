@@ -29,11 +29,23 @@ export function Sheet({ isOpen, onClose, title, children }: SheetProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-xs transition-opacity animate-fade-in">
-      {/* Backdrop click */}
-      <div className="absolute inset-0" onClick={() => onClose()} />
+      {/* A button, not a div: dismissing by backdrop has to be reachable by
+          keyboard too, and Escape alone (handled above) leaves pointer-free
+          users with only the close button. */}
+      <button
+        type="button"
+        aria-label={t('components.sheet.close')}
+        onClick={() => onClose()}
+        className="absolute inset-0 cursor-default"
+      />
 
       {/* Bottom Sheet Box */}
-      <div className="relative w-full max-w-[480px] bg-surface border-t border-rule rounded-t-[24px] shadow-2xl p-6 max-h-[88vh] overflow-y-auto animate-slide-up z-10">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title ?? t('components.sheet.fallbackLabel')}
+        className="relative w-full max-w-[480px] bg-surface border-t border-rule rounded-t-[24px] shadow-2xl p-6 max-h-[88vh] overflow-y-auto animate-slide-up z-10"
+      >
         <div className="flex items-center justify-between pb-4 mb-4 border-b border-rule">
           {title ? (
             <h2 className="font-serif-display text-2xl text-ink">{title}</h2>
