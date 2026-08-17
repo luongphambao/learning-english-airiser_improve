@@ -80,6 +80,14 @@ service cloud.firestore {
       allow delete: if request.auth != null && request.auth.uid == uid;
     }
 
+    // `gmailTokens/{uid}` (lib/reminders/store.ts, docs/decision.md ADR-027) —
+    // the automated reminder cron's server-side Gmail token store. No client
+    // (web app, mobile, curl) ever needs to read or write it: only the Admin
+    // SDK does, from app/api/auth/google/callback, app/api/auth/google/logout,
+    // and app/api/cron/send-reminders, all server-only code with their own
+    // trusted credentials that bypass these rules entirely. It falls through
+    // to the default-deny below on purpose — do not add a rule for it.
+
     // Everything else stays denied by Firestore's own default-deny — no
     // catch-all rule is declared on purpose.
   }

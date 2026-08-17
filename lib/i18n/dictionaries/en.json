@@ -324,7 +324,7 @@
     "reminder8am": "8:00 AM",
     "reminder9am": "9:00 AM",
     "reminder8pm": "8:00 PM",
-    "reminderEmailBody": "Save the time you'd like to receive review-reminder emails. Lexio sends them through the Gmail account you connected in Settings — for now you need to tap “Send a test reminder email now” in Settings to send one; automatic sending at your chosen time is coming in a future update."
+    "reminderEmailBody": "Save the time you'd like to receive review-reminder emails. Lexio sends them through the Gmail account you connected in Settings — once connected, an email is sent automatically every day at this time whenever you have words due for review. You can also tap “Send a test reminder email now” in Settings to send one immediately."
   },
   "progress": {
     "backHeaderTitle": "Progress",

@@ -22,6 +22,19 @@ export function dayKey(ts: number): DayKey {
   return FMT.format(new Date(ts));
 }
 
+const HOUR_FMT = new Intl.DateTimeFormat('en-US', {
+  timeZone: APP_TZ,
+  hour: 'numeric',
+  hourCycle: 'h23',
+});
+
+/** The wall-clock hour (0..23, Asia/Ho_Chi_Minh) a given epoch-ms timestamp
+ * falls on — what `UserSettings.reminderHour` is compared against by the
+ * reminder cron (app/api/cron/send-reminders/route.ts). */
+export function hourOfDay(ts: number): number {
+  return Number(HOUR_FMT.format(new Date(ts)));
+}
+
 function parseDayKey(key: DayKey): { y: number; m: number; d: number } {
   const [y, m, d] = key.split('-').map(Number);
   return { y: y ?? 1970, m: m ?? 1, d: d ?? 1 };

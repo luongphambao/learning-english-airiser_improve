@@ -324,7 +324,7 @@
     "reminder8am": "8:00 Sáng",
     "reminder9am": "9:00 Sáng",
     "reminder8pm": "20:00 Tối",
-    "reminderEmailBody": "Lưu giờ bạn muốn nhận email từ cần ôn tập. Lexio gửi qua tài khoản Gmail bạn đã kết nối ở Cài đặt — hiện tại bạn cần bấm “Gửi email nhắc học thử ngay” trong Cài đặt để gửi; gửi tự động theo giờ đã chọn sẽ có ở bản sau."
+    "reminderEmailBody": "Lưu giờ bạn muốn nhận email từ cần ôn tập. Lexio gửi qua tài khoản Gmail bạn đã kết nối ở Cài đặt — một khi đã kết nối, email sẽ tự động gửi mỗi ngày vào đúng giờ này nếu có từ đến hạn ôn. Bạn cũng có thể bấm “Gửi email nhắc học thử ngay” trong Cài đặt để gửi thử ngay lập tức."
   },
   "progress": {
     "backHeaderTitle": "Tiến độ",

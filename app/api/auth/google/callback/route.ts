@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import { getOAuth2Client, resolveOrigin, setStoredTokens } from '@/lib/auth/google';
+import { getUserSession } from '@/lib/auth/user-session';
+import { isAdminConfigured } from '@/lib/firebase/admin';
+import { setGmailTokensForUser } from '@/lib/reminders/store';
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code');
@@ -50,6 +53,34 @@ export async function GET(req: NextRequest) {
     // Firebase ID token verification; that's a separate identity claim from
     // the app's real sign-in (lib/auth/firebase-auth.ts) and conflating them
     // let connecting Gmail silently log you in as whoever's Gmail you linked.
+
+    // Additionally persist the same tokens server-side, keyed by the
+    // signed-in Firebase uid — the automated reminder cron (no browser, no
+    // cookie jar) reads from there, not from the cookie above. Only when a
+    // real Firebase session already exists: a guest (no uid) can still use
+    // the interactive "send test email" button via the cookie, but has no
+    // account for a cron job to attach an automated schedule to. See
+    // docs/decision.md ADR-027.
+    if (isAdminConfigured()) {
+      const session = await getUserSession();
+      if (session) {
+        try {
+          // Admin Firestore rejects `undefined` field values outright (unlike
+          // the client SDK), so every optional googleapis field is coalesced
+          // to `null` first.
+          await setGmailTokensForUser(session.uid, {
+            access_token: tokens.access_token ?? null,
+            refresh_token: tokens.refresh_token ?? null,
+            expiry_date: tokens.expiry_date ?? null,
+            email: userEmail,
+          });
+        } catch (err) {
+          // Automated reminders degrade to "not scheduled" — the interactive
+          // path above already succeeded, so this must not fail the request.
+          console.error('[lexio/gmail] failed to persist server-side tokens:', err);
+        }
+      }
+    }
 
     return NextResponse.redirect(new URL('/settings?gmail=connected', origin));
   } catch (err) {

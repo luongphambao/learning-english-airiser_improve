@@ -64,7 +64,9 @@ without ever creating an account.
 
 Connect Gmail and Lexio sends you a study digest of the words due today — meaning, pronunciation,
 example sentence, and a link straight into the session. It sends through your own account, using
-send-only permission.
+send-only permission. Pick a time in the study plan screen and the digest goes out on its own each
+day (behind an hourly Cloud Scheduler trigger — see `docs/status.md` for the deploy step), or send
+one on demand any time with a single tap in Settings.
 
 ### Cloud Run — hosting and continuous delivery
 

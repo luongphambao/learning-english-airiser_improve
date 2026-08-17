@@ -37,8 +37,29 @@ The board is also capped at the 200 most recently active learners
 every leaderboard read fails silently into "just my own row", which is easy to misdiagnose as "no
 one else uses this app yet" rather than "rules were never deployed".
 
-**Reminder emails are sent on demand.** There is no scheduler; the learner triggers the digest from
-Settings.
+**Reminder emails can now be automated, but the automation needs its own deploy step.**
+`app/api/cron/send-reminders` sends the daily digest for every learner whose `reminderHour`
+(Cài đặt/Lịch học) matches the current Asia/Ho_Chi_Minh hour and who has words due — but nothing
+calls that route by itself. It's meant to sit behind a Cloud Scheduler job hitting it once an hour
+with header `x-cron-secret: $CRON_SECRET`; see the exact `gcloud scheduler jobs create http`
+invocation below. Until that job is created, reminders still only go out when the learner taps
+"Gửi email nhắc học thử ngay" in Settings — same as before (ADR-027).
+
+Two things gate the automated path per learner, beyond the scheduler existing at all: they must
+have connected Gmail *while signed in* (a guest, or someone who connected Gmail before ADR-027
+shipped, has no server-side token — the interactive button still works via the cookie either way),
+and `FIREBASE_ADMIN_*`/Application Default Credentials must be configured so the cron route can
+read Firestore via the Admin SDK.
+
+```
+gcloud scheduler jobs create http lexio-send-reminders \
+  --schedule="0 * * * *" \
+  --time-zone="Asia/Ho_Chi_Minh" \
+  --uri="$APP_URL/api/cron/send-reminders" \
+  --http-method=POST \
+  --headers="x-cron-secret=$CRON_SECRET" \
+  --attempt-deadline=120s
+```
 
 **Accessibility is checked, not exhaustively audited.** `npm run lint` enforces 22 `jsx-a11y` rules
 as errors (the Next preset ships six, all warnings), and `npm run a11y` runs axe-core against nine
