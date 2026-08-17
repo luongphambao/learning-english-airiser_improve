@@ -12,6 +12,7 @@ Lexio là app học từ vựng tiếng Anh (UI tiếng Việt), khởi tạo b�
 6. **`spec-gaps.md`** — 34 mâu thuẫn/lỗ hổng tìm thấy trong 2 file spec gốc (`01-PROJECT-SPEC (2).md`, `02-BUILD-STEPS (2).md`) và cách xử lý từng cái.
 7. **`progress/`** — theo dõi tiến độ triển khai theo phase. Xem `progress/README.md`.
 8. **`status.md`** — cái gì đã chạy được và cái gì còn thiếu, viết thẳng. Tách khỏi README vì README là bản giới thiệu sản phẩm.
+9. **`competition-audit.md`** — rà soát toàn dự án đối chiếu bộ tiêu chí chấm điểm AI Riser Vietnam (17/08/2026). Khác `status.md`: file này không mô tả trạng thái mà xếp thứ tự **điều gì đang làm mất điểm và sửa theo thứ tự nào**. Đọc mục 9 trước nếu chỉ có 5 phút.
 
 ## 2 file spec gốc
 

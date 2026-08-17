@@ -61,18 +61,26 @@ export default function TodayPage() {
           : { text: t('today.focusGoodPace', { streak: stats.streak }), href: '/progress' };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="font-serif-display text-3xl text-ink mb-1">{t(greetingKey)}</h1>
+    // Mobile: a plain flex column — DOM order IS visual order (greeting, streak,
+    // today's plan, learn-from-work, focus), unchanged from before this layout
+    // existed. lg and up: the same blocks placed explicitly into two columns, so the
+    // desktop rearrangement costs nothing on phones and needs no DOM reordering
+    // (which would also reorder the tab sequence for keyboard users). Explicit
+    // col-start/row-start rather than auto-placement — auto-placement fills
+    // row-by-row and would split the rail's cards across both columns.
+    <div className="flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-x-8 lg:items-start">
+      <div className="lg:col-span-2">
+        <h1 className="font-serif-display text-3xl lg:text-4xl text-ink mb-1">{t(greetingKey)}</h1>
         <p className="text-sm text-ink-soft">{t('today.subtitle')}</p>
       </div>
 
       {/* Streak is the motivation hook, so it leads the page as a full card instead of
           the row of tiny mono links this used to be; the two destinations under it are
           pure navigation and stay visually secondary. Gated on hasNotebook so a
-          brand-new user meets the placement CTA first, not a "0 ngày" card. */}
+          brand-new user meets the placement CTA first, not a "0 ngày" card.
+          At lg it becomes the top of the right-hand rail. */}
       {hasNotebook && (
-        <div className="space-y-3">
+        <div className="space-y-3 lg:col-start-2 lg:row-start-2">
           <Link
             href="/progress"
             className="flex items-center gap-4 bg-surface border border-rule rounded-card shadow-card p-5 hover:border-green transition-colors"
@@ -94,7 +102,10 @@ export default function TodayPage() {
             <ChevronRight size={18} className="text-ink-soft shrink-0" />
           </Link>
 
-          <div className="grid grid-cols-2 gap-3">
+          {/* Two across on mobile (full content width, ~150px each is plenty); one
+              per row inside the lg rail, where two would leave "Bảng xếp hạng"
+              wrapping onto a second line and pushing its chevron out of alignment. */}
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
             <NavTile
               href="/leaderboard"
               label={t('today.leaderboardTile')}
@@ -111,74 +122,86 @@ export default function TodayPage() {
         </div>
       )}
 
-      {!hasNotebook ? (
-        <div className="space-y-3">
-          <p className="text-sm text-ink-soft leading-relaxed">{t('today.emptyNotebook')}</p>
-          <Link href="/placement">
-            <Button variant="primary" className="w-full">
-              {t('today.checkLevelCta')}
-            </Button>
-          </Link>
-          <Link href="/learn">
-            <Button variant="quiet" className="w-full">
-              {t('today.learnFromDocCta')}
-            </Button>
-          </Link>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <span className="font-mono-utility text-xs uppercase tracking-wider text-ink-soft block pb-2 border-b border-rule">
-            {t('today.todayLabel')}
-          </span>
+      {/* Left column at lg: today's plan (the primary action) above learn-from-work.
+          One wrapper rather than two grid items, so the two never get pulled apart by
+          the rail's row height. With an empty notebook there IS no rail (streak and
+          focus both render only when hasNotebook), so the onboarding CTA spans the
+          full grid instead of leaving a dead half — capped at 2xl so it stays a
+          readable column rather than a 1024px-wide button. */}
+      <div
+        className={`flex flex-col gap-8 ${
+          hasNotebook ? 'lg:col-start-1 lg:row-start-2 lg:row-span-2' : 'lg:col-span-2 lg:max-w-2xl'
+        }`}
+      >
+        {!hasNotebook ? (
+          <div className="space-y-3">
+            <p className="text-sm text-ink-soft leading-relaxed">{t('today.emptyNotebook')}</p>
+            <Link href="/placement">
+              <Button variant="primary" className="w-full">
+                {t('today.checkLevelCta')}
+              </Button>
+            </Link>
+            <Link href="/learn">
+              <Button variant="quiet" className="w-full">
+                {t('today.learnFromDocCta')}
+              </Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <span className="font-mono-utility text-xs uppercase tracking-wider text-ink-soft block pb-2 border-b border-rule">
+              {t('today.todayLabel')}
+            </span>
 
-          {hasWorkToday ? (
-            <>
-              <div className="space-y-1.5">
-                {plan.dueCount > 0 && <PlanRow label={t('today.dueWords')} value={plan.dueCount} />}
-                {plan.freshCount > 0 && <PlanRow label={t('today.newWords')} value={plan.freshCount} />}
-                {plan.leechCount > 0 && <PlanRow label={t('today.leechWords')} value={plan.leechCount} />}
+            {hasWorkToday ? (
+              <>
+                <div className="space-y-1.5">
+                  {plan.dueCount > 0 && <PlanRow label={t('today.dueWords')} value={plan.dueCount} />}
+                  {plan.freshCount > 0 && <PlanRow label={t('today.newWords')} value={plan.freshCount} />}
+                  {plan.leechCount > 0 && <PlanRow label={t('today.leechWords')} value={plan.leechCount} />}
+                </div>
+                <p className="font-mono-utility text-xs text-ink-soft pt-1">
+                  {t('today.sessionSummary', { minutes: estimatedMinutes, count: practiceCount })}
+                </p>
+                <Link href="/practice">
+                  <Button variant="primary" className="w-full">
+                    {t('today.startPracticeCta')}
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <div className="space-y-3 py-2">
+                <p className="text-sm text-ink-soft">{t('today.doneToday')}</p>
+                <Link href="/learn">
+                  <Button variant="primary" className="w-full">
+                    {t('today.learnFromDocCta')}
+                  </Button>
+                </Link>
               </div>
-              <p className="font-mono-utility text-xs text-ink-soft pt-1">
-                {t('today.sessionSummary', { minutes: estimatedMinutes, count: practiceCount })}
-              </p>
-              <Link href="/practice">
-                <Button variant="primary" className="w-full">
-                  {t('today.startPracticeCta')}
+            )}
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <span className="font-mono-utility text-xs uppercase tracking-wider text-ink-soft block">
+            {t('today.learnFromWorkLabel')}
+          </span>
+          <div className="bg-surface border border-rule rounded-card shadow-card p-5 space-y-4">
+            <p className="text-sm text-ink-soft leading-relaxed">{t('today.learnFromWorkBody')}</p>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/learn">
+                <Button variant="quiet">
+                  <FileText size={16} />
+                  {t('today.pasteText')}
                 </Button>
               </Link>
-            </>
-          ) : (
-            <div className="space-y-3 py-2">
-              <p className="text-sm text-ink-soft">{t('today.doneToday')}</p>
-              <Link href="/learn">
-                <Button variant="primary" className="w-full">
-                  {t('today.learnFromDocCta')}
+              <Link href="/learn?mode=file">
+                <Button variant="quiet">
+                  <Upload size={16} />
+                  {t('today.uploadDoc')}
                 </Button>
               </Link>
             </div>
-          )}
-        </div>
-      )}
-
-      <div className="space-y-3">
-        <span className="font-mono-utility text-xs uppercase tracking-wider text-ink-soft block">
-          {t('today.learnFromWorkLabel')}
-        </span>
-        <div className="bg-surface border border-rule rounded-card shadow-card p-5 space-y-4">
-          <p className="text-sm text-ink-soft leading-relaxed">{t('today.learnFromWorkBody')}</p>
-          <div className="flex flex-wrap gap-2">
-            <Link href="/learn">
-              <Button variant="quiet">
-                <FileText size={16} />
-                {t('today.pasteText')}
-              </Button>
-            </Link>
-            <Link href="/learn?mode=file">
-              <Button variant="quiet">
-                <Upload size={16} />
-                {t('today.uploadDoc')}
-              </Button>
-            </Link>
           </div>
         </div>
       </div>
@@ -186,7 +209,7 @@ export default function TodayPage() {
       {hasNotebook && (
         <Link
           href={focus.href}
-          className="flex items-center justify-between py-3 border-t border-rule text-sm text-ink hover:text-green transition-colors"
+          className="flex items-center justify-between py-3 border-t border-rule text-sm text-ink hover:text-green transition-colors lg:col-start-2 lg:row-start-3 lg:self-start"
         >
           <span>
             <span className="font-mono-utility text-xs uppercase tracking-wider text-ink-soft block mb-1">
@@ -214,12 +237,15 @@ function NavTile({
   iconClass: string;
 }) {
   return (
+    // Stacked (icon over label) in the two-across mobile grid; a single row at lg,
+    // where the tile spans the whole rail and matches the streak card above it
+    // instead of sitting as a tall block of mostly empty card.
     <Link
       href={href}
-      className="flex flex-col gap-3 bg-surface border border-rule rounded-card shadow-card p-4 hover:border-green transition-colors"
+      className="flex flex-col gap-3 lg:flex-row lg:items-center bg-surface border border-rule rounded-card shadow-card p-4 hover:border-green transition-colors"
     >
       <div className={`w-9 h-9 rounded-full grid place-items-center shrink-0 ${iconClass}`}>{icon}</div>
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2 lg:flex-1 lg:min-w-0">
         <span className="text-sm font-semibold text-ink">{label}</span>
         <ChevronRight size={16} className="text-ink-soft shrink-0" />
       </div>

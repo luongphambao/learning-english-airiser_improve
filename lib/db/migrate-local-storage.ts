@@ -4,6 +4,7 @@ import { newId } from './ids';
 import { safeParseRow, quarantineRow } from './read';
 import { WordSchema, UserStatsSchema, UserSettingsSchema, type Word } from '@/lib/domain';
 import { DEFAULT_SETTINGS, DEFAULT_STATS } from '@/lib/repositories/dexie/user-repository';
+import { SOURCE_KEY } from '@/lib/i18n/source-label';
 
 const MIGRATION_FLAG = 'migrated:localStorage';
 const SEEDED_FLAG = 'seeded';
@@ -154,7 +155,7 @@ export async function seedIfEmpty(now: number = Date.now()): Promise<boolean> {
         ...seed,
         collocations: [],
         wordFamily: [],
-        source: { kind: 'manual', label: 'Tự thêm', at: now },
+        source: { kind: 'manual', label: SOURCE_KEY.manual, at: now },
         audioUrl: null,
         createdAt: now,
         dueAt: now,

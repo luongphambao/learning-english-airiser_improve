@@ -11,6 +11,7 @@ import { WordCard } from '@/components/WordCard';
 import { Sheet } from '@/components/Sheet';
 import { Button } from '@/components/Button';
 import { useT } from '@/hooks/use-i18n';
+import { SOURCE_KEY, resolveSourceLabel } from '@/lib/i18n/source-label';
 import { Plus, Search, Loader2, FileText, Type, Upload, Trash2 } from 'lucide-react';
 
 // Rewritten on the repository layer + enrichment-store (Phase 5) — replaces
@@ -49,7 +50,7 @@ export default function WordsPage() {
 
   const handleSaveTypedWord = async () => {
     if (!typedWord.trim()) return;
-    await addWord(typedWord, { kind: 'manual', label: 'Tự thêm', at: Date.now() });
+    await addWord(typedWord, { kind: 'manual', label: SOURCE_KEY.manual, at: Date.now() });
     setTypedWord('');
     setIsAddSheetOpen(false);
   };
@@ -70,7 +71,7 @@ export default function WordsPage() {
   const handleSaveCandidates = async (candidateList: string[]) => {
     const now = Date.now();
     for (const w of candidateList) {
-      await addWord(w, { kind: 'paste', label: 'Đoạn văn đã dán', at: now });
+      await addWord(w, { kind: 'paste', label: SOURCE_KEY.paste, at: now });
     }
     setExtractedCandidates([]);
     setPastedText('');
@@ -170,7 +171,9 @@ export default function WordsPage() {
                 <span className="block text-ink-soft font-mono-utility uppercase tracking-wide mb-0.5">
                   {t('vocabulary.sourceLabel')}
                 </span>
-                <span className="text-ink">{selectedWord.source?.label || t('vocabulary.manualSourceFallback')}</span>
+                <span className="text-ink">
+                  {resolveSourceLabel(selectedWord.source?.label, t, t('vocabulary.manualSourceFallback'))}
+                </span>
               </div>
               <div>
                 <span className="block text-ink-soft font-mono-utility uppercase tracking-wide mb-0.5">

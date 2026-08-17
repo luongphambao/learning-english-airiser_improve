@@ -14,6 +14,7 @@ import { useLevelStore } from '@/stores/level-store';
 import { getRepos } from '@/lib/repositories';
 import type { Cefr, KnownState } from '@/lib/domain';
 import { useT } from '@/hooks/use-i18n';
+import { SOURCE_KEY } from '@/lib/i18n/source-label';
 
 const BANDS: Cefr[] = ['A2', 'B1', 'B2', 'C1', 'C2'];
 const MAX_TRIAGE_CANDIDATES = 8;
@@ -93,7 +94,7 @@ export default function PlacementPage() {
         exampleSentence: '',
         distractors: [],
         cefr: item.cefr ?? level,
-        source: { kind: 'session', label: 'Bài kiểm tra trình độ', at: now },
+        source: { kind: 'session', label: SOURCE_KEY.placement, at: now },
         triage: choice,
         now,
       });
@@ -164,7 +165,7 @@ export default function PlacementPage() {
               items={candidates}
               onConfirm={confirmTriage}
               confirming={confirming}
-              confirmLabel="Bắt đầu học"
+              confirmLabel={t('placement.triage.confirmCta')}
             />
           </div>
         )}

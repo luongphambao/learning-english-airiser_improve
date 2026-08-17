@@ -159,7 +159,12 @@
     "suggestedWords": "Suggested words:",
     "addAllCta": "Add all {{count}} words to notebook",
     "fileTabDescription": "Analyze a whole document (.txt/.md file or long pasted text) on its own screen — with level filtering and word-by-word classification before adding to your notebook.",
-    "openUploadCta": "Open Upload Document screen"
+    "openUploadCta": "Open Upload Document screen",
+    "sourceKind": {
+      "manual": "Added manually",
+      "paste": "Pasted text",
+      "placement": "Placement test"
+    }
   },
   "practice": {
     "preparingSession": "Preparing your lesson...",
@@ -383,7 +388,8 @@
     "triage": {
       "heading": "A few words worth learning now",
       "subtitlePrefix": "Your estimated level:",
-      "subtitleSuffix": "Confirm how well you know each word to start your notebook."
+      "subtitleSuffix": "Confirm how well you know each word to start your notebook.",
+      "confirmCta": "Start learning"
     },
     "done": {
       "resultLabel": "Your level: {{level}}",

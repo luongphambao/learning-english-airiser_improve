@@ -68,14 +68,7 @@ export default function PracticePage() {
   }, [status, start, ensureSupply, settings.sessionSize]);
 
   if (status === 'idle' || status === 'building') {
-    return (
-      <div
-        className="py-16 text-center text-sm text-ink-soft font-mono-utility animate-pulse"
-        aria-live="polite"
-      >
-        {t('practice.preparingSession')}
-      </div>
-    );
+    return <SessionSkeleton label={t('practice.preparingSession')} dots={settings.sessionSize} />;
   }
 
   if (status === 'error') {
@@ -202,6 +195,63 @@ export default function PracticePage() {
         <ExerciseWrite key={item.wordId} word={word} onAnswer={answer} contextTopic={settings.contextTopic} />
       )}
       {item.kind === 'recall' && <ExerciseRecall key={item.wordId} word={word} onAnswer={answer} />}
+    </div>
+  );
+}
+
+/**
+ * Shown while the session is being built — which includes a topup round that can
+ * hit the network (see the mount effect above), so this is not always instant.
+ *
+ * This used to be one line of centred mono text on an otherwise blank page: the
+ * last thing a user saw before the product's core loop, looking like a broken
+ * route. It mirrors the real session screen instead. The banner is not a grey box
+ * but the ACTUAL banner — its badge and title are static strings, so there is
+ * nothing to wait for — and only the parts that genuinely need session data (the
+ * description, the dot count, the exercise card) render as placeholders, so
+ * hand-off to the real screen shifts almost nothing.
+ *
+ * `dots` is settings.sessionSize rather than a fixed number, so the placeholder row
+ * is as long as the session actually being built.
+ */
+function SessionSkeleton({ label, dots }: { label: string; dots: number }) {
+  const { t } = useT();
+  return (
+    <div className="space-y-6">
+      {/* Carries the announcement the old visible text node used to; the
+          placeholders below are decorative and stay hidden from assistive tech. */}
+      <span className="sr-only" aria-live="polite">
+        {label}
+      </span>
+
+      <div className="bg-green rounded-card p-6 sm:p-8 text-paper">
+        <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3 inline-block">
+          {t('practice.sessionBadge')}
+        </span>
+        <h1 className="font-serif-display text-2xl sm:text-3xl mb-2">{t('practice.sessionTitle')}</h1>
+        <div className="h-4 w-64 max-w-full rounded bg-paper/25 animate-pulse" aria-hidden="true" />
+      </div>
+
+      <div aria-hidden="true">
+        <div className="flex items-center justify-center gap-1.5">
+          {Array.from({ length: Math.max(1, dots) }, (_, i) => (
+            <span key={i} className="w-2 h-2 rounded-full bg-rule" />
+          ))}
+        </div>
+        <div className="h-3 w-10 rounded bg-rule/60 animate-pulse mx-auto mt-3" />
+      </div>
+
+      <div
+        className="w-full max-w-lg mx-auto bg-surface border border-rule rounded-card p-6 sm:p-8 space-y-6"
+        aria-hidden="true"
+      >
+        <div className="h-3 w-32 rounded bg-rule/60 animate-pulse" />
+        <div className="h-7 w-48 rounded bg-rule/50 animate-pulse mx-auto" />
+        <div className="space-y-3 pt-2">
+          <div className="h-12 rounded-card bg-rule/30 animate-pulse" />
+          <div className="h-12 rounded-card bg-rule/30 animate-pulse" />
+        </div>
+      </div>
     </div>
   );
 }

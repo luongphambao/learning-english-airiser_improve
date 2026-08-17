@@ -159,7 +159,12 @@
     "suggestedWords": "Các từ vựng gợi ý:",
     "addAllCta": "Thêm tất cả {{count}} từ vào sổ",
     "fileTabDescription": "Phân tích cả tài liệu (tệp .txt/.md hoặc dán văn bản dài) trên màn riêng — có bộ lọc theo trình độ và phân loại từng từ trước khi thêm vào sổ.",
-    "openUploadCta": "Mở màn Tải tài liệu"
+    "openUploadCta": "Mở màn Tải tài liệu",
+    "sourceKind": {
+      "manual": "Tự thêm",
+      "paste": "Đoạn văn đã dán",
+      "placement": "Bài kiểm tra trình độ"
+    }
   },
   "practice": {
     "preparingSession": "Đang chuẩn bị bài học...",
@@ -383,7 +388,8 @@
     "triage": {
       "heading": "Vài từ đáng học ngay",
       "subtitlePrefix": "Trình độ ước tính của bạn:",
-      "subtitleSuffix": "Xác nhận mức độ biết của từng từ để bắt đầu sổ tay."
+      "subtitleSuffix": "Xác nhận mức độ biết của từng từ để bắt đầu sổ tay.",
+      "confirmCta": "Bắt đầu học"
     },
     "done": {
       "resultLabel": "Trình độ của bạn: {{level}}",
