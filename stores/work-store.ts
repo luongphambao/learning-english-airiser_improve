@@ -3,6 +3,7 @@ import { getRepos } from '@/lib/repositories';
 import { callTask } from '@/lib/api/ai-client';
 import { ApiError } from '@/lib/api/client';
 import { mapAnalyzeWorkOutput, entryTypeForInsight } from '@/lib/work/insights';
+import { apiErrorKey, ERROR_KEY } from '@/lib/i18n/api-error';
 import { useLevelStore } from './level-store';
 import type { Cefr, WorkAnalysis } from '@/lib/domain';
 
@@ -27,7 +28,9 @@ interface WorkStoreState {
    * later mount instead of silently re-rendering the already-saved insight list
    * (which is what let the same batch be saved twice). */
   savedCount: number | null;
-  error: string | null;
+  /** A marked i18n key, not a sentence — see stores/doc-store.ts's field of the
+   * same name for why, including the persisted-on-the-imports-row half. */
+  errorKey: string | null;
   analyze(input: AnalyzeInput): Promise<void>;
   toggleInsight(insightId: string): void;
   toggleRewrite(rewriteId: string): void;
@@ -48,10 +51,10 @@ export const useWorkStore = create<WorkStoreState>()((set, get) => ({
   fileName: null,
   analysis: null,
   savedCount: null,
-  error: null,
+  errorKey: null,
 
   async analyze({ text, fileName, sourceType, level, contextTopic, excludeWords, goal }) {
-    set({ status: 'analyzing', error: null, analysis: null, savedCount: null });
+    set({ status: 'analyzing', errorKey: null, analysis: null, savedCount: null });
     const repos = getRepos();
     const created = await repos.imports.create({ fileName, kind: 'work', rawText: text });
     set({ importId: created.id, fileName });
@@ -75,9 +78,9 @@ export const useWorkStore = create<WorkStoreState>()((set, get) => ({
       // Learn result screen the user is already looking at.
       void useLevelStore.getState().recordWorkSignal(analysis.summary.estimatedLevel as Cefr, Date.now());
     } catch (err) {
-      const message = err instanceof ApiError ? err.messageVi : 'Không phân tích được văn bản. Thử lại sau.';
-      await repos.imports.fail(created.id, message);
-      set({ status: 'error', error: message });
+      const errorKey = err instanceof ApiError ? apiErrorKey(err.code) : ERROR_KEY.workFailed;
+      await repos.imports.fail(created.id, errorKey);
+      set({ status: 'error', errorKey });
     }
   },
 
@@ -163,11 +166,11 @@ export const useWorkStore = create<WorkStoreState>()((set, get) => ({
       analysis: row.analysis ?? null,
       savedCount: null,
       status: row.status === 'analyzing' ? 'analyzing' : row.status === 'failed' ? 'error' : 'ready',
-      error: row.status === 'failed' ? row.error ?? null : null,
+      errorKey: row.status === 'failed' ? row.error ?? null : null,
     });
   },
 
   reset() {
-    set({ status: 'idle', importId: null, fileName: null, analysis: null, savedCount: null, error: null });
+    set({ status: 'idle', importId: null, fileName: null, analysis: null, savedCount: null, errorKey: null });
   },
 }));

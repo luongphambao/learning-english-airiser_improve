@@ -2,6 +2,18 @@
 
 > Mỗi dòng = một phase chốt xong. Không phải commit log — xem `git log` cho mức chi tiết dòng code. Định dạng: `YYYY-MM-DD — Phase N — tóm tắt 1 dòng — file/khu vực chính`.
 
+## 2026-08-18 — Phase 12b — Trả nợ Phase 12: lỗi song ngữ + test render component (ADR-029)
+
+**Vấn đề ban đầu:** hai khoản nợ mà Phase 12 tự ghi lại. (1) Một lời gọi AI hỏng đến UI dưới dạng câu tiếng Việt cứng — và `doc-store`/`work-store` còn **ghi câu đó xuống Dexie** qua `imports.fail()`, nên một import hỏng đóng băng tiếng Việt vĩnh viễn. (2) Không có test render component nào cho UI mới.
+
+`lib/i18n/marked-key.ts` mới: cơ chế `@key` / `@key|value` được tách khỏi `source-label.ts` để hai người dùng (nhãn nguồn, thông báo lỗi) dùng chung một bản thay vì hai bản gần giống. `resolveMarked()` nay coi "khoá tra ra chính nó" là khoá không tồn tại và rơi về câu chung — một mã lỗi mới từ server phía sau client cũ không còn in "apiError.xxx" lên màn hình. `lib/i18n/api-error.ts` mới + khối từ điển `apiError.*` (19 mã, canh với `lib/api/problem.ts` bằng một test vì module kia là `server-only`). Ba store đổi trường `error` → `errorKey`, cố ý đổi tên để mọi chỗ đọc phải đi qua `resolveErrorMessage()`.
+
+`vitest.config.ts`: thêm `esbuild: { jsx: 'automatic' }` — `tsconfig.json` để `jsx: "preserve"` cho trình biên dịch của Next, esbuild tôn trọng đúng thiết lập đó nên mọi `.tsx` test ném "React is not defined". Ba file test render đầu tiên của repo: `components/__tests__/goal-picker.test.tsx`, `components/learn/__tests__/topic-suggest.test.tsx`, `app/(stack)/onboarding/__tests__/page.test.tsx`.
+
+**Một lỗi bắt được khi viết test:** bản nháp đầu gộp "không tìm thấy từ nào" (kết quả thành công, người học hành động được) chung với "lời gọi hỏng" (lỗi mạng) vào một khoá. Tách thành `ERROR_KEY.topicEmpty` / `topicFailed`.
+
+**Xác minh:** `npx vitest run` ✅ 720 test / 2 TZ (+68). Test điều hướng `/onboarding` được kiểm chứng bằng cách gỡ bản sửa `useRef` của ADR-028 ra — đúng một ca đỏ, đúng ca mô tả lỗi đó. `npm run a11y` ✅ 0 vi phạm, `npm run build` ✅. Trình duyệt thật: cùng một phản hồi `rate_limited` hiện tiếng Việt hay tiếng Anh theo giao diện, kể cả khi mở lại import hỏng đã lưu trong Dexie.
+
 ## 2026-08-18 — Phase 12 — Mục tiêu học tập + học từ mới theo chủ đề (ADR-028)
 
 **Vấn đề ban đầu:** cả hai nguồn từ mới đang có đều đòi hỏi người học **đã có sẵn** một văn bản tiếng Anh — người ôn IELTS/TOEIC hoặc người chỉ muốn "học từ vựng về môi trường" không có gì để đưa vào. Song song, app không biết người dùng học *để làm gì*, nên mọi câu ví dụ AI sinh ra đều mang giọng email công sở.

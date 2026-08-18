@@ -91,6 +91,9 @@ describe('topic-store suggest', () => {
 
     expect(useTopicStore.getState().status).toBe('error');
     expect(useTopicStore.getState().candidates).toEqual([]);
+    // "nothing found" is a different message from "the call failed" — the learner
+    // can act on the first one by describing the topic better.
+    expect(useTopicStore.getState().errorKey).toBe('@learnTopic.error.empty');
   });
 
   it('surfaces a failed call as an error and writes nothing', async () => {
@@ -103,7 +106,7 @@ describe('topic-store suggest', () => {
     await useTopicStore.getState().suggest(INPUT);
 
     expect(useTopicStore.getState().status).toBe('error');
-    expect(useTopicStore.getState().error).toBeTruthy();
+    expect(useTopicStore.getState().errorKey).toBe('@apiError.upstream_unavailable');
     expect(await getRepos().words.list({ limit: 10 })).toEqual([]);
   });
 });

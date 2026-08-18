@@ -7,6 +7,7 @@ import { Button } from '@/components/Button';
 import { TriageList, type TriageListItem } from '@/components/TriageList';
 import { useDocStore } from '@/stores/doc-store';
 import type { KnownState } from '@/lib/domain';
+import { resolveErrorMessage } from '@/lib/i18n/api-error';
 
 // The result half of the "tải tài liệu -> đào từ vựng -> phân loại 3 mức" flow
 // (docs/decision.md ADR-021) — mirrors the shape of Learn's work-mode result
@@ -16,7 +17,7 @@ import type { KnownState } from '@/lib/domain';
 
 export function DocResult({ onStartOver }: { onStartOver: () => void }) {
   const {
-    status, candidates, unitLabel, totalUnits, truncatedAtUnit, degraded, progress, error, fileName,
+    status, candidates, unitLabel, totalUnits, truncatedAtUnit, degraded, progress, errorKey, fileName,
     savedResult, saveTriage,
   } = useDocStore();
   const { t } = useT();
@@ -68,7 +69,9 @@ export function DocResult({ onStartOver }: { onStartOver: () => void }) {
       <div className="py-20 text-center space-y-4">
         <AlertTriangle size={48} className="mx-auto text-wrong" />
         <p className="font-serif-display text-2xl text-ink">{t('learnDoc.error.heading')}</p>
-        <p className="text-sm text-ink-soft max-w-sm mx-auto">{error ?? t('learnDoc.error.fallback')}</p>
+        <p className="text-sm text-ink-soft max-w-sm mx-auto">
+          {resolveErrorMessage(errorKey, t, t('learnDoc.error.fallback'))}
+        </p>
         <Button variant="primary" onClick={onStartOver}>
           {t('learnDoc.error.retry')}
         </Button>

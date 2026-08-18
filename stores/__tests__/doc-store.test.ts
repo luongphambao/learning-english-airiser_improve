@@ -77,7 +77,7 @@ describe('doc-store', () => {
     expect(imp?.candidates).toHaveLength(1);
   });
 
-  it('analyze(): a server error moves the import to failed and surfaces the Vietnamese message', async () => {
+  it('analyze(): a server error moves the import to failed and records the problem code as a translatable key', async () => {
     server.use(
       http.post('http://localhost/api/ai/analyze-doc', () =>
         HttpResponse.json(
@@ -98,7 +98,9 @@ describe('doc-store', () => {
 
     const state = useDocStore.getState();
     expect(state.status).toBe('error');
-    expect(state.error).toBe('Dịch vụ AI tạm thời không phản hồi. Thử lại sau.');
+    // The server's problem CODE, as a marked i18n key — not its Vietnamese sentence,
+    // which would freeze this message in one language on the persisted import row.
+    expect(state.errorKey).toBe('@apiError.upstream_unavailable');
 
     const imp = await getRepos().imports.get(state.importId!);
     expect(imp?.status).toBe('failed');

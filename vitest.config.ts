@@ -6,6 +6,12 @@ import path from 'node:path';
 // (getTodayDateString used Asia/Ho_Chi_Minh while getYesterdayDateString used the
 // local timezone; identical output under one TZ can still diverge under another).
 export default defineConfig({
+  // tsconfig.json sets `jsx: "preserve"` because Next's own compiler handles JSX in
+  // the app build. Vitest transforms with esbuild instead, which honours that
+  // setting and leaves JSX untransformed — so a `.tsx` test throws "React is not
+  // defined" at render. The app never imports React explicitly (Next injects the
+  // automatic runtime), so the fix belongs here, not as an import in every test.
+  esbuild: { jsx: 'automatic' },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),

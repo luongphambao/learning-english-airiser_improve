@@ -9,6 +9,7 @@ import { Button } from '@/components/Button';
 import { TriageList, type TriageListItem } from '@/components/TriageList';
 import { useTopicStore } from '@/stores/topic-store';
 import { goalForPrompt, type KnownState } from '@/lib/domain';
+import { resolveErrorMessage } from '@/lib/i18n/api-error';
 
 // docs/decision.md ADR-028 — "Học từ mới theo chủ đề", the third tab on /learn.
 // Presentational only: the AI call and every Dexie write live in
@@ -24,7 +25,7 @@ const EXAMPLE_KEYS = ['environment', 'technology', 'health', 'travel', 'business
 export function TopicSuggest() {
   const { t } = useT();
   const { settings } = useProfile();
-  const { status, candidates, savedResult, error, topic, suggest, saveTriage, reset } = useTopicStore();
+  const { status, candidates, savedResult, errorKey, topic, suggest, saveTriage, reset } = useTopicStore();
   const [draft, setDraft] = useState('');
 
   async function handleSuggest() {
@@ -58,7 +59,9 @@ export function TopicSuggest() {
       <div className="py-20 text-center space-y-4">
         <AlertTriangle size={48} className="mx-auto text-wrong" />
         <p className="font-serif-display text-2xl text-ink">{t('learnTopic.error.heading')}</p>
-        <p className="text-sm text-ink-soft max-w-sm mx-auto">{error ?? t('learnTopic.error.fallback')}</p>
+        <p className="text-sm text-ink-soft max-w-sm mx-auto">
+          {resolveErrorMessage(errorKey, t, t('learnTopic.error.fallback'))}
+        </p>
         <Button variant="primary" onClick={startOver}>
           {t('learnTopic.error.retry')}
         </Button>

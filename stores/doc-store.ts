@@ -3,6 +3,7 @@ import { getRepos } from '@/lib/repositories';
 import { callTask } from '@/lib/api/ai-client';
 import { ApiError } from '@/lib/api/client';
 import { buildExclusionSet } from '@/lib/corpus/exclude';
+import { apiErrorKey, ERROR_KEY } from '@/lib/i18n/api-error';
 import { chunkUnits, type UnitChunk } from '@/lib/documents/extract';
 import type { CandidateWord, Cefr, Import, KnownState } from '@/lib/domain';
 
@@ -53,7 +54,12 @@ interface DocStoreState {
    * zustand singleton) stayed 'done' — so returning to /learn re-rendered the
    * whole triage list as if nothing had been saved. */
   savedResult: SaveTriageResult | null;
-  error: string | null;
+  /** A marked i18n key, not a sentence (lib/i18n/api-error.ts). Also what gets
+   * PERSISTED via imports.fail(), so reopening a failed import months later shows
+   * the message in the language the reader is using now, not the one that was
+   * active when it failed. Rows written before this change hold plain Vietnamese,
+   * which has no marker and renders verbatim — nothing to backfill. */
+  errorKey: string | null;
   analyze(input: AnalyzeInput): Promise<void>;
   saveTriage(choices: Record<string, KnownState>, now: number): Promise<SaveTriageResult>;
   open(importId: string): Promise<void>;
@@ -104,18 +110,18 @@ export const useDocStore = create<DocStoreState>()((set, get) => ({
   degraded: false,
   progress: null,
   savedResult: null,
-  error: null,
+  errorKey: null,
 
   async analyze({ units, unitLabel, fileName, kind, level, contextTopic, goal }) {
     set({
       status: 'analyzing',
-      error: null,
       candidates: [],
       unitLabel,
       totalUnits: units.length,
       degraded: false,
       progress: null,
       savedResult: null,
+      errorKey: null,
     });
     const repos = getRepos();
     const created = await repos.imports.create({ fileName, kind, rawText: units.join('\n\n') });
@@ -159,12 +165,12 @@ export const useDocStore = create<DocStoreState>()((set, get) => ({
 
     if (!anySucceeded) {
       const firstRejection = settled.find((s): s is PromiseRejectedResult => s.status === 'rejected');
-      const message =
+      const errorKey =
         firstRejection?.reason instanceof ApiError
-          ? firstRejection.reason.messageVi
-          : 'Không phân tích được tài liệu. Thử lại sau.';
-      await repos.imports.fail(created.id, message);
-      set({ status: 'error', error: message, progress: null });
+          ? apiErrorKey(firstRejection.reason.code)
+          : ERROR_KEY.docFailed;
+      await repos.imports.fail(created.id, errorKey);
+      set({ status: 'error', errorKey, progress: null });
       return;
     }
 
@@ -228,7 +234,7 @@ export const useDocStore = create<DocStoreState>()((set, get) => ({
       // history entry.
       savedResult: null,
       status: row.status === 'analyzing' ? 'analyzing' : row.status === 'failed' ? 'error' : row.status === 'done' ? 'done' : 'ready',
-      error: row.status === 'failed' ? row.error ?? null : null,
+      errorKey: row.status === 'failed' ? row.error ?? null : null,
     });
   },
 
@@ -243,7 +249,7 @@ export const useDocStore = create<DocStoreState>()((set, get) => ({
       degraded: false,
       progress: null,
       savedResult: null,
-      error: null,
+      errorKey: null,
     });
   },
 }));

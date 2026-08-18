@@ -20,6 +20,7 @@ import { parseDocumentFile } from '@/lib/api/parse-doc-client';
 import { ApiError } from '@/lib/api/client';
 import { splitIntoUnits } from '@/lib/documents/extract';
 import { goalForPrompt } from '@/lib/domain';
+import { apiErrorKey, resolveErrorMessage } from '@/lib/i18n/api-error';
 import {
   FileText, Loader2, AlertTriangle, CheckCircle2, Sparkles, ChevronDown, RotateCcw, Lock,
 } from 'lucide-react';
@@ -190,7 +191,11 @@ export default function LearnPage() {
       setDocUnits(parsed.units);
       setDocUnitLabel(parsed.unitLabel);
     } catch (err) {
-      setDocFileError(err instanceof ApiError ? err.messageVi : t('learn.errors.fileParseFailed'));
+      setDocFileError(
+        err instanceof ApiError
+          ? resolveErrorMessage(apiErrorKey(err.code), t, t('learn.errors.fileParseFailed'))
+          : t('learn.errors.fileParseFailed'),
+      );
     } finally {
       setDocFileBusy(false);
     }
@@ -542,7 +547,9 @@ export default function LearnPage() {
         <div className="py-20 text-center space-y-4">
           <AlertTriangle size={48} className="mx-auto text-wrong" />
           <p className="font-serif-display text-2xl text-ink">{t('learn.errorHeading')}</p>
-          <p className="text-sm text-ink-soft max-w-sm mx-auto">{workStore.error ?? t('learn.genericError')}</p>
+          <p className="text-sm text-ink-soft max-w-sm mx-auto">
+            {resolveErrorMessage(workStore.errorKey, t, t('learn.genericError'))}
+          </p>
           <Button variant="primary" onClick={startOver}>
             {t('learn.retryButton')}
           </Button>
