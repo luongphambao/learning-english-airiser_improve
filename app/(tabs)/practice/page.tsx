@@ -16,6 +16,7 @@ import { ExerciseWrite } from '@/components/ExerciseWrite';
 import { ExerciseRecall } from '@/components/ExerciseRecall';
 import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
+import { goalForPrompt } from '@/lib/domain';
 import { CheckCircle2, Sparkles, AlertTriangle, BookCheck, Bookmark, Shuffle, Loader2 } from 'lucide-react';
 
 // Owns the SRS session (moved from app/(tabs)/today/page.tsx — that route is now
@@ -192,7 +193,13 @@ export default function PracticePage() {
       {item.kind === 'fillBlank' && <ExerciseFillBlank key={item.wordId} word={word} onAnswer={answer} />}
       {item.kind === 'listen' && <ExerciseListen key={item.wordId} word={word} onAnswer={answer} />}
       {item.kind === 'write' && (
-        <ExerciseWrite key={item.wordId} word={word} onAnswer={answer} contextTopic={settings.contextTopic} />
+        <ExerciseWrite
+          key={item.wordId}
+          word={word}
+          onAnswer={answer}
+          contextTopic={settings.contextTopic}
+          goal={goalForPrompt(settings.learningGoal)}
+        />
       )}
       {item.kind === 'recall' && <ExerciseRecall key={item.wordId} word={word} onAnswer={answer} />}
     </div>

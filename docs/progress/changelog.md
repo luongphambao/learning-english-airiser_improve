@@ -2,6 +2,16 @@
 
 > Mỗi dòng = một phase chốt xong. Không phải commit log — xem `git log` cho mức chi tiết dòng code. Định dạng: `YYYY-MM-DD — Phase N — tóm tắt 1 dòng — file/khu vực chính`.
 
+## 2026-08-18 — Phase 12 — Mục tiêu học tập + học từ mới theo chủ đề (ADR-028)
+
+**Vấn đề ban đầu:** cả hai nguồn từ mới đang có đều đòi hỏi người học **đã có sẵn** một văn bản tiếng Anh — người ôn IELTS/TOEIC hoặc người chỉ muốn "học từ vựng về môi trường" không có gì để đưa vào. Song song, app không biết người dùng học *để làm gì*, nên mọi câu ví dụ AI sinh ra đều mang giọng email công sở.
+
+`lib/domain/user.ts`: `LearningGoalSchema` + `UserSettings.learningGoal` (thêm với `.default()` → không migration Dexie, tự sync trong `users/{uid}.settings`) + `goalForPrompt()` — đường duy nhất từ settings vào một tác vụ AI, nơi trần 120 ký tự bị ép một lần thay vì để mỗi call site tự nhớ. `lib/ai/tasks/contracts.ts`: field `goal` thêm vào cả 6 input cũ (`.default('')` → tuỳ chọn ở `z.input`, caller cũ không đổi) + contract thứ 7 `suggestTopicWords`. `lib/ai/tasks/registry.server.ts`: `goalPart()` bọc mục tiêu trong hàng rào `<<<LEARNER_GOAL` ở `prompt()` — **không bao giờ** vào `system()` — cùng `suggestTopicWordsTask` (temperature 0.6, 8/phút, không `requireSession`). Route mới `app/api/ai/suggest-words`. Store mới `stores/topic-store.ts` (không ghi `Import` — không có tài liệu nào để mở lại). `lib/i18n/source-label.ts` nới thành dạng `@key|value` để nhãn "Chủ đề: {{value}}" dịch được phần hệ thống mà giữ nguyên chữ người dùng gõ. UI: route `/onboarding`, `components/goal-picker.tsx` dùng chung với Cài đặt, tab thứ ba ở `/learn` dựng lại `TriageList` sẵn có, dòng nhắc ở `/today` cho người đã đăng nhập trước khi tính năng này tồn tại.
+
+**Một lỗi thật bắt được khi xác minh bằng trình duyệt:** trả lời onboarding làm `answered` lật sang `true`, khiến hiệu ứng "chuyển tiếp người đã trả lời" bắn và ghi đè đích `/placement` bằng `/today` — người dùng mới bị đẩy về một trang chủ trống thay vì bài kiểm tra vốn là thứ đổ đầy sổ tay cho họ. Chặn bằng một `useRef` đặt trước khi ghi.
+
+**Xác minh:** `npm run typecheck` ✅, `npx eslint .` ✅ (0 lỗi), `npx vitest run` ✅ 652 test / 2 TZ, `npm run build` ✅, `npm run a11y` ✅ 0 vi phạm trên 10 route (một lỗi tương phản `text-ink-soft/80` ở dark theme đã sửa). Đi bộ toàn luồng bằng Playwright với AI giả lập — chi tiết ở `board.md` Phase 12.
+
 ## 2026-08-16 — Phase 11 — Bảng xếp hạng thật giữa người dùng (ADR-025)
 
 **Vấn đề ban đầu:** chủ dự án phát hiện bảng xếp hạng vẫn là dữ liệu mẫu (Phase 10/ADR-023) — hai tài khoản đăng nhập khác nhau không bao giờ thấy nhau, vì `firestore.rules` cũ chỉ cho phép đọc/ghi `users/{uid}/**` của chính mình và không có collection dùng chung nào. Yêu cầu: publish dữ liệu thật, xoá roster mẫu.

@@ -8,7 +8,7 @@ import { useTopupStore } from '@/stores/topup-store';
 import { useT } from '@/hooks/use-i18n';
 import { useIsGuest } from '@/hooks/use-access';
 import { Button } from '@/components/Button';
-import { FileText, Upload, ChevronRight, Flame, Trophy, CalendarDays } from 'lucide-react';
+import { FileText, Upload, ChevronRight, Flame, Trophy, CalendarDays, Sparkles } from 'lucide-react';
 
 // Home — answers "what should I do next?" instead of auto-starting a session
 // (that used to happen here; the session itself moved to /practice unchanged,
@@ -135,6 +135,19 @@ export default function TodayPage() {
           hasNotebook ? 'lg:col-start-1 lg:row-start-2 lg:row-span-2' : 'lg:col-span-2 lg:max-w-2xl'
         }`}
       >
+        {/* docs/decision.md ADR-028 — someone already signed in when this shipped
+            never passes through /login, so they never meet the onboarding screen.
+            One line, dismissed by answering, never a modal. */}
+        {settings.learningGoal.setAt === null && (
+          <Link
+            href="/onboarding"
+            className="flex items-center justify-between gap-3 bg-surface border border-rule rounded-card p-4 hover:border-green transition-colors"
+          >
+            <span className="text-sm text-ink-soft leading-relaxed">{t('today.goalPromptBody')}</span>
+            <ChevronRight size={18} className="text-ink-soft shrink-0" />
+          </Link>
+        )}
+
         {!hasNotebook ? (
           <div className="space-y-3">
             <p className="text-sm text-ink-soft leading-relaxed">{t('today.emptyNotebook')}</p>
@@ -207,6 +220,14 @@ export default function TodayPage() {
                   </Button>
                 </Link>
               )}
+              {/* Unlike upload, this one needs no document of the user's own, so
+                  guests get it too (docs/decision.md ADR-028). */}
+              <Link href="/learn?mode=topic">
+                <Button variant="quiet">
+                  <Sparkles size={16} />
+                  {t('today.learnByTopic')}
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

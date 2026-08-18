@@ -9,6 +9,8 @@ import { useSyncStore } from '@/stores/sync-store';
 import { BackHeader } from '@/components/layout/back-header';
 import { getRepos } from '@/lib/repositories';
 import { NAME_MAX_LENGTH } from '@/lib/leaderboard/name';
+import { GoalPicker } from '@/components/goal-picker';
+import { GOAL_MAX_LENGTH } from '@/lib/domain';
 import { useT } from '@/hooks/use-i18n';
 import type { UserSettings } from '@/types';
 import { Mail, CheckCircle2, AlertCircle, Send, Loader2, LogOut, Calendar, ChevronRight, RefreshCw, CloudOff } from 'lucide-react';
@@ -288,6 +290,28 @@ export default function SettingsPage() {
               <span>{emailNotice.message}</span>
             </div>
           )}
+        </div>
+
+        <div>
+          <label className="block text-xs font-mono-utility text-ink-soft mb-2">
+            {t('settings.goal.label')}
+          </label>
+          {/* Writes through the same single settings path as everything else here,
+              but preserves `setAt` — clearing it would make the onboarding screen
+              (docs/decision.md ADR-028) reappear on the next sign-in. */}
+          <GoalPicker
+            value={settings.learningGoal}
+            onChange={(next) =>
+              updateSettings({
+                learningGoal: {
+                  ...next,
+                  text: next.text.slice(0, GOAL_MAX_LENGTH),
+                  setAt: settings.learningGoal.setAt ?? Date.now(),
+                },
+              })
+            }
+          />
+          <p className="mt-2 text-xs text-ink-soft">{t('settings.goal.hint')}</p>
         </div>
 
         <div>

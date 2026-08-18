@@ -7,8 +7,8 @@ actually finished and what is not. For the phase-by-phase breakdown see
 ## Working end to end
 
 - Vocabulary notebook and the spaced-repetition engine
-- All six Gemini features — work-document analysis, PDF/DOCX mining, word extraction, enrichment,
-  sentence grading, and text-to-speech
+- All seven Gemini features — work-document analysis, PDF/DOCX mining, topic-based word suggestion,
+  word extraction, enrichment, sentence grading, and text-to-speech
 - PDF and DOCX ingestion, including on Cloud Run
 - Firebase accounts and two-way Firestore sync
 - Gmail study reminders
@@ -17,6 +17,10 @@ actually finished and what is not. For the phase-by-phase breakdown see
 - Vietnamese and English interfaces, light and dark themes
 - Real cross-user leaderboard (`docs/decision.md` ADR-025) — every signed-in user's aggregate stats
   publish to a shared `leaderboard/{uid}` Firestore collection after each sync
+- Learning-goal onboarding (`docs/decision.md` ADR-028) — asked once after signing in or tapping
+  "try it", editable in Settings, and threaded into every AI prompt as fenced data
+- "Học từ mới theo chủ đề" — describe a topic, get 5-10 level-matched words, triage them, practise
+  immediately; the only word source that needs no document of the learner's own (ADR-028)
 - Login gate with a guest "try it" mode — guests learn and practise normally but stay off the
   leaderboard, cannot upload documents, and do not sync (`lib/auth/guest.ts`)
 

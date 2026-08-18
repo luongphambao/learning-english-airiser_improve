@@ -24,7 +24,7 @@ const FAIL_ON = new Set(['serious', 'critical']);
 // are scanned with a session, seeded so they render real content rather than an
 // empty state that hides most of the UI.
 const PUBLIC_ROUTES = ['/login'];
-const ROUTES = ['/today', '/learn', '/learn?mode=doc', '/practice', '/vocabulary', '/progress', '/leaderboard', '/settings'];
+const ROUTES = ['/today', '/learn', '/learn?mode=doc', '/learn?mode=topic', '/onboarding', '/practice', '/vocabulary', '/progress', '/leaderboard', '/settings'];
 
 const C = { dim: '\x1b[2m', red: '\x1b[31m', yellow: '\x1b[33m', green: '\x1b[32m', bold: '\x1b[1m', off: '\x1b[0m' };
 

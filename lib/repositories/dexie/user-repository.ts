@@ -20,6 +20,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
     updatedAt: null,
     lastPromptedAt: null,
   },
+  learningGoal: { kind: 'custom', text: '', setAt: null },
 };
 
 export const DEFAULT_STATS: UserStats = {

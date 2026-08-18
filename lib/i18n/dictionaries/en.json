@@ -1,4 +1,25 @@
 {
+  "apiError": {
+    "bad_request": "That request was not valid.",
+    "invalid_input": "The data sent was not in the right format.",
+    "forbidden_origin": "That request was refused.",
+    "payload_too_large": "What you sent is too large.",
+    "rate_limited": "That was a little fast. Wait a moment and try again.",
+    "auth": "The server is misconfigured. Please tell the administrator.",
+    "login_required": "This feature needs an account. Sign in or create one, then try again.",
+    "gmail_not_connected": "Please connect your Gmail account in Settings.",
+    "quota_exhausted": "Today's AI usage limit has been reached.",
+    "timeout": "That took too long. Please try again.",
+    "aborted": "The request was cancelled.",
+    "upstream_unavailable": "The AI service is not responding right now. Try again later.",
+    "content_filtered": "The content was refused by the safety filter.",
+    "invalid_output": "The AI returned an invalid result. Please try again.",
+    "unsupported_capability": "This feature is not available with the current configuration.",
+    "document_encrypted": "This file is password-protected. Remove the password and try again, or paste the text directly.",
+    "document_no_text": "This file is a scan with no text layer to read. Try another file, or paste the text directly.",
+    "unsupported_file_type": "This file format is not supported yet. Use .txt, .md, .pdf or .docx.",
+    "unknown": "Something went wrong. Please try again later."
+  },
   "common": {
     "settings": "Settings",
     "login": "Log in",
@@ -50,12 +71,15 @@
     "streakHeroLabel": "day streak",
     "streakHeroLongest": "Longest {{days}} days",
     "leaderboardTile": "Leaderboard",
-    "studyPlanTile": "Study plan"
+    "studyPlanTile": "Study plan",
+    "goalPromptBody": "What are you learning English for? Tell us your goal so the words and example sentences match it.",
+    "learnByTopic": "Learn words by topic"
   },
   "learn": {
     "tabs": {
       "work": "From your work",
-      "doc": "From a document"
+      "doc": "From a document",
+      "topic": "By topic"
     },
     "pastePlaceholder": "Paste an English passage here...",
     "pastedTextName": "Pasted text",
@@ -167,7 +191,8 @@
     "sourceKind": {
       "manual": "Added manually",
       "paste": "Pasted text",
-      "placement": "Placement test"
+      "placement": "Placement test",
+      "topic": "Topic: {{value}}"
     }
   },
   "practice": {
@@ -206,6 +231,10 @@
   },
   "settings": {
     "title": "Settings",
+    "goal": {
+      "label": "Learning goal",
+      "hint": "The AI uses this to pick words and write example sentences that fit what you are studying for."
+    },
     "account": {
       "title": "Lexio Account",
       "notLoggedIn": "Not signed in",
@@ -538,6 +567,73 @@
       "readingFile": "Reading file...",
       "orPasteHint": "Or paste text directly below",
       "loadedFile": "Loaded: {{fileName}}"
+    }
+  },
+  "goalPicker": {
+    "placeholder": "e.g. IELTS 6.5, everyday conversation...",
+    "inputAria": "Your English learning goal",
+    "chips": {
+      "ielts": "IELTS",
+      "toeic": "TOEIC",
+      "communication": "Conversation",
+      "work": "Work",
+      "academic": "Academic"
+    },
+    "examples": {
+      "ielts": "IELTS 6.5",
+      "toeic": "TOEIC 800",
+      "communication": "Everyday conversation",
+      "work": "English for work",
+      "academic": "Reading academic papers"
+    }
+  },
+  "onboarding": {
+    "title": "Getting started",
+    "heading": "What are you learning English for?",
+    "subtitle": "Two short questions. They help the AI pick the right words and write examples that fit your purpose.",
+    "goalLabel": "Learning goal",
+    "fieldLabel": "Your field",
+    "fieldPlaceholder": "e.g. software engineering, marketing, finance",
+    "fieldHint": "Example sentences will be set in this context.",
+    "continueCta": "Continue",
+    "skipCta": "Skip for now"
+  },
+  "learnTopic": {
+    "heading": "Learn new words by topic",
+    "subtitle": "Describe a topic you want to learn. The AI suggests vocabulary matched to your level and goal.",
+    "placeholder": "e.g. vocabulary about the environment",
+    "inputAria": "The topic you want to learn",
+    "suggestCta": "Find words for this topic",
+    "goalNotice": "Words chosen for your goal: {{goal}}",
+    "examples": {
+      "environment": "Environment",
+      "technology": "Technology",
+      "health": "Health",
+      "travel": "Travel",
+      "business": "Business"
+    },
+    "loading": {
+      "heading": "Choosing words for you...",
+      "body": "The AI is finding vocabulary about \"{{topic}}\" at your level."
+    },
+    "error": {
+      "heading": "Could not build a word list",
+      "empty": "No words found for that topic. Try describing it more specifically.",
+      "fallback": "Could not build a word list. Try again later.",
+      "retry": "Try another topic"
+    },
+    "result": {
+      "title": "Vocabulary about {{topic}}",
+      "subtitle": "{{count}} words suggested. Mark how well you know each one — only the ones you have not mastered go into your notebook.",
+      "confirmLabel": "Save to notebook",
+      "startOver": "Pick another topic"
+    },
+    "success": {
+      "heading": "Added {{count}} words",
+      "skippedNote": "{{count}} words you already know were skipped and will not be suggested again.",
+      "readyNote": "These words are ready to practise.",
+      "startOver": "Learn another topic",
+      "practiceNow": "Practise now"
     }
   },
   "shell": {

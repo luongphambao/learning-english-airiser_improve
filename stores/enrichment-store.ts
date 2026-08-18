@@ -5,8 +5,15 @@ import { callTask } from '@/lib/api/ai-client';
 interface EnrichmentStoreState {
   pendingIds: Set<string>;
   failedIds: Set<string>;
-  enrich(wordId: string, contextTopic?: string): Promise<void>;
-  retry(wordId: string, contextTopic?: string): Promise<void>;
+  enrich(wordId: string, ctx?: EnrichContext): Promise<void>;
+  retry(wordId: string, ctx?: EnrichContext): Promise<void>;
+}
+
+/** Both fields are optional and both fall back to the task's own zod defaults —
+ * a caller with no profile loaded yet still enriches, just without the bias. */
+interface EnrichContext {
+  contextTopic?: string;
+  goal?: string;
 }
 
 function withId(set: Set<string>, id: string): Set<string> {
@@ -33,14 +40,18 @@ export const useEnrichmentStore = create<EnrichmentStoreState>()((set) => ({
   pendingIds: new Set(),
   failedIds: new Set(),
 
-  async enrich(wordId, contextTopic) {
+  async enrich(wordId, ctx) {
     const repos = getRepos();
     const word = await repos.words.get(wordId);
     if (!word) return;
 
     set((s) => ({ pendingIds: withId(s.pendingIds, wordId), failedIds: withoutId(s.failedIds, wordId) }));
     try {
-      const data = await callTask('enrichWord', { word: word.word, contextTopic });
+      const data = await callTask('enrichWord', {
+        word: word.word,
+        contextTopic: ctx?.contextTopic,
+        goal: ctx?.goal,
+      });
 
       await repos.words.patch(wordId, {
         ipa: data.ipa,
@@ -59,7 +70,7 @@ export const useEnrichmentStore = create<EnrichmentStoreState>()((set) => ({
     }
   },
 
-  async retry(wordId, contextTopic) {
-    await useEnrichmentStore.getState().enrich(wordId, contextTopic);
+  async retry(wordId, ctx) {
+    await useEnrichmentStore.getState().enrich(wordId, ctx);
   },
 }));

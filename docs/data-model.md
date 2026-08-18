@@ -82,6 +82,19 @@ interface UserSettings {
   level: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';  // MỞ RỘNG từ 'B1'|'B2'|'C1' — xem ADR-017
   sessionSize: number;            // MỞ RỘNG, 3..20, mặc định 5 — xem ADR-018
   levelProfile: LevelProfile;     // MỞ RỘNG — bằng chứng đằng sau `level`, xem ADR-017
+  learningGoal: LearningGoal;     // MỞ RỘNG — học ĐỂ LÀM GÌ, xem ADR-028
+}
+
+// MỞ RỘNG (ADR-028) — khác `contextTopic` (lĩnh vực làm việc) và `level` (trình độ
+// đọc): đây là mục đích. Chỉ `text` đi vào prompt AI; `kind` để UI tô sáng lại chip
+// đã chọn. `setAt` khác null nghĩa là "đã hỏi rồi" — được ghi cả khi người dùng bấm
+// "Bỏ qua", vì bỏ qua nghĩa là đừng hỏi lại. Thêm với `.default()` nên KHÔNG cần
+// migration Dexie và tự sync trong `users/{uid}.settings` (cùng khuôn locale/
+// sessionSize/levelProfile). `text` cố ý không có `.max()` — xem ADR-028.
+interface LearningGoal {
+  kind: 'ielts' | 'toeic' | 'communication' | 'work' | 'academic' | 'custom';
+  text: string;                    // "IELTS 6.5", "giao tiếp hằng ngày", ...  '' = chưa khai báo
+  setAt: number | null;
 }
 
 // MỞ RỘNG (ADR-017) — kho bằng chứng level, tính lại bởi lib/level/resolve.ts mỗi

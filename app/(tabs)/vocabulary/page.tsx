@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useWordsList } from '@/hooks/use-words';
+import { useProfile } from '@/hooks/use-profile';
 import { useEnrichmentStore } from '@/stores/enrichment-store';
 import { getRepos } from '@/lib/repositories';
 import { callTask } from '@/lib/api/ai-client';
@@ -12,6 +13,7 @@ import { Sheet } from '@/components/Sheet';
 import { Button } from '@/components/Button';
 import { useT } from '@/hooks/use-i18n';
 import { SOURCE_KEY, resolveSourceLabel } from '@/lib/i18n/source-label';
+import { goalForPrompt } from '@/lib/domain';
 import { Plus, Search, Loader2, FileText, Type, Upload, Trash2 } from 'lucide-react';
 
 // Rewritten on the repository layer + enrichment-store (Phase 5) — replaces
@@ -23,6 +25,7 @@ import { Plus, Search, Loader2, FileText, Type, Upload, Trash2 } from 'lucide-re
 export default function WordsPage() {
   const { t } = useT();
   const words = useWordsList();
+  const { settings } = useProfile();
   const pendingIds = useEnrichmentStore((s) => s.pendingIds);
   const enrich = useEnrichmentStore((s) => s.enrich);
 
@@ -45,7 +48,7 @@ export default function WordsPage() {
     const trimmed = text.trim();
     if (!trimmed) return;
     const word = await getRepos().words.add({ word: trimmed, source });
-    void enrich(word.id);
+    void enrich(word.id, { contextTopic: settings.contextTopic, goal: goalForPrompt(settings.learningGoal) });
   }
 
   const handleSaveTypedWord = async () => {
@@ -59,7 +62,12 @@ export default function WordsPage() {
     if (!pastedText.trim()) return;
     setLoadingExtract(true);
     try {
-      const data = await callTask('extractWords', { text: pastedText });
+      const data = await callTask('extractWords', {
+        text: pastedText,
+        level: settings.level,
+        contextTopic: settings.contextTopic,
+        goal: goalForPrompt(settings.learningGoal),
+      });
       setExtractedCandidates(data.words);
     } catch (err) {
       console.error('Extraction error:', err);

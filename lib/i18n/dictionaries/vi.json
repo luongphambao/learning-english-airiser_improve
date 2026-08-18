@@ -1,4 +1,25 @@
 {
+  "apiError": {
+    "bad_request": "Yêu cầu không hợp lệ.",
+    "invalid_input": "Dữ liệu gửi lên không đúng định dạng.",
+    "forbidden_origin": "Yêu cầu bị từ chối.",
+    "payload_too_large": "Nội dung gửi lên quá lớn.",
+    "rate_limited": "Bạn thao tác hơi nhanh. Đợi một chút rồi thử lại.",
+    "auth": "Máy chủ cấu hình sai. Vui lòng báo cho quản trị viên.",
+    "login_required": "Tính năng này cần đăng nhập. Tạo tài khoản hoặc đăng nhập rồi thử lại.",
+    "gmail_not_connected": "Vui lòng kết nối tài khoản Gmail trong Cài đặt.",
+    "quota_exhausted": "Đã hết hạn mức sử dụng AI hôm nay.",
+    "timeout": "Yêu cầu mất quá nhiều thời gian. Thử lại nhé.",
+    "aborted": "Yêu cầu đã bị huỷ.",
+    "upstream_unavailable": "Dịch vụ AI tạm thời không phản hồi. Thử lại sau.",
+    "content_filtered": "Nội dung bị từ chối bởi bộ lọc an toàn.",
+    "invalid_output": "AI trả về kết quả không hợp lệ. Thử lại nhé.",
+    "unsupported_capability": "Tính năng này chưa khả dụng với cấu hình hiện tại.",
+    "document_encrypted": "Tệp này được đặt mật khẩu. Gỡ mật khẩu rồi thử lại, hoặc dán trực tiếp văn bản.",
+    "document_no_text": "Tệp này là ảnh scan, không có lớp văn bản để đọc. Thử tệp khác hoặc dán trực tiếp văn bản.",
+    "unsupported_file_type": "Định dạng tệp này chưa được hỗ trợ. Dùng .txt, .md, .pdf hoặc .docx.",
+    "unknown": "Đã có lỗi xảy ra. Thử lại sau."
+  },
   "common": {
     "settings": "Cài đặt",
     "login": "Đăng nhập",
@@ -50,12 +71,15 @@
     "streakHeroLabel": "ngày liên tiếp",
     "streakHeroLongest": "Dài nhất {{days}} ngày",
     "leaderboardTile": "Bảng xếp hạng",
-    "studyPlanTile": "Kế hoạch học"
+    "studyPlanTile": "Kế hoạch học",
+    "goalPromptBody": "Bạn học tiếng Anh để làm gì? Cho chúng tôi biết mục tiêu để từ vựng và câu ví dụ bám sát mục đích của bạn.",
+    "learnByTopic": "Học từ theo chủ đề"
   },
   "learn": {
     "tabs": {
       "work": "Từ công việc",
-      "doc": "Từ tài liệu"
+      "doc": "Từ tài liệu",
+      "topic": "Từ theo chủ đề"
     },
     "pastePlaceholder": "Dán đoạn văn tiếng Anh vào đây...",
     "pastedTextName": "Đoạn văn đã dán",
@@ -167,7 +191,8 @@
     "sourceKind": {
       "manual": "Tự thêm",
       "paste": "Đoạn văn đã dán",
-      "placement": "Bài kiểm tra trình độ"
+      "placement": "Bài kiểm tra trình độ",
+      "topic": "Chủ đề: {{value}}"
     }
   },
   "practice": {
@@ -206,6 +231,10 @@
   },
   "settings": {
     "title": "Cài đặt",
+    "goal": {
+      "label": "Mục tiêu học tập",
+      "hint": "AI dùng mục tiêu này để chọn từ và viết câu ví dụ sát với mục đích của bạn."
+    },
     "account": {
       "title": "Tài khoản Lexio",
       "notLoggedIn": "Chưa đăng nhập email",
@@ -538,6 +567,73 @@
       "readingFile": "Đang đọc tệp...",
       "orPasteHint": "Hoặc dán trực tiếp đoạn văn bên dưới",
       "loadedFile": "Đã nạp: {{fileName}}"
+    }
+  },
+  "goalPicker": {
+    "placeholder": "Ví dụ: IELTS 6.5, giao tiếp hằng ngày...",
+    "inputAria": "Mục tiêu học tiếng Anh của bạn",
+    "chips": {
+      "ielts": "IELTS",
+      "toeic": "TOEIC",
+      "communication": "Giao tiếp",
+      "work": "Công việc",
+      "academic": "Học thuật"
+    },
+    "examples": {
+      "ielts": "IELTS 6.5",
+      "toeic": "TOEIC 800",
+      "communication": "Giao tiếp hằng ngày",
+      "work": "Tiếng Anh cho công việc",
+      "academic": "Đọc tài liệu học thuật"
+    }
+  },
+  "onboarding": {
+    "title": "Thiết lập ban đầu",
+    "heading": "Bạn học tiếng Anh để làm gì?",
+    "subtitle": "Hai câu hỏi ngắn. Chúng giúp AI chọn đúng từ và viết câu ví dụ hợp với mục đích của bạn.",
+    "goalLabel": "Mục tiêu học tập",
+    "fieldLabel": "Lĩnh vực của bạn",
+    "fieldPlaceholder": "Ví dụ: kỹ thuật phần mềm, marketing, tài chính",
+    "fieldHint": "Câu ví dụ sẽ được đặt trong bối cảnh này.",
+    "continueCta": "Tiếp tục",
+    "skipCta": "Bỏ qua, để sau"
+  },
+  "learnTopic": {
+    "heading": "Học từ mới theo chủ đề",
+    "subtitle": "Mô tả chủ đề bạn muốn học. AI sẽ đề xuất từ vựng phù hợp với trình độ và mục tiêu của bạn.",
+    "placeholder": "Ví dụ: từ vựng về môi trường",
+    "inputAria": "Chủ đề bạn muốn học",
+    "suggestCta": "Tìm từ cho chủ đề này",
+    "goalNotice": "Từ được chọn theo mục tiêu: {{goal}}",
+    "examples": {
+      "environment": "Môi trường",
+      "technology": "Công nghệ",
+      "health": "Sức khoẻ",
+      "travel": "Du lịch",
+      "business": "Kinh doanh"
+    },
+    "loading": {
+      "heading": "Đang chọn từ cho bạn...",
+      "body": "AI đang tìm từ vựng về \"{{topic}}\" hợp với trình độ của bạn."
+    },
+    "error": {
+      "heading": "Chưa tạo được danh sách từ",
+      "empty": "Không tìm được từ nào cho chủ đề này. Thử mô tả cụ thể hơn.",
+      "fallback": "Không tạo được danh sách từ. Thử lại sau.",
+      "retry": "Thử chủ đề khác"
+    },
+    "result": {
+      "title": "Từ vựng về {{topic}}",
+      "subtitle": "{{count}} từ được đề xuất. Chọn mức độ bạn đã biết từng từ — chỉ những từ chưa thành thạo mới vào sổ tay.",
+      "confirmLabel": "Lưu vào sổ tay",
+      "startOver": "Đổi chủ đề khác"
+    },
+    "success": {
+      "heading": "Đã thêm {{count}} từ",
+      "skippedNote": "{{count}} từ bạn đã biết rõ được bỏ qua và sẽ không gợi ý lại.",
+      "readyNote": "Các từ này đã sẵn sàng để luyện tập.",
+      "startOver": "Học chủ đề khác",
+      "practiceNow": "Luyện tập ngay"
     }
   },
   "shell": {

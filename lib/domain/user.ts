@@ -46,6 +46,40 @@ export const LevelProfileSchema = z.object({
 });
 export type LevelProfile = z.infer<typeof LevelProfileSchema>;
 
+// docs/decision.md ADR-028 — what the learner is studying FOR, as opposed to
+// `contextTopic` (the domain they work in) and `level` (the CEFR band they read at).
+// `text` is the only part that reaches an AI prompt; `kind` exists so the picker can
+// re-highlight the chip that was tapped. `setAt` is the "already asked" flag —
+// non-null after the onboarding screen is answered OR skipped, so skipping means
+// "stop asking", not "ask again every load".
+export const GoalKindSchema = z.enum(['ielts', 'toeic', 'communication', 'work', 'academic', 'custom']);
+export type GoalKind = z.infer<typeof GoalKindSchema>;
+
+export const LearningGoalSchema = z.object({
+  kind: GoalKindSchema.default('custom'),
+  // Deliberately NO `.max()` — same reason as `leaderboardName` below. The 120-char
+  // cap is enforced non-destructively at the input's `maxLength` and by a slice
+  // before the text is sent to an AI task.
+  text: z.string().default(''),
+  setAt: z.number().nullable().default(null),
+});
+export type LearningGoal = z.infer<typeof LearningGoalSchema>;
+
+/** Mirrors `GoalField`'s `.max(120)` in lib/ai/tasks/contracts.ts. */
+export const GOAL_MAX_LENGTH = 120;
+
+/**
+ * The one way a stored goal becomes an AI task input. The cap is enforced HERE
+ * rather than left to each call site because `GoalField` uses `.max(120)`, which
+ * *rejects* rather than truncates, and ai-client.ts validates input client-side
+ * before the fetch — so one over-long goal would make every AI feature in the app
+ * throw locally. That is the same failure shape ADR-017's CEFR widening caused, and
+ * this is the fix applied up front instead of after.
+ */
+export function goalForPrompt(goal: LearningGoal): string {
+  return goal.text.trim().slice(0, GOAL_MAX_LENGTH);
+}
+
 export const UserSettingsSchema = z.object({
   reminderHour: z.number().nullable(),
   studyTime: z.string().nullable(),
@@ -78,5 +112,8 @@ export const UserSettingsSchema = z.object({
     updatedAt: null,
     lastPromptedAt: null,
   }),
+  // docs/decision.md ADR-028 — additive field with a default, same no-migration
+  // pattern as `locale`/`sessionSize`/`levelProfile` above.
+  learningGoal: LearningGoalSchema.default({ kind: 'custom', text: '', setAt: null }),
 });
 export type UserSettings = z.infer<typeof UserSettingsSchema>;

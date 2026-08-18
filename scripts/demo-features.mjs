@@ -229,6 +229,33 @@ const FIXTURES = {
     ],
   },
 
+  // POST /api/ai/suggest-words -> SuggestTopicWordsOutput (docs/decision.md ADR-028)
+  suggestTopicWords: {
+    words: [
+      {
+        word: 'emission',
+        cefr: 'B2',
+        meaningVi: 'lượng khí thải ra môi trường',
+        exampleSentence: 'The factory cut its carbon emission by half last year.',
+        distractors: ['omission', 'admission', 'transmission'],
+      },
+      {
+        word: 'renewable',
+        cefr: 'B2',
+        meaningVi: 'có thể tái tạo, không cạn kiệt',
+        exampleSentence: 'Most of the grid now runs on renewable energy sources.',
+        distractors: ['reusable', 'removable', 'reliable'],
+      },
+      {
+        word: 'depletion',
+        cefr: 'C1',
+        meaningVi: 'sự cạn kiệt của một nguồn tài nguyên',
+        exampleSentence: 'Groundwater depletion is worse in the dry season.',
+        distractors: ['deployment', 'deduction', 'detention'],
+      },
+    ],
+  },
+
   // POST /api/ai/grade-sentence -> GradeSentenceOutput
   gradeSentence: {
     isCorrect: true,
@@ -508,7 +535,9 @@ async function mockAi(context) {
               ? FIXTURES.extractWords
               : url.includes('/grade-sentence')
                 ? FIXTURES.gradeSentence
-                : null;
+                : url.includes('/suggest-words')
+                  ? FIXTURES.suggestTopicWords
+                  : null;
 
     if (!pick) {
       // /api/ai/tts — 501 is exactly what a build with no TTS provider returns,

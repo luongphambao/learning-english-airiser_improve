@@ -13,6 +13,7 @@ interface AnalyzeInput {
   level: Cefr;
   contextTopic: string;
   excludeWords: string[];
+  goal: string;
 }
 
 interface WorkStoreState {
@@ -49,7 +50,7 @@ export const useWorkStore = create<WorkStoreState>()((set, get) => ({
   savedCount: null,
   error: null,
 
-  async analyze({ text, fileName, sourceType, level, contextTopic, excludeWords }) {
+  async analyze({ text, fileName, sourceType, level, contextTopic, excludeWords, goal }) {
     set({ status: 'analyzing', error: null, analysis: null, savedCount: null });
     const repos = getRepos();
     const created = await repos.imports.create({ fileName, kind: 'work', rawText: text });
@@ -62,7 +63,7 @@ export const useWorkStore = create<WorkStoreState>()((set, get) => ({
       // within its own 50s budget.
       const result = await callTask(
         'analyzeWork',
-        { workText: text, sourceType, level, contextTopic, excludeWords },
+        { workText: text, sourceType, level, contextTopic, excludeWords, goal },
         { timeoutMs: 65_000, retries: 0 },
       );
       const analysis = mapAnalyzeWorkOutput(result);

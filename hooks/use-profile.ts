@@ -11,3 +11,14 @@ export function useProfile(): UserProfile {
   const profile = useLiveQuery(() => getRepos().user.getProfile());
   return profile ?? { settings: DEFAULT_SETTINGS, stats: DEFAULT_STATS };
 }
+
+/** docs/decision.md ADR-028 — has the learner answered (or explicitly skipped) the
+ * goal question? `undefined` while Dexie is still answering, which is the whole
+ * reason this exists separately from `useProfile()`: that one substitutes
+ * DEFAULT_SETTINGS during the load, and a default `setAt: null` is
+ * indistinguishable from a real "never asked" — so the onboarding gate would flash
+ * the form at someone who answered months ago. */
+export function useOnboardingAnswered(): boolean | undefined {
+  const profile = useLiveQuery(() => getRepos().user.getProfile());
+  return profile ? profile.settings.learningGoal.setAt !== null : undefined;
+}

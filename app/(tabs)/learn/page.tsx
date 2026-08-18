@@ -8,15 +8,18 @@ import { useProfile } from '@/hooks/use-profile';
 import { useImportsList } from '@/hooks/use-imports';
 import { useWorkStore } from '@/stores/work-store';
 import { useDocStore } from '@/stores/doc-store';
+import { useTopicStore } from '@/stores/topic-store';
 import { useT } from '@/hooks/use-i18n';
 import { useIsGuest } from '@/hooks/use-access';
 import { useIsomorphicLayoutEffect } from '@/hooks/use-isomorphic-layout-effect';
 import { Button } from '@/components/Button';
 import { UploadDropzone } from '@/components/learn/upload-dropzone';
 import { DocResult } from '@/components/learn/doc-result';
+import { TopicSuggest } from '@/components/learn/topic-suggest';
 import { parseDocumentFile } from '@/lib/api/parse-doc-client';
 import { ApiError } from '@/lib/api/client';
 import { splitIntoUnits } from '@/lib/documents/extract';
+import { goalForPrompt } from '@/lib/domain';
 import {
   FileText, Loader2, AlertTriangle, CheckCircle2, Sparkles, ChevronDown, RotateCcw, Lock,
 } from 'lucide-react';
@@ -31,7 +34,7 @@ const INPUT_TYPE_LABEL_KEYS: Record<string, string> = {
   other: 'learn.inputTypes.other',
 };
 
-type LearnMode = 'work' | 'doc';
+type LearnMode = 'work' | 'doc' | 'topic';
 
 // Remembers whichever tab the user picked last, so returning to /learn doesn't
 // always reset to "Từ công việc" — the ?mode= query param (below) still wins when
@@ -65,6 +68,7 @@ export default function LearnPage() {
 
   const workStore = useWorkStore();
   const docStore = useDocStore();
+  const topicStore = useTopicStore();
 
   const [workText, setWorkText] = useState('');
   const [workFileName, setWorkFileName] = useState<string | null>(null);
@@ -100,6 +104,8 @@ export default function LearnPage() {
     if (work.status === 'done' || work.status === 'error') work.reset();
     const doc = useDocStore.getState();
     if (doc.status === 'done' || doc.status === 'error') doc.reset();
+    const topic = useTopicStore.getState();
+    if (topic.status === 'done' || topic.status === 'error') topic.reset();
   }, []);
 
   useEffect(() => {
@@ -111,8 +117,12 @@ export default function LearnPage() {
       setAutoOpenFileDialog(true);
       return;
     }
+    if (mode === 'topic') {
+      setLearnMode('topic');
+      return;
+    }
     const saved = window.localStorage.getItem(LEARN_MODE_STORAGE_KEY);
-    if (saved === 'work' || saved === 'doc') setLearnMode(saved);
+    if (saved === 'work' || saved === 'doc' || saved === 'topic') setLearnMode(saved);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -195,6 +205,7 @@ export default function LearnPage() {
       sourceType: 'other',
       level: settings.level,
       contextTopic: settings.contextTopic,
+      goal: goalForPrompt(settings.learningGoal),
       excludeWords: words.map((w) => w.word),
     });
   }
@@ -214,6 +225,7 @@ export default function LearnPage() {
       kind: docFileName?.toLowerCase().endsWith('.pdf') ? 'pdf' : 'text',
       level: settings.level,
       contextTopic: settings.contextTopic,
+      goal: goalForPrompt(settings.learningGoal),
     });
   }
 
@@ -252,10 +264,11 @@ export default function LearnPage() {
 
   const showWorkIdle = learnMode === 'work' && workStore.status === 'idle';
   const showDocIdle = learnMode === 'doc' && docStore.status === 'idle';
+  const showTopicIdle = learnMode === 'topic' && topicStore.status === 'idle';
 
   return (
     <div className="pb-nav max-w-2xl mx-auto">
-      {(showWorkIdle || showDocIdle) && (
+      {(showWorkIdle || showDocIdle || showTopicIdle) && (
         <div className="space-y-5">
           <div className="flex gap-1 p-1 bg-surface border border-rule rounded-xl">
             <button
@@ -276,9 +289,20 @@ export default function LearnPage() {
             >
               {t('learn.tabs.doc')}
             </button>
+            <button
+              type="button"
+              onClick={() => switchMode('topic')}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                learnMode === 'topic' ? 'bg-green-wash text-green' : 'text-ink-soft'
+              }`}
+            >
+              {t('learn.tabs.topic')}
+            </button>
           </div>
 
-          {learnMode === 'work' ? (
+          {learnMode === 'topic' ? (
+            <TopicSuggest />
+          ) : learnMode === 'work' ? (
             <>
               <div>
                 <h1 className="font-serif-display text-3xl text-ink mb-1">{t('learn.work.heading')}</h1>
@@ -358,7 +382,9 @@ export default function LearnPage() {
             </>
           )}
 
-          {pastImports.length > 0 && (
+          {/* Topic mode writes no Import row (docs/decision.md ADR-028), so this
+              history list would only ever show the other two tabs' documents. */}
+          {learnMode !== 'topic' && pastImports.length > 0 && (
             <div className="pt-4 border-t border-rule">
               <span className="font-mono-utility text-xs text-ink-soft uppercase tracking-wider block mb-2">
                 {t('learn.pastImportsLabel')}
@@ -390,6 +416,8 @@ export default function LearnPage() {
       )}
 
       {learnMode === 'doc' && docStore.status !== 'idle' && <DocResult onStartOver={startOver} />}
+
+      {learnMode === 'topic' && topicStore.status !== 'idle' && <TopicSuggest />}
 
       {learnMode === 'work' && workStore.status === 'analyzing' && (
         <div className="py-20 text-center space-y-4">

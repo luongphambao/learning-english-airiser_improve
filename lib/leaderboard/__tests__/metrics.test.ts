@@ -37,6 +37,7 @@ function settings(overrides: Partial<UserSettings> = {}): UserSettings {
     reminderHour: null, studyTime: null, theme: 'system', locale: 'vi', contextTopic: '',
     level: 'B1', sessionSize: 5, leaderboardName: null,
     levelProfile: { declared: null, placement: null, work: null, srs: null, updatedAt: null, lastPromptedAt: null },
+    learningGoal: { kind: 'custom', text: '', setAt: null },
     ...overrides,
   };
 }

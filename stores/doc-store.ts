@@ -22,6 +22,7 @@ interface AnalyzeInput {
   kind: Import['kind'];
   level: Cefr;
   contextTopic: string;
+  goal: string;
 }
 
 interface SaveTriageResult {
@@ -61,11 +62,17 @@ interface DocStoreState {
 
 async function analyzeChunk(
   chunk: UnitChunk,
-  ctx: { level: Cefr; contextTopic: string; excludeWords: string[] },
+  ctx: { level: Cefr; contextTopic: string; excludeWords: string[]; goal: string },
 ): Promise<CandidateWord[]> {
   const result = await callTask(
     'analyzeDocument',
-    { documentText: chunk.text, level: ctx.level, contextTopic: ctx.contextTopic, excludeWords: ctx.excludeWords },
+    {
+      documentText: chunk.text,
+      level: ctx.level,
+      contextTopic: ctx.contextTopic,
+      excludeWords: ctx.excludeWords,
+      goal: ctx.goal,
+    },
     // retries: 1 (not the usual 0) is deliberate here — every chunk fires at once,
     // so a burst past the task's rate limit is expected, not exceptional. postJson
     // already reads the rate limiter's `retry-after` header and backs off by
@@ -99,7 +106,7 @@ export const useDocStore = create<DocStoreState>()((set, get) => ({
   savedResult: null,
   error: null,
 
-  async analyze({ units, unitLabel, fileName, kind, level, contextTopic }) {
+  async analyze({ units, unitLabel, fileName, kind, level, contextTopic, goal }) {
     set({
       status: 'analyzing',
       error: null,
@@ -126,7 +133,7 @@ export const useDocStore = create<DocStoreState>()((set, get) => ({
 
     const settled = await Promise.allSettled(
       chunks.map((chunk) =>
-        analyzeChunk(chunk, { level, contextTopic, excludeWords }).finally(() => {
+        analyzeChunk(chunk, { level, contextTopic, excludeWords, goal }).finally(() => {
           set((s) => (s.progress ? { progress: { ...s.progress, completed: s.progress.completed + 1 } } : {}));
         }),
       ),

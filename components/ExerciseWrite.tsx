@@ -10,9 +10,10 @@ interface ExerciseWriteProps {
   word: Word;
   onAnswer: (correct: boolean) => void;
   contextTopic?: string;
+  goal?: string;
 }
 
-export function ExerciseWrite({ word, onAnswer, contextTopic = 'software engineering' }: ExerciseWriteProps) {
+export function ExerciseWrite({ word, onAnswer, contextTopic = 'software engineering', goal }: ExerciseWriteProps) {
   const { t } = useT();
   const [userSentence, setUserSentence] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,7 +29,7 @@ export function ExerciseWrite({ word, onAnswer, contextTopic = 'software enginee
     setLoading(true);
     setError(null);
     try {
-      const data = await callTask('gradeSentence', { word: word.word, sentence: userSentence, contextTopic });
+      const data = await callTask('gradeSentence', { word: word.word, sentence: userSentence, contextTopic, goal });
       setResult(data);
     } catch (err) {
       // Previously this branch fabricated a passing grade and an "AI-written"

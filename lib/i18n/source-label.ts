@@ -1,3 +1,5 @@
+import { markKey, resolveMarked } from './marked-key';
+
 /**
  * `Word.source.label` is a mixed field. Some values are user data that must NEVER
  * be translated — an uploaded document's name reaches it as e.g.
@@ -10,24 +12,30 @@
  * was persisted to Dexie (and synced to Firestore) rather than resolved at render.
  *
  * The fix keeps one field and needs no migration: system writers store a marked
- * i18n KEY instead of a phrase, and `resolveSourceLabel()` translates anything
- * carrying the marker while passing every other value through untouched. Rows
- * written before this change hold plain Vietnamese text, which has no marker, so
- * they keep rendering exactly as they always did — nothing to backfill, and a
- * user's own filenames can never be mistaken for a key.
- *
- * The marker is `@`, which cannot begin a document name produced by
- * lib/documents/** and is not used by any other label writer.
+ * i18n KEY (lib/i18n/marked-key.ts) instead of a phrase, and `resolveSourceLabel()`
+ * translates anything carrying the marker while passing every other value through
+ * untouched. Rows written before this change hold plain Vietnamese text, which has
+ * no marker, so they keep rendering exactly as they always did — nothing to
+ * backfill, and a user's own filenames can never be mistaken for a key.
  */
-const MARKER = '@';
 
-/** The only labels a system writer may store. Anything else in `source.label` is
- * user data and is rendered verbatim. */
+/** The only argument-free labels a system writer may store. Anything else in
+ * `source.label` is user data and is rendered verbatim. */
 export const SOURCE_KEY = {
-  manual: `${MARKER}vocabulary.sourceKind.manual`,
-  paste: `${MARKER}vocabulary.sourceKind.paste`,
-  placement: `${MARKER}vocabulary.sourceKind.placement`,
+  manual: markKey('vocabulary.sourceKind.manual'),
+  paste: markKey('vocabulary.sourceKind.paste'),
+  placement: markKey('vocabulary.sourceKind.placement'),
 } as const;
+
+/**
+ * docs/decision.md ADR-028 — "Học từ mới theo chủ đề" writes a label that is BOTH
+ * kinds at once: a system phrase ("Chủ đề: ") wrapping user text (the topic they
+ * typed). Neither a bare `SOURCE_KEY` (key only) nor a plain string (frozen
+ * language) handles that, hence the `@key|value` form.
+ */
+export function topicSourceLabel(topic: string): string {
+  return markKey('vocabulary.sourceKind.topic', topic);
+}
 
 /**
  * `label` -> display text. `t` is the caller's bound translator (hooks/use-i18n),
@@ -36,9 +44,8 @@ export const SOURCE_KEY = {
  */
 export function resolveSourceLabel(
   label: string | null | undefined,
-  t: (key: string) => string,
+  t: (key: string, vars?: Record<string, string | number>) => string,
   fallback: string,
 ): string {
-  if (!label) return fallback;
-  return label.startsWith(MARKER) ? t(label.slice(MARKER.length)) : label;
+  return resolveMarked(label, t, fallback);
 }

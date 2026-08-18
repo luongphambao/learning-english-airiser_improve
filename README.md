@@ -39,11 +39,13 @@ Lexio takes the opposite route: your own material is the syllabus, and the sched
 | **Text and analysis** | `gemini-3.6-flash` |
 | **Speech** | `gemini-3.1-flash-tts-preview`, voice `Kore` |
 
-Gemini does six jobs in Lexio:
+Gemini does seven jobs in Lexio:
 
 - **Reads your work document** — an email or report becomes vocabulary, professional phrases,
   grammar insights, and better-written versions of your own sentences.
 - **Mines an uploaded PDF or DOCX** for vocabulary graded by CEFR level, page by page.
+- **Builds a word set from a topic you name** — "vocabulary about the environment" becomes 5-10 words
+  matched to your level and to what you are studying for, with no document needed.
 - **Pulls the words worth learning** out of any text you paste.
 - **Enriches each word** with a Vietnamese meaning, IPA, an example sentence, collocations, word
   family, and quiz options — in the background, so the notebook is always ready.
@@ -86,7 +88,8 @@ afterwards, with every significant decision written down as an architecture deci
 ### Learn from your real work
 
 Paste an email or report and get back vocabulary, professional phrasing, grammar notes, and improved
-rewrites. Or upload a PDF or DOCX and let it be analysed page by page.
+rewrites. Or upload a PDF or DOCX and let it be analysed page by page. When you have no document at
+hand, name a topic instead — "vocabulary about the environment" — and get a set of words back.
 
 <table>
 <tr>
@@ -120,8 +123,10 @@ Streaks, words mastered, accuracy, and a seven-day review chart.
 
 ### Start in two minutes
 
-A new notebook is empty on purpose. A two-minute placement test scores twenty words offline, works
-out your CEFR level, and puts the right first words in your notebook.
+A new notebook is empty on purpose. Signing in asks one question first — what you are learning
+English for, "IELTS 6.5" or "everyday conversation" — which then shapes every word the AI picks and
+every example sentence it writes. Then a two-minute placement test scores twenty words offline,
+works out your CEFR level, and puts the right first words in your notebook.
 
 <table>
 <tr>

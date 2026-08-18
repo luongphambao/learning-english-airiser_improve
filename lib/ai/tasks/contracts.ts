@@ -13,13 +13,24 @@ export const TASK_ROUTES = {
   gradeSentence: '/api/ai/grade-sentence',
   analyzeDocument: '/api/ai/analyze-doc',
   analyzeWork: '/api/ai/analyze-work',
+  suggestTopicWords: '/api/ai/suggest-words',
 } as const;
 
 export type TaskId = keyof typeof TASK_ROUTES;
 
+// docs/decision.md ADR-028 — the learner's stated goal ("IELTS 6.5", "học để giao
+// tiếp"), threaded through every task so word choice and example sentences bias
+// toward what the learning is FOR. `.default('')` keeps it optional on `z.input`,
+// so every pre-ADR-028 call site still type-checks and still validates client-side
+// (contrast ADR-017's CEFR widening, which broke exactly that). It is free user
+// text, so it is fenced as data in prompt() and NEVER interpolated into system() —
+// see registry.server.ts's goalPart().
+const GoalField = z.string().trim().max(120).default('');
+
 export const EnrichWordInput = z.object({
   word: z.string().trim().min(1).max(64),
   contextTopic: z.string().trim().min(1).max(80).default('software engineering'),
+  goal: GoalField,
 });
 export const EnrichWordOutput = z.object({
   ipa: z.string().max(64),
@@ -52,6 +63,7 @@ export const EnrichWordBatchInput = z.object({
   words: z.array(z.string().trim().min(1).max(64)).min(1).max(8),
   contextTopic: z.string().trim().min(1).max(80).default('software engineering'),
   level: CefrSchema.default('B2'),
+  goal: GoalField,
 });
 const EnrichWordBatchItem = z.object({
   word: z.string().max(64), // echoed back verbatim — the re-keying anchor (stores/topup-store.ts)
@@ -80,6 +92,7 @@ export const ExtractWordsInput = z.object({
   // parses this input CLIENT-SIDE before the fetch, so a 'C2'/'A1' settings.level would
   // have thrown locally the moment a caller passed it through unchanged.
   level: CefrSchema.default('B2'),
+  goal: GoalField,
 });
 export const ExtractWordsOutput = z.object({
   words: z.array(
@@ -94,6 +107,7 @@ export const GradeSentenceInput = z.object({
   word: z.string().trim().min(1).max(64),
   sentence: z.string().trim().min(1).max(300),
   contextTopic: z.string().trim().max(80).default('software engineering'),
+  goal: GoalField,
 });
 export const GradeSentenceOutput = z.object({
   isCorrect: z.boolean(),
@@ -106,6 +120,7 @@ export const AnalyzeDocumentInput = z.object({
   level: CefrSchema.default('B2'),
   contextTopic: z.string().trim().max(80).default('software engineering'),
   excludeWords: z.array(z.string().max(64)).max(500).default([]),
+  goal: GoalField,
 });
 const CandidateWordOutput = z.object({
   word: z.string().max(64),
@@ -138,6 +153,7 @@ export const AnalyzeWorkInput = z.object({
   level: CefrSchema.default('B2'),
   contextTopic: z.string().trim().max(80).default('software engineering'),
   excludeWords: z.array(z.string().max(64)).max(300).default([]),
+  goal: GoalField,
 });
 
 const WorkVocabItem = z.object({
@@ -196,6 +212,36 @@ export const AnalyzeWorkOutput = z.object({
   }),
 });
 
+// "Học từ mới theo chủ đề" (docs/decision.md ADR-028) — the third source of new
+// words, alongside analyzeWork and analyzeDocument. Those two both require the
+// learner to already HAVE an English text; this one starts from a description of
+// what they want to learn ("từ vựng về môi trường") and nothing else.
+export const SuggestTopicWordsInput = z.object({
+  topic: z.string().trim().min(1).max(120),
+  level: CefrSchema.default('B2'),
+  contextTopic: z.string().trim().max(80).default('software engineering'),
+  count: z.number().int().min(5).max(10).default(8),
+  excludeWords: z.array(z.string().max(64)).max(300).default([]),
+  goal: GoalField,
+});
+
+// `word` declared FIRST, same reason as EnrichWordBatchItem: propertyOrdering
+// (lib/ai/gemini-schema.ts) follows declaration order, so the model commits to the
+// word before generating anything about it. `exampleSentence` + `distractors` are
+// required, not optional, and that is the whole point — isEligible() in
+// lib/srs/session.ts needs exactly that shape, so a saved word is practisable as a
+// fillBlank card with no second AI call (same design as analyzeDocument, ADR-021).
+const SuggestedWordItem = z.object({
+  word: z.string().max(64),
+  cefr: CefrSchema.catch('B2'),
+  meaningVi: z.string().max(200),
+  exampleSentence: z.string().max(300),
+  distractors: z.array(z.string().max(64)),
+});
+export const SuggestTopicWordsOutput = z.object({
+  words: z.array(SuggestedWordItem),
+});
+
 export const TASK_IO = {
   enrichWord: { input: EnrichWordInput, output: EnrichWordOutput },
   enrichWordBatch: { input: EnrichWordBatchInput, output: EnrichWordBatchOutput },
@@ -203,6 +249,7 @@ export const TASK_IO = {
   gradeSentence: { input: GradeSentenceInput, output: GradeSentenceOutput },
   analyzeDocument: { input: AnalyzeDocumentInput, output: AnalyzeDocumentOutput },
   analyzeWork: { input: AnalyzeWorkInput, output: AnalyzeWorkOutput },
+  suggestTopicWords: { input: SuggestTopicWordsInput, output: SuggestTopicWordsOutput },
 } as const;
 
 // Two different shapes for "input", because zod's `.default()` fields are optional

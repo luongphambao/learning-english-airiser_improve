@@ -60,7 +60,7 @@ export default function LoginPage() {
           if (user) {
             setNotice({ type: 'success', message: t('login.googleSuccess') });
             window.dispatchEvent(new Event('lexio-auth-changed'));
-            setTimeout(() => router.push('/today'), 600);
+            setTimeout(() => router.push('/onboarding'), 600);
             return;
           }
         } catch (err) {
@@ -87,10 +87,13 @@ export default function LoginPage() {
     }
   }, []);
 
+  // /onboarding, not /today (docs/decision.md ADR-028) — it asks the goal question
+  // once and forwards straight on for anyone who has already answered or skipped it,
+  // so a returning learner sees a spinner's worth of delay, not a form.
   const afterSignedIn = () => {
     setNotice({ type: 'success', message: mode === 'register' ? t('login.accountCreated') : t('login.signInSuccess') });
     window.dispatchEvent(new Event('lexio-auth-changed'));
-    setTimeout(() => router.push('/today'), 600);
+    setTimeout(() => router.push('/onboarding'), 600);
   };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -135,13 +138,14 @@ export default function LoginPage() {
     }
   };
 
-  // Straight to the placement test rather than /today: it is entirely local
-  // (corpus + Dexie, no auth, no network) so a guest gets real content in one
-  // tap, where /today would greet them with an empty notebook.
+  // /onboarding rather than /today: a guest with an empty notebook would be greeted
+  // by nothing there. Onboarding forwards to the placement test (entirely local —
+  // corpus + Dexie, no auth, no network) once the goal question is done, so a guest
+  // still reaches real content in two taps (docs/decision.md ADR-028).
   const handleTryAsGuest = () => {
     enterGuestMode();
     window.dispatchEvent(new Event('lexio-auth-changed'));
-    router.push('/placement');
+    router.push('/onboarding');
   };
 
   const handleForgotPassword = async () => {

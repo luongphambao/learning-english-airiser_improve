@@ -53,6 +53,7 @@ async function analyzeOnce(candidates: unknown[]) {
     kind: 'text',
     level: 'B2',
     contextTopic: 'general',
+      goal: '',
   });
 }
 
@@ -92,6 +93,7 @@ describe('doc-store', () => {
       kind: 'text',
       level: 'B2',
       contextTopic: 'general',
+      goal: '',
     });
 
     const state = useDocStore.getState();
@@ -169,6 +171,7 @@ describe('doc-store', () => {
       kind: 'pdf',
       level: 'B2',
       contextTopic: 'general',
+      goal: '',
     });
 
     const state = useDocStore.getState();
@@ -194,6 +197,7 @@ describe('doc-store', () => {
       kind: 'pdf',
       level: 'B2',
       contextTopic: 'general',
+      goal: '',
     });
 
     const state = useDocStore.getState();
@@ -221,6 +225,7 @@ describe('doc-store', () => {
       kind: 'pdf',
       level: 'B2',
       contextTopic: 'general',
+      goal: '',
     });
 
     const state = useDocStore.getState();
@@ -240,6 +245,7 @@ describe('doc-store', () => {
       kind: 'pdf',
       level: 'B2',
       contextTopic: 'general',
+      goal: '',
     });
 
     expect(useDocStore.getState().truncatedAtUnit).toBe(20);

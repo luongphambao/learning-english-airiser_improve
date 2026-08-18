@@ -6,7 +6,7 @@ import { buildExclusionSet } from '@/lib/corpus/exclude';
 import { pickCorpusWords } from '@/lib/corpus/pick';
 import { stepCefr } from '@/lib/level/cefr';
 import { dayKey } from '@/lib/srs/date';
-import type { Cefr } from '@/lib/domain';
+import { goalForPrompt, type Cefr } from '@/lib/domain';
 import type { CorpusEntry } from '@/lib/corpus/types';
 
 // docs/decision.md ADR-018 — writes real `words` rows (not a parallel "suggestion"
@@ -80,7 +80,12 @@ async function run(now: number, targetSize: number): Promise<TopupResult> {
   try {
     const result = await callTask(
       'enrichWordBatch',
-      { words: picked.map((p) => p.word), contextTopic: settings.contextTopic, level },
+      {
+        words: picked.map((p) => p.word),
+        contextTopic: settings.contextTopic,
+        level,
+        goal: goalForPrompt(settings.learningGoal),
+      },
       { timeoutMs: ENRICH_TIMEOUT_MS, retries: 0 },
     );
     // Re-key by lowercase word — repair() only trims/dedupes each item, it never
