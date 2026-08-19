@@ -30,11 +30,12 @@
   --wrong: #9C4A3F;
 
   /* Mascot only (components/mascot/Mascot.tsx, docs/decision.md ADR-030) — a
-     dedicated pair kept separate from --green so the app's own accent stays a
-     single hue; only the mascot illustration uses this pair. Currently a
-     lighter, softer green than --green itself. */
+     dedicated set kept separate from --green so the app's own accent stays a
+     single hue; only the mascot illustration uses these. --fill is the back,
+     --belly the cream underside/jowls, --spot the darker back blotches. */
   --mascot-fill: #5EA382;
-  --mascot-fill-wash: #E4F0E8;
+  --mascot-belly: #F2E6C0;
+  --mascot-spot: #3D7F5F;
 
   --radius-card: 16px;
   --radius-btn: 12px;
@@ -65,8 +66,9 @@
   --amber-ink: #C79B5C; /* on dark washes this already clears AA (5.7:1) */
   --wrong: #C4736A;
 
-  --mascot-fill: #8FC7A8;
-  --mascot-fill-wash: #26362D;
+  --mascot-fill: #4F9271;
+  --mascot-belly: #E8D9A8;
+  --mascot-spot: #345F47;
 
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
 
