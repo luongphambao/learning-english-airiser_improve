@@ -16,8 +16,9 @@ import { ExerciseWrite } from '@/components/ExerciseWrite';
 import { ExerciseRecall } from '@/components/ExerciseRecall';
 import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
+import { Dragon } from '@/components/mascot/Dragon';
 import { goalForPrompt } from '@/lib/domain';
-import { CheckCircle2, Sparkles, AlertTriangle, BookCheck, Bookmark, Shuffle, Loader2 } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, BookCheck, Bookmark, Shuffle, Loader2 } from 'lucide-react';
 
 // Owns the SRS session (moved from app/(tabs)/today/page.tsx — that route is now
 // Home V2 and only links here; it no longer auto-starts a session on load). The
@@ -119,8 +120,8 @@ export default function PracticePage() {
     return (
       <div className="space-y-6">
         <div className="py-12 px-4 text-center max-w-md mx-auto bg-surface border border-rule rounded-card">
-          <div className="w-16 h-16 rounded-full bg-green-wash text-green flex items-center justify-center mx-auto mb-4">
-            <Sparkles size={32} />
+          <div className="flex items-center justify-center mx-auto mb-4">
+            <Dragon mood="excited" size={72} label={t('mascot.completeCheer')} />
           </div>
           <h2 className="font-serif-display text-3xl sm:text-4xl text-ink mb-2">
             {mode === 'review'

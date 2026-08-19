@@ -8,6 +8,7 @@ import { useTopupStore } from '@/stores/topup-store';
 import { useT } from '@/hooks/use-i18n';
 import { useIsGuest } from '@/hooks/use-access';
 import { Button } from '@/components/Button';
+import { Dragon } from '@/components/mascot/Dragon';
 import { FileText, Upload, ChevronRight, Flame, Trophy, CalendarDays, Sparkles } from 'lucide-react';
 
 // Home — answers "what should I do next?" instead of auto-starting a session
@@ -82,7 +83,12 @@ export default function TodayPage() {
           brand-new user meets the placement CTA first, not a "0 ngày" card.
           At lg it becomes the top of the right-hand rail. */}
       {hasNotebook && (
-        <div className="space-y-3 lg:col-start-2 lg:row-start-2">
+        <div className="relative space-y-3 lg:col-start-2 lg:row-start-2">
+          {/* Decorative — the streak numbers right below already say the same
+              thing to assistive tech, so this stays out of the a11y tree. */}
+          <div className="pointer-events-none absolute -top-3 -right-2 z-10">
+            <Dragon mood="idle" size={40} />
+          </div>
           <Link
             href="/progress"
             className="flex items-center gap-4 bg-surface border border-rule rounded-card shadow-card p-5 hover:border-green transition-colors"

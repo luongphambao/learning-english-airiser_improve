@@ -268,7 +268,8 @@
       "sendSuccess": "Successfully sent an email with 5 words to {{recipient}}!",
       "sendFailedFallback": "Couldn't send the email. Please check your connection.",
       "sendNoDueWords": "No words are due for review yet. Add words to your notebook and try again.",
-      "sendSystemError": "System error while sending the email."
+      "sendSystemError": "System error while sending the email.",
+      "savedToast": "Saved"
     },
     "contextTopic": {
       "label": "Work domain topic (guides AI example sentences):"
@@ -647,5 +648,21 @@
       "title": "Page not found",
       "body": "The link you opened doesn't exist or has changed."
     }
+  },
+  "mascot": {
+    "ariaLabel": "Your dragon companion",
+    "closeAria": "Dismiss the dragon's message",
+    "linesCaughtUp1": "Well done! You're all caught up for today.",
+    "linesCaughtUp2": "Awesome! No more words due for review.",
+    "linesCaughtUp3": "Great job! See you again tomorrow.",
+    "linesEncourage1": "Keep going! Your {{streak}}-day streak is waiting.",
+    "linesEncourage2": "Review a few words today to keep your {{streak}}-day streak!",
+    "linesEncourage3": "You're doing great. Keep it up!",
+    "linesStart1": "Hi! I'm your English-learning dragon.",
+    "linesStart2": "Let's learn your first word!",
+    "linesStart3": "Let's conquer English together!",
+    "practiceCorrect": "Nailed it!",
+    "practiceIncorrect": "No worries, mistakes help you learn!",
+    "completeCheer": "You're amazing!"
   }
 }

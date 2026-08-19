@@ -13,6 +13,7 @@ import { useThemeSync } from '@/hooks/use-theme';
 import { AppBootSkeleton } from '@/components/layout/app-boot-skeleton';
 import { LegacyClaimBanner } from '@/components/layout/legacy-claim-banner';
 import { SyncScheduler } from '@/components/layout/sync-scheduler';
+import { MascotOverlay } from '@/components/mascot/MascotOverlay';
 
 /** No account and no guest mode — the visitor is sent to the login screen. */
 type Access = AccessMode | 'locked';
@@ -157,6 +158,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
         {uid && <LegacyClaimBanner />}
         {uid && <SyncScheduler />}
         {children}
+        {/* Guests get the dragon too (docs/decision.md ADR-030) — unlike the two
+            rows above, it's not account-specific, so it isn't gated on `uid`. */}
+        <MascotOverlay />
       </Fragment>
     </AccessProvider>
   );

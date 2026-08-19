@@ -192,3 +192,74 @@
 .animate-slide-up {
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* Dragon mascot (docs/decision.md ADR-030) — components/mascot/Dragon.tsx. Plain
+   CSS keyframes, same convention as fadeIn/slideUp above; the global
+   prefers-reduced-motion rule in @layer base already forces every animation here
+   down to 0.01ms, so these need no reduced-motion handling of their own. */
+@keyframes dragonFloat {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-6px) rotate(2deg); }
+}
+
+@keyframes dragonBounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(-10px) scale(1.05); }
+  55% { transform: translateY(0) scale(0.97); }
+  75% { transform: translateY(-4px) scale(1.02); }
+}
+
+@keyframes dragonSad {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(3px) rotate(-4deg); }
+}
+
+@keyframes dragonWingFlap {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-22deg); }
+}
+
+@keyframes dragonTailWag {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(10deg); }
+}
+
+@keyframes dragonSparkle {
+  0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(90deg); }
+}
+
+.dragon-idle {
+  animation: dragonFloat 3.2s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+
+.dragon-happy,
+.dragon-excited {
+  animation: dragonBounce 0.9s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+
+.dragon-sad {
+  animation: dragonSad 2.6s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+
+.dragon-wing-left {
+  animation: dragonWingFlap 1.6s ease-in-out infinite;
+  transform-origin: 62% 42%;
+}
+
+.dragon-wing-right {
+  animation: dragonWingFlap 1.6s ease-in-out infinite 0.15s;
+  transform-origin: 38% 42%;
+}
+
+.dragon-tail {
+  animation: dragonTailWag 2.2s ease-in-out infinite;
+  transform-origin: 28% 68%;
+}
+
+.dragon-sparkle {
+  animation: dragonSparkle 1.1s ease-in-out infinite;
+}

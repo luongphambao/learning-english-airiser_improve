@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Word } from '@/types';
 import { Button } from './Button';
+import { Dragon } from './mascot/Dragon';
 import { useT } from '@/hooks/use-i18n';
 
 interface ExerciseRecallProps {
@@ -60,11 +61,14 @@ export function ExerciseRecall({ word, onAnswer }: ExerciseRecallProps) {
           <div className="space-y-4 animate-fade-in">
             <div
               aria-live="polite"
-              className={`p-4 rounded-btn text-center font-semibold border ${
+              className={`p-4 rounded-btn text-center font-semibold border flex items-center justify-center gap-3 ${
                 isCorrect ? 'bg-green-wash text-green border-green/30' : 'bg-wrong/10 text-wrong border-wrong/30'
               }`}
             >
-              {isCorrect ? t('exercise.recall.correctFeedback') : <>{t('exercise.recall.answerIsLabel')} <span lang="en">{word.word}</span></>}
+              <Dragon mood={isCorrect ? 'happy' : 'sad'} size={32} />
+              <span>
+                {isCorrect ? t('exercise.recall.correctFeedback') : <>{t('exercise.recall.answerIsLabel')} <span lang="en">{word.word}</span></>}
+              </span>
             </div>
 
             <Button variant="primary" onClick={() => onAnswer(isCorrect || false)} className="w-full">

@@ -268,7 +268,8 @@
       "sendSuccess": "Đã gửi thành công email 5 từ vựng tới {{recipient}}!",
       "sendFailedFallback": "Không thể gửi email. Vui lòng kiểm tra lại kết nối.",
       "sendNoDueWords": "Chưa có từ nào đến hạn ôn. Thêm từ vào sổ tay rồi thử lại.",
-      "sendSystemError": "Lỗi hệ thống khi gửi email."
+      "sendSystemError": "Lỗi hệ thống khi gửi email.",
+      "savedToast": "Đã lưu"
     },
     "contextTopic": {
       "label": "Chủ đề lĩnh vực làm việc (Định hướng câu ví dụ AI):"
@@ -647,5 +648,21 @@
       "title": "Không tìm thấy trang",
       "body": "Đường dẫn bạn mở không tồn tại hoặc đã được đổi."
     }
+  },
+  "mascot": {
+    "ariaLabel": "Rồng bạn đồng hành",
+    "closeAria": "Đóng lời nhắn của rồng",
+    "linesCaughtUp1": "Giỏi lắm! Hôm nay bạn đã học xong rồi.",
+    "linesCaughtUp2": "Tuyệt vời! Không còn từ nào chờ ôn nữa.",
+    "linesCaughtUp3": "Làm tốt lắm! Hẹn gặp lại vào ngày mai nhé.",
+    "linesEncourage1": "Cố lên! Chuỗi {{streak}} ngày đang chờ bạn tiếp tục.",
+    "linesEncourage2": "Ôn vài từ hôm nay để giữ chuỗi {{streak}} ngày nhé!",
+    "linesEncourage3": "Bạn đang làm rất tốt. Tiếp tục nào!",
+    "linesStart1": "Chào bạn! Mình là rồng học tiếng Anh của bạn.",
+    "linesStart2": "Bắt đầu học từ đầu tiên nào!",
+    "linesStart3": "Cùng nhau chinh phục tiếng Anh nhé!",
+    "practiceCorrect": "Chuẩn không cần chỉnh!",
+    "practiceIncorrect": "Không sao, học từ lỗi sai nhé!",
+    "completeCheer": "Bạn giỏi quá!"
   }
 }

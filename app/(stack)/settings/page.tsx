@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useProfile } from '@/hooks/use-profile';
 import { useSettingsStore } from '@/stores/settings-store';
@@ -34,6 +34,21 @@ export default function SettingsPage() {
   // separate Gmail-reminder connection, see app/api/auth/google/callback's
   // comment). The sync card only makes sense once actually signed in.
   const [signedIn, setSignedIn] = useState(false);
+
+  // Every field on this page already writes through updateSettings()/
+  // setDeclaredLevel() on every change — there never was a missing save path,
+  // just no visible confirmation that the write happened (the user-reported
+  // "no save feature"). This is a transient, debounced "Đã lưu" pill rather
+  // than a per-keystroke one, so typing in leaderboardName/contextTopic
+  // doesn't flash the toast on every character.
+  const [showSaved, setShowSaved] = useState(false);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const markSaved = () => {
+    setShowSaved(true);
+    if (savedTimer.current) clearTimeout(savedTimer.current);
+    savedTimer.current = setTimeout(() => setShowSaved(false), 1800);
+  };
+  useEffect(() => () => { if (savedTimer.current) clearTimeout(savedTimer.current); }, []);
 
   const fetchGmailStatus = async () => {
     try {
@@ -204,7 +219,10 @@ export default function SettingsPage() {
             <input
               type="text"
               value={settings.leaderboardName ?? ''}
-              onChange={(e) => updateSettings({ leaderboardName: e.target.value.trim() || null })}
+              onChange={(e) => {
+                updateSettings({ leaderboardName: e.target.value.trim() || null });
+                markSaved();
+              }}
               maxLength={NAME_MAX_LENGTH}
               placeholder={t('settings.leaderboard.namePlaceholder')}
               className="w-full p-3 rounded-xl bg-paper border border-rule text-sm text-ink focus:outline-none focus:border-green"
@@ -301,15 +319,16 @@ export default function SettingsPage() {
               (docs/decision.md ADR-028) reappear on the next sign-in. */}
           <GoalPicker
             value={settings.learningGoal}
-            onChange={(next) =>
+            onChange={(next) => {
               updateSettings({
                 learningGoal: {
                   ...next,
                   text: next.text.slice(0, GOAL_MAX_LENGTH),
                   setAt: settings.learningGoal.setAt ?? Date.now(),
                 },
-              })
-            }
+              });
+              markSaved();
+            }}
           />
           <p className="mt-2 text-xs text-ink-soft">{t('settings.goal.hint')}</p>
         </div>
@@ -321,7 +340,10 @@ export default function SettingsPage() {
           <input
             type="text"
             value={settings.contextTopic}
-            onChange={(e) => updateSettings({ contextTopic: e.target.value })}
+            onChange={(e) => {
+              updateSettings({ contextTopic: e.target.value });
+              markSaved();
+            }}
             placeholder="e.g. software engineering, marketing, finance"
             className="w-full p-3 rounded-xl bg-paper border border-rule text-sm text-ink focus:outline-none focus:border-green"
           />
@@ -334,7 +356,10 @@ export default function SettingsPage() {
           <select
             id="settings-level"
             value={settings.level}
-            onChange={(e) => setDeclaredLevel(e.target.value as UserSettings['level'], Date.now())}
+            onChange={(e) => {
+              setDeclaredLevel(e.target.value as UserSettings['level'], Date.now());
+              markSaved();
+            }}
             className="w-full p-3 rounded-xl bg-paper border border-rule text-sm text-ink"
           >
             <option value="A2">A2 — Elementary</option>
@@ -363,7 +388,10 @@ export default function SettingsPage() {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => updateSettings({ sessionSize: Math.max(3, settings.sessionSize - 1) })}
+              onClick={() => {
+                updateSettings({ sessionSize: Math.max(3, settings.sessionSize - 1) });
+                markSaved();
+              }}
               disabled={settings.sessionSize <= 3}
               className="w-10 h-10 rounded-xl border border-rule text-ink text-lg font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:border-green transition-colors"
               aria-label={t('settings.sessionSize.decreaseAria')}
@@ -373,7 +401,10 @@ export default function SettingsPage() {
             <span className="font-mono-utility text-sm text-ink w-8 text-center">{settings.sessionSize}</span>
             <button
               type="button"
-              onClick={() => updateSettings({ sessionSize: Math.min(20, settings.sessionSize + 1) })}
+              onClick={() => {
+                updateSettings({ sessionSize: Math.min(20, settings.sessionSize + 1) });
+                markSaved();
+              }}
               disabled={settings.sessionSize >= 20}
               className="w-10 h-10 rounded-xl border border-rule text-ink text-lg font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:border-green transition-colors"
               aria-label={t('settings.sessionSize.increaseAria')}
@@ -387,7 +418,10 @@ export default function SettingsPage() {
           <label className="block text-xs font-mono-utility text-ink-soft mb-2">{t('settings.theme.label')}</label>
           <div className="flex gap-2">
             <button
-              onClick={() => updateSettings({ theme: 'light' })}
+              onClick={() => {
+                updateSettings({ theme: 'light' });
+                markSaved();
+              }}
               className={`flex-1 py-2.5 rounded-xl border text-xs font-medium cursor-pointer ${
                 settings.theme === 'light'
                   ? 'border-green bg-green-wash text-green'
@@ -397,7 +431,10 @@ export default function SettingsPage() {
               {t('settings.theme.light')}
             </button>
             <button
-              onClick={() => updateSettings({ theme: 'dark' })}
+              onClick={() => {
+                updateSettings({ theme: 'dark' });
+                markSaved();
+              }}
               className={`flex-1 py-2.5 rounded-xl border text-xs font-medium cursor-pointer ${
                 settings.theme === 'dark'
                   ? 'border-green bg-green-wash text-green'
@@ -420,6 +457,21 @@ export default function SettingsPage() {
           <ChevronRight size={18} className="text-ink-soft" />
         </Link>
       </div>
+
+      {/* Left side, mirroring MascotOverlay's right-side pill (components/mascot/
+          MascotOverlay.tsx) so the two floating elements never overlap. */}
+      {showSaved && (
+        <div className="fixed left-4 above-nav z-30 pointer-events-none">
+          <div
+            role="status"
+            aria-live="polite"
+            className="mb-2 flex items-center gap-1.5 rounded-full bg-green text-paper text-xs font-medium px-3 py-1.5 shadow-card animate-fade-in"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            {t('settings.notices.savedToast')}
+          </div>
+        </div>
+      )}
     </>
   );
 }
