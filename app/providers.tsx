@@ -158,7 +158,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         {uid && <LegacyClaimBanner />}
         {uid && <SyncScheduler />}
         {children}
-        {/* Guests get the dragon too (docs/decision.md ADR-030) — unlike the two
+        {/* Guests get the mascot too (docs/decision.md ADR-030) — unlike the two
             rows above, it's not account-specific, so it isn't gated on `uid`. */}
         <MascotOverlay />
       </Fragment>

@@ -29,6 +29,13 @@
   --amber-ink: #7A5320;
   --wrong: #9C4A3F;
 
+  /* Mascot only (components/mascot/Mascot.tsx, docs/decision.md ADR-030) — a
+     dedicated pair kept separate from --green so the app's own accent stays a
+     single hue; only the mascot illustration uses this pair. Currently a
+     lighter, softer green than --green itself. */
+  --mascot-fill: #5EA382;
+  --mascot-fill-wash: #E4F0E8;
+
   --radius-card: 16px;
   --radius-btn: 12px;
   --radius-sheet: 24px;
@@ -57,6 +64,9 @@
   --amber: #C79B5C;
   --amber-ink: #C79B5C; /* on dark washes this already clears AA (5.7:1) */
   --wrong: #C4736A;
+
+  --mascot-fill: #8FC7A8;
+  --mascot-fill-wash: #26362D;
 
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
 
@@ -193,73 +203,57 @@
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Dragon mascot (docs/decision.md ADR-030) — components/mascot/Dragon.tsx. Plain
-   CSS keyframes, same convention as fadeIn/slideUp above; the global
+/* Mascot (docs/decision.md ADR-030) — components/mascot/Mascot.tsx. Plain CSS
+   keyframes, same convention as fadeIn/slideUp above; the global
    prefers-reduced-motion rule in @layer base already forces every animation here
    down to 0.01ms, so these need no reduced-motion handling of their own. */
-@keyframes dragonFloat {
+@keyframes mascotFloat {
   0%, 100% { transform: translateY(0) rotate(-2deg); }
   50% { transform: translateY(-6px) rotate(2deg); }
 }
 
-@keyframes dragonBounce {
+@keyframes mascotBounce {
   0%, 100% { transform: translateY(0) scale(1); }
   30% { transform: translateY(-10px) scale(1.05); }
   55% { transform: translateY(0) scale(0.97); }
   75% { transform: translateY(-4px) scale(1.02); }
 }
 
-@keyframes dragonSad {
+@keyframes mascotSad {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   50% { transform: translateY(3px) rotate(-4deg); }
 }
 
-@keyframes dragonWingFlap {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(-22deg); }
+@keyframes mascotTongueFlick {
+  0%, 100% { transform: scaleY(1); opacity: 1; }
+  50% { transform: scaleY(1.3); opacity: 0.7; }
 }
 
-@keyframes dragonTailWag {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(10deg); }
-}
-
-@keyframes dragonSparkle {
+@keyframes mascotSparkle {
   0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
   50% { opacity: 1; transform: scale(1) rotate(90deg); }
 }
 
-.dragon-idle {
-  animation: dragonFloat 3.2s ease-in-out infinite;
+.mascot-idle {
+  animation: mascotFloat 3.2s ease-in-out infinite;
   transform-origin: 50% 50%;
 }
 
-.dragon-happy,
-.dragon-excited {
-  animation: dragonBounce 0.9s ease-in-out infinite;
+.mascot-happy,
+.mascot-excited {
+  animation: mascotBounce 0.9s ease-in-out infinite;
   transform-origin: 50% 100%;
 }
 
-.dragon-sad {
-  animation: dragonSad 2.6s ease-in-out infinite;
+.mascot-sad {
+  animation: mascotSad 2.6s ease-in-out infinite;
   transform-origin: 50% 50%;
 }
 
-.dragon-wing-left {
-  animation: dragonWingFlap 1.6s ease-in-out infinite;
-  transform-origin: 62% 42%;
+.mascot-tongue {
+  animation: mascotTongueFlick 1.4s ease-in-out infinite;
 }
 
-.dragon-wing-right {
-  animation: dragonWingFlap 1.6s ease-in-out infinite 0.15s;
-  transform-origin: 38% 42%;
-}
-
-.dragon-tail {
-  animation: dragonTailWag 2.2s ease-in-out infinite;
-  transform-origin: 28% 68%;
-}
-
-.dragon-sparkle {
-  animation: dragonSparkle 1.1s ease-in-out infinite;
+.mascot-sparkle {
+  animation: mascotSparkle 1.1s ease-in-out infinite;
 }

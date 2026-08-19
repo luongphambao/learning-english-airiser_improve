@@ -4,12 +4,12 @@ import { useRef, useState } from 'react';
 import { useProfile } from '@/hooks/use-profile';
 import { useDailyPlan } from '@/hooks/use-daily-plan';
 import { useT } from '@/hooks/use-i18n';
-import { Dragon, type DragonMood } from './Dragon';
+import { Mascot, type MascotMood } from './Mascot';
 
 const BUBBLE_TIMEOUT_MS = 4500;
 
 /**
- * The floating dragon mascot mounted once in app/providers.tsx, next to
+ * The floating mascot mounted once in app/providers.tsx, next to
  * LegacyClaimBanner/SyncScheduler, so it survives every route change instead
  * of remounting per page (docs/decision.md ADR-030). Purely a motivational
  * nudge — it reads real stats/plan data already computed for Today
@@ -24,7 +24,7 @@ export function MascotOverlay() {
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const remaining = plan.dueCount + plan.freshCount;
-  const mood: DragonMood = remaining === 0 && plan.totalWords > 0 ? 'happy' : 'idle';
+  const mood: MascotMood = remaining === 0 && plan.totalWords > 0 ? 'happy' : 'idle';
 
   function pickLine(): string {
     if (plan.totalWords === 0) {
@@ -71,7 +71,7 @@ export function MascotOverlay() {
         aria-expanded={open}
         className="pointer-events-auto rounded-full hover:scale-105 active:scale-95 transition-transform cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-green focus-visible:outline-offset-2"
       >
-        <Dragon mood={mood} size={52} />
+        <Mascot mood={mood} size={52} />
       </button>
     </div>
   );

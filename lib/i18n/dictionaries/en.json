@@ -650,15 +650,15 @@
     }
   },
   "mascot": {
-    "ariaLabel": "Your dragon companion",
-    "closeAria": "Dismiss the dragon's message",
+    "ariaLabel": "Your snake companion",
+    "closeAria": "Dismiss the snake's message",
     "linesCaughtUp1": "Well done! You're all caught up for today.",
     "linesCaughtUp2": "Awesome! No more words due for review.",
     "linesCaughtUp3": "Great job! See you again tomorrow.",
     "linesEncourage1": "Keep going! Your {{streak}}-day streak is waiting.",
     "linesEncourage2": "Review a few words today to keep your {{streak}}-day streak!",
     "linesEncourage3": "You're doing great. Keep it up!",
-    "linesStart1": "Hi! I'm your English-learning dragon.",
+    "linesStart1": "Hi! I'm your English-learning snake.",
     "linesStart2": "Let's learn your first word!",
     "linesStart3": "Let's conquer English together!",
     "practiceCorrect": "Nailed it!",

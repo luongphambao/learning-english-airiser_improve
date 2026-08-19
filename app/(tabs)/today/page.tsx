@@ -8,7 +8,7 @@ import { useTopupStore } from '@/stores/topup-store';
 import { useT } from '@/hooks/use-i18n';
 import { useIsGuest } from '@/hooks/use-access';
 import { Button } from '@/components/Button';
-import { Dragon } from '@/components/mascot/Dragon';
+import { Mascot } from '@/components/mascot/Mascot';
 import { FileText, Upload, ChevronRight, Flame, Trophy, CalendarDays, Sparkles } from 'lucide-react';
 
 // Home — answers "what should I do next?" instead of auto-starting a session
@@ -87,7 +87,7 @@ export default function TodayPage() {
           {/* Decorative — the streak numbers right below already say the same
               thing to assistive tech, so this stays out of the a11y tree. */}
           <div className="pointer-events-none absolute -top-3 -right-2 z-10">
-            <Dragon mood="idle" size={40} />
+            <Mascot mood="idle" size={40} />
           </div>
           <Link
             href="/progress"

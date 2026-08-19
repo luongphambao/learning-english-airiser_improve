@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Word } from '@/types';
 import { Button } from './Button';
-import { Dragon } from './mascot/Dragon';
+import { Mascot } from './mascot/Mascot';
 import { useT } from '@/hooks/use-i18n';
 
 interface ExerciseRecallProps {
@@ -65,7 +65,7 @@ export function ExerciseRecall({ word, onAnswer }: ExerciseRecallProps) {
                 isCorrect ? 'bg-green-wash text-green border-green/30' : 'bg-wrong/10 text-wrong border-wrong/30'
               }`}
             >
-              <Dragon mood={isCorrect ? 'happy' : 'sad'} size={32} />
+              <Mascot mood={isCorrect ? 'happy' : 'sad'} size={32} />
               <span>
                 {isCorrect ? t('exercise.recall.correctFeedback') : <>{t('exercise.recall.answerIsLabel')} <span lang="en">{word.word}</span></>}
               </span>

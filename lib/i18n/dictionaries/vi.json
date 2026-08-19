@@ -650,15 +650,15 @@
     }
   },
   "mascot": {
-    "ariaLabel": "Rồng bạn đồng hành",
-    "closeAria": "Đóng lời nhắn của rồng",
+    "ariaLabel": "Rắn bạn đồng hành",
+    "closeAria": "Đóng lời nhắn của rắn",
     "linesCaughtUp1": "Giỏi lắm! Hôm nay bạn đã học xong rồi.",
     "linesCaughtUp2": "Tuyệt vời! Không còn từ nào chờ ôn nữa.",
     "linesCaughtUp3": "Làm tốt lắm! Hẹn gặp lại vào ngày mai nhé.",
     "linesEncourage1": "Cố lên! Chuỗi {{streak}} ngày đang chờ bạn tiếp tục.",
     "linesEncourage2": "Ôn vài từ hôm nay để giữ chuỗi {{streak}} ngày nhé!",
     "linesEncourage3": "Bạn đang làm rất tốt. Tiếp tục nào!",
-    "linesStart1": "Chào bạn! Mình là rồng học tiếng Anh của bạn.",
+    "linesStart1": "Chào bạn! Mình là rắn học tiếng Anh của bạn.",
     "linesStart2": "Bắt đầu học từ đầu tiên nào!",
     "linesStart3": "Cùng nhau chinh phục tiếng Anh nhé!",
     "practiceCorrect": "Chuẩn không cần chỉnh!",

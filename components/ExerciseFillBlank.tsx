@@ -4,7 +4,7 @@ import { WordCard } from './WordCard';
 import { Button } from './Button';
 import { optionsForWord } from '@/lib/text/shuffle';
 import { splitForBlank } from '@/lib/text/blank';
-import { Dragon } from './mascot/Dragon';
+import { Mascot } from './mascot/Mascot';
 import { useT } from '@/hooks/use-i18n';
 
 interface ExerciseFillBlankProps {
@@ -115,7 +115,7 @@ export function ExerciseFillBlank({ word, onAnswer }: ExerciseFillBlankProps) {
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="flex items-center gap-1.5 text-xs font-mono-utility text-wrong">
-                <Dragon mood="sad" size={24} />
+                <Mascot mood="sad" size={24} />
                 {t('exercise.fillBlank.incorrectLabel')}
               </span>
               <span className="text-xs font-mono-utility text-ink-soft">{t('exercise.fillBlank.answerLabel', { word: word.word })}</span>

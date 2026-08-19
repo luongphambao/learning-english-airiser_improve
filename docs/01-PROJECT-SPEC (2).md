@@ -31,7 +31,7 @@
 ### Non-goals (do NOT build these, ever, unless explicitly asked)
 
 - Friends, social feed, sharing, thông báo đẩy (bảng xếp hạng: đã được yêu cầu trực tiếp — xem ADR-023 rồi ADR-025; số liệu **thật** của người dùng thật qua collection `leaderboard/{uid}` riêng, nhưng chỉ số liệu tổng hợp + tên hiển thị, không sổ tay, không email; vẫn không có bạn bè/theo dõi/chia sẻ/thông báo/cập nhật thời gian thực)
-- XP, coins, shops, avatars, or any collectible economy (mascot: đã được yêu cầu trực tiếp — xem ADR-030; một linh vật rồng CSS/SVG duy nhất, không phải hệ animal/skin sưu tầm được)
+- XP, coins, shops, avatars, or any collectible economy (mascot: đã được yêu cầu trực tiếp — xem ADR-030; một linh vật rắn CSS/SVG duy nhất, không phải hệ animal/skin sưu tầm được)
 - Multiple learning languages (English only)
 - Real-time voice conversation / Live API (phase 2)
 - Charts, graphs, or any charting library. The Tiến độ screen is numbers and text only (§8.4)

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Word } from '@/types';
 import { Volume2, RefreshCw } from 'lucide-react';
 import { Button } from './Button';
-import { Dragon } from './mascot/Dragon';
+import { Mascot } from './mascot/Mascot';
 import { optionsForWord } from '@/lib/text/shuffle';
 import { fetchSpeech } from '@/lib/api/ai-client';
 import { useT } from '@/hooks/use-i18n';
@@ -139,7 +139,7 @@ export function ExerciseListen({ word, onAnswer }: ExerciseListenProps) {
       {showAnswer && (
         <div aria-live="polite" className="mb-6 p-4 rounded-card bg-paper border border-rule text-center animate-fade-in">
           <div className="flex justify-center mb-1">
-            <Dragon mood={isCorrect ? 'happy' : 'sad'} size={32} />
+            <Mascot mood={isCorrect ? 'happy' : 'sad'} size={32} />
           </div>
           <p lang="en" className="font-serif-display text-2xl text-ink mb-1">{word.word}</p>
           <p lang="en" className="text-sm text-ink-soft italic mb-2">&ldquo;{word.exampleSentence}&rdquo;</p>

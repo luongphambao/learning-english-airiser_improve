@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Word } from '@/types';
 import { Button } from './Button';
 import { Loader2 } from 'lucide-react';
-import { Dragon } from './mascot/Dragon';
+import { Mascot } from './mascot/Mascot';
 import { callTask } from '@/lib/api/ai-client';
 import { ApiError } from '@/lib/api/client';
 import { useT } from '@/hooks/use-i18n';
@@ -113,7 +113,7 @@ export function ExerciseWrite({ word, onAnswer, contextTopic = 'software enginee
       {result && (
         <div aria-live="polite" className="mt-5 pt-4 border-t border-rule animate-fade-in">
           <div className="flex items-center gap-2 mb-2">
-            <Dragon mood={result.isCorrect ? 'happy' : 'sad'} size={28} />
+            <Mascot mood={result.isCorrect ? 'happy' : 'sad'} size={28} />
             <span
               className={`font-medium text-sm ${
                 result.isCorrect ? 'text-green' : 'text-wrong'
